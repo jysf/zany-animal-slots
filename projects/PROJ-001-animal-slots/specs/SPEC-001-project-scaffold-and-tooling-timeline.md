@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-001-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-18
-- [~] **build** — prompt: `prompts/SPEC-001-build.md` — built locally 2026-06-18, push/PR pending review
-- [ ] **verify** — prompt: pending (waiting on build)
+- [x] **build** — prompt: `prompts/SPEC-001-build.md` — PR #1, build cost 91,115 tok (~$3, Opus), completed 2026-06-18
+- [~] **verify** — prompt: pending (reviewing PR #1)
 - [ ] **ship** — prompt: pending (waiting on verify)

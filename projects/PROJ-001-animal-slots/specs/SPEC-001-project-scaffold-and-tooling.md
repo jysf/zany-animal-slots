@@ -7,7 +7,7 @@
 task:
   id: SPEC-001
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: M                    # S | M | L  (L means split it)
@@ -238,7 +238,7 @@ rather than expanding this one:
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
 - **Branch:** `feat/spec-001-project-scaffold-and-tooling`
-- **PR (if applicable):** pending — not pushed (held for human review)
+- **PR (if applicable):** #1 — https://github.com/jysf/zany-animal-slots/pull/1
 - **All acceptance criteria met?** yes — both Vitest tests pass; `just typecheck`,
   `just lint`, `just test`, `just build` all exit 0; the `engine-no-dom` rule
   was confirmed to fire `no-restricted-imports` on a React import from
