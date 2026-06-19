@@ -1,0 +1,93 @@
+/*
+ * Design tokens — Wild & Whimsical campfire theme.
+ *
+ * Naming convention: --<category>-<name>
+ *   --color-*        Semantic color values
+ *   --font-family-*  Font-stack declarations
+ *   --font-size-*    Type scale (rem, ~1.25 modular)
+ *   --line-height-*  Vertical rhythm
+ *   --font-weight-*  Numeric weight values
+ *   --space-*        Spacing scale (rem, 4px base)
+ *
+ * Consuming components use var(--token) only — never hard-coded hex/px for
+ * themed values. This is the seam that PROJ-002's theme-swap will replace.
+ */
+
+/* ─── Raw palette (unexposed — only semantic tokens below are the contract) ─── */
+:root {
+  --_raw-night:      #1a1008;   /* deep night-sky charcoal */
+  --_raw-bark:       #3b2310;   /* dark bark brown */
+  --_raw-wood:       #5c3317;   /* warm wood brown */
+  --_raw-cedar:      #7a4a22;   /* lighter cedar */
+  --_raw-cream:      #f5e6c8;   /* warm cream (text) */
+  --_raw-muted:      #b89a6e;   /* muted tan */
+  --_raw-campfire:   #f4721e;   /* campfire orange (accent / spin) */
+  --_raw-gold:       #f0c040;   /* coin gold */
+  --_raw-forest:     #2e7d32;   /* forest green (small win) */
+  --_raw-amber:      #ff8f00;   /* bright amber (big win) */
+  --_raw-jackpot:    #ffd700;   /* pure gold (jackpot text) */
+  --_raw-sky:        #0d1b3e;   /* deep midnight blue (jackpot sky) */
+}
+
+/* ─── Color tokens ──────────────────────────────────────────────────────────── */
+:root {
+  --color-bg:          var(--_raw-night);
+  --color-surface:     var(--_raw-bark);
+  --color-frame:       var(--_raw-wood);
+  --color-text:        var(--_raw-cream);
+  --color-text-muted:  var(--_raw-muted);
+  --color-accent:      var(--_raw-campfire);
+  --color-coin:        var(--_raw-gold);
+  --color-win-small:   var(--_raw-forest);
+  --color-win-big:     var(--_raw-amber);
+  --color-jackpot:     var(--_raw-jackpot);
+  --color-jackpot-sky: var(--_raw-sky);
+}
+
+/* ─── Type-family tokens ────────────────────────────────────────────────────── */
+:root {
+  /* System display stack: prefers rounded/playful system fonts */
+  --font-family-display: ui-rounded, "Hiragino Maru Gothic ProN", "Nunito",
+    "Varela Round", system-ui, sans-serif;
+
+  /* System body stack: clear, neutral, readable */
+  --font-family-body: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ─── Type-size tokens (~1.25 modular scale, base 1rem = 16px) ──────────────── */
+:root {
+  --font-size-xs:   0.64rem;   /* ~10px */
+  --font-size-sm:   0.8rem;    /* ~13px */
+  --font-size-base: 1rem;      /* 16px  */
+  --font-size-lg:   1.25rem;   /* ~20px */
+  --font-size-xl:   1.563rem;  /* ~25px */
+  --font-size-2xl:  1.953rem;  /* ~31px */
+  --font-size-3xl:  2.441rem;  /* ~39px — big-win / jackpot numbers */
+}
+
+/* ─── Line-height tokens ────────────────────────────────────────────────────── */
+:root {
+  --line-height-tight: 1.2;
+  --line-height-base:  1.5;
+}
+
+/* ─── Font-weight tokens ────────────────────────────────────────────────────── */
+:root {
+  --font-weight-normal: 400;
+  --font-weight-bold:   700;
+  --font-weight-black:  900;
+}
+
+/* ─── Spacing tokens (4px base: --space-N = N × 0.25rem) ───────────────────── */
+:root {
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px  */
+  --space-2: 0.5rem;    /* 8px  */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.5rem;    /* 24px */
+  --space-6: 2rem;      /* 32px */
+  --space-7: 3rem;      /* 48px */
+  --space-8: 4rem;      /* 64px */
+}

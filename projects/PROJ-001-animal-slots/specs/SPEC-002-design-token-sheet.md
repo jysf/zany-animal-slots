@@ -45,6 +45,14 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 35
+      recorded_at: 2026-06-19
+      notes: "metered build subagent (Sonnet); orchestrator to fill tokens_total from subagent_tokens"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -201,26 +209,43 @@ expanding this one:
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-002-design-token-sheet`
+- **PR (if applicable):** pending — not pushed (held for human review)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - The spec describes the Failing Tests as using `fs.readFileSync` (which works
+    at runtime in Vitest's Node environment). However, the project has no
+    `@types/node` installed, so TypeScript could not type-check those imports.
+    Resolution: added `src/test/node-test-types.d.ts` with minimal ambient
+    declarations for `fs`, `path`, and `__dirname` (no new npm package — pure
+    `.d.ts` file). A `?raw` import alternative was explored but Vite transforms
+    CSS files in the jsdom environment, returning an empty string; the `fs`
+    approach is correct. The tests themselves are spec-faithful.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - Consider adding `@types/node` as a devDependency (with a DEC) for future
+    test files that need Node APIs — the minimal ambient approach works but is a
+    workaround, not a permanent solution.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The Failing Tests section specifies `fs.readFileSync` but the project setup
+   lacks `@types/node`, causing tsc failures. The spec doesn't mention this gap.
+   Resolving it without adding a new package (per "no new dependencies") required
+   investigation into `?raw` imports (which fail for CSS in jsdom) before landing
+   on the minimal ambient `.d.ts` workaround.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — A constraint or note about the absence of `@types/node` would have saved
+   time. The "no new dependencies" rule interacts with `@types/node` (which is a
+   devDependency, not a runtime dependency) in a way the spec doesn't address.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Install `@types/node` as a devDependency from the start in SPEC-001 (the
+   scaffold spec) so future test files can use Node APIs freely. It's a near-
+   universal need in any Vitest project that reads files from the filesystem.
 
 ---
 
