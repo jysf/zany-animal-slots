@@ -1,0 +1,48 @@
+name: CI
+
+# Language-agnostic spec-driven gates. The cost-capture audit runs on every
+# push/PR (AGENTS.md §4 / docs/cost-tracking.md). Your app's build/test/lint
+# jobs are project-specific — add them here per your stack. A license-policy
+# job is optional and per-language; see docs/license-policy.md to wire one in.
+on:
+  push:
+  pull_request:
+
+jobs:
+  cost-data:
+    name: cost-capture audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: cost-audit (shipped specs have build/verify cost; AGENTS §4)
+        run: ./scripts/cost-audit.sh
+
+  app-checks:
+    name: app checks (lint / typecheck / test / build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
