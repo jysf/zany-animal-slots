@@ -26,3 +26,5 @@ last, accumulating across every project (wave of work). Append one-liners with
 - 2026-06-18 — framed PROJ-001 and wired app commands + dogfood tracking into the justfile
 - 2026-06-18 — switched brag to a repo-wide log keyed to zany-animal-slots
 - 2026-06-18 — shipped SPEC-001: Vite+React+TS scaffold with the engine-no-dom boundary enforced before any engine code; build on Opus, verify on Sonnet, PR #1 squash-merged
+- 2026-06-18 — completed the first full design→build→verify→ship loop (SPEC-001) — a PROJ-001 success criterion met; cycle structure didn't fight the work, friction was all in template plumbing (9 dogfood findings, 5 fixed live)
+- 2026-06-18 — added STAGE-006 (release & deploy to Cloudflare Pages, DEC-008) and a model-per-cycle convention (Opus for design, Sonnet for build/verify — verify came in ~6x cheaper per token)
