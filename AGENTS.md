@@ -121,7 +121,7 @@ Reports aggregate cost by cycle, by interface, by spec, and by stage.
 - **Database:** None. Client-only SPA; the only persistent state is two `localStorage` keys (balance, mute).
 - **Testing:** Vitest + React Testing Library. The engine (`src/engine/**`) is tested with plain Vitest, no DOM.
 - **Linter / Formatter:** ESLint (incl. the `no-restricted-imports` import-boundary rule enforcing `engine-no-dom`) + Prettier.
-- **Hosting:** Static SPA (Vite build). Optional deploy to GitHub Pages or Vercel is out of scope for the MVP unless trivial.
+- **Hosting:** Static SPA (Vite build) deployed to **Cloudflare Pages**, via CI on merge to `main` (STAGE-006; see DEC-008). Security headers via a Pages `_headers` file.
 - **CI:** GitHub Actions — lint + typecheck + test on every PR (plus the `cost-data` audit job).
 
 ---
@@ -206,6 +206,14 @@ frame → design → build → verify → ship
 A fresh session prevents design-phase context from contaminating build
 decisions, and a fresh verify session catches drift a continuation
 session wouldn't.
+
+**Model per cycle.** Frame and design are judgement-heavy planning — run them
+on **Opus** (claude-opus-4-8). Build and verify are execution against a detailed
+spec and a cold review against fixed criteria — run them on **Sonnet**
+(claude-sonnet-4-6): capable, faster, and cheaper for that work. When a cycle is
+run as a sub-agent, pass the model explicitly so it doesn't silently inherit the
+orchestrator's model. A spec's `agents.implementer` records the model that
+actually ran.
 
 Project and stage lifecycles are lighter:
 - **Project status:** `proposed | active | shipped | cancelled`

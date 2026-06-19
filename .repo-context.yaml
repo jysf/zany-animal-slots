@@ -27,7 +27,7 @@ spec:
     runtime: "node-20"
     framework: "react-18-vite"
     database: "none"                  # client-only SPA; balance + mute in localStorage
-    hosting: "static-spa"             # optional GitHub Pages / Vercel, out of MVP scope unless trivial
+    hosting: "cloudflare-pages"       # static SPA, deployed via CI on merge (STAGE-006; DEC-008)
 
   # Standard paths; do not change without also updating AGENTS.md.
   paths:

@@ -71,6 +71,8 @@ before we trust it on harder work.
   without the cycle structure fighting the animation work.
 - The first weekly review surfaces at least one concrete, actionable template
   improvement (the dogfood payoff).
+- The game is deployed and publicly playable at a URL (Cloudflare Pages),
+  served with sensible security headers and an automated deploy on merge.
 
 ## Scope
 
@@ -88,6 +90,8 @@ before we trust it on harder work.
 - Design-token system (colors, type scale, spacing as CSS custom properties).
 - Portrait-first layout that also centers nicely in a device frame on desktop.
 - Emoji symbols (placeholder art).
+- Public deployment to Cloudflare Pages with security headers, a CI deploy on
+  merge, and a dependency/license audit gate (STAGE-006). See `DEC-008`.
 
 ### Explicitly out of scope (v1)
 - Real money / IAP / payments of any kind. (See constraint `no-real-money`.)
@@ -106,8 +110,9 @@ before we trust it on harder work.
 - [ ] STAGE-003 (pending) — Reels UI & spin flow (wire engine to UI; grid, spin button, bet controls, auto-spin; idle → spinning → stopped with reel-stop bounce).
 - [ ] STAGE-004 (pending) — Win celebration & juice (small/big/jackpot states, payline trail, particles, wolf jackpot moment, balance count-up, tier-scaled win jingle + mute).
 - [ ] STAGE-005 (stretch) — Audio suite, a11y, polish (full audio suite, prefers-reduced-motion, contrast/44px audit, colorblind-safe shapes, perf pass).
+- [ ] STAGE-006 (pending) — Release & deploy (Cloudflare Pages deploy via CI on merge, security headers/CSP, dependency+license audit gate, SECURITY.md, prod smoke check).
 
-**Count:** 0 shipped / 1 active / 4 pending
+**Count:** 0 shipped / 1 active / 5 pending
 
 ## Dependencies
 

@@ -19,8 +19,8 @@ repo:
   id: __REPO_ID__
 
 agents:
-  architect: claude-opus-4-7
-  implementer: claude-opus-4-7     # usually same Claude, different session
+  architect: claude-opus-4-8       # design/frame: Opus (judgement-heavy). See AGENTS §8.
+  implementer: claude-sonnet-4-6   # build/verify: Sonnet (execution against the spec)
   created_at: __TODAY__
 
 references:
