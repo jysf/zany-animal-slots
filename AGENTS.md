@@ -377,10 +377,12 @@ Output: ✅ APPROVED / ⚠ PUNCH LIST / ❌ REJECTED.
 
 Append `## Reflection` to spec. Three answers. Append a ship cost
 session entry, then compute `cost.totals`. **Capture at least one
-accomplishment** in the repo brag log — `just brag "..."` (or the `brag`
-CLI if you use it). This is required, not optional: it is the running,
-app-level record (`./ACCOMPLISHMENTS.md`) that survives across projects,
-distinct from the per-spec `## Reflection`. Then
+accomplishment** with `just brag "..."` — required, not optional. It
+records to the Bragfile CLI (`brag add`; local-first db at
+`~/.bragfile/db.sqlite`), auto-associated with this repo's project; if
+the `brag` CLI isn't installed it falls back to a repo `ACCOMPLISHMENTS.md`.
+This is the running, cross-project record, distinct from the per-spec
+`## Reflection`. View entries with `brag list` / `brag review`. Then
 `just archive-spec SPEC-NNN`. If stage backlog is complete, run the
 Stage Ship prompt (which captures a milestone brag of its own).
 
@@ -432,7 +434,7 @@ Most decisions should land between 0.7 and 0.95. 1.0 only for truly locked choic
 - Templates: `/projects/_templates/`
 - Architecture: `/docs/architecture.md`
 - Feedback: `/feedback/` (capture with `just new-feedback "<slug>"`)
-- Accomplishments (brag log): `/ACCOMPLISHMENTS.md` (append with `just brag "..."`; required at ship)
+- Accomplishments: the Bragfile CLI (`brag list` / `brag review`). `just brag "..."` records there (falls back to `/ACCOMPLISHMENTS.md` if the `brag` CLI is absent); required at ship.
 - Reports: `/reports/` (daily, weekly)
 - Timelines: `/projects/*/specs/SPEC-NNN-*-timeline.md` (per-spec)
 - Cycle prompts: `/projects/*/specs/prompts/`

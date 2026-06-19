@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# scripts/brag.sh — append an accomplishment to the repo-wide brag log.
+# scripts/brag.sh — record an accomplishment.
 # Usage: brag.sh "what you accomplished"
 #
-# The brag log is ./ACCOMPLISHMENTS.md at the repo root: a single running,
-# newest-last list of notable things achieved in this app (zany-animal-slots),
-# accumulating across every project/wave of work. Entries may reference the
-# project they came from. Promote highlights into stage/project reflections at
-# ship time.
+# Prefers the Bragfile CLI (`brag`, https://github.com/ — local-first SQLite at
+# ~/.bragfile/db.sqlite) so entries land in the user's real brag corpus,
+# auto-associated with this repo's project (brag detects it from cwd). If the
+# `brag` CLI isn't installed, falls back to appending a line to ./ACCOMPLISHMENTS.md
+# so the template stays portable for people without the CLI.
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,20 +19,26 @@ if [ -z "$MESSAGE" ]; then
     die "Usage: just brag \"what you accomplished\""
 fi
 
-REPO_NAME="$(basename "$REPO_ROOT")"
+if command -v brag >/dev/null 2>&1; then
+    # Real Bragfile CLI. Project is auto-detected from the working directory
+    # (see `brag project here`); pass --title only.
+    brag add --title "$MESSAGE"
+    success "Recorded in the Bragfile db (brag list)."
+    exit 0
+fi
+
+# Fallback: no brag CLI — append to a repo-local markdown log.
 BRAG_FILE="${REPO_ROOT}/ACCOMPLISHMENTS.md"
 if [ ! -f "$BRAG_FILE" ]; then
     cat > "$BRAG_FILE" <<EOF
-# Accomplishments — ${REPO_NAME}
+# Accomplishments — $(basename "$REPO_ROOT")
 
-A running brag log for this app: notable things shipped or achieved, newest
-last, accumulating across every project (wave of work). Append with
-\`just brag "..."\`. Promote highlights into stage/project reflections at ship time.
+A running brag log (fallback when the \`brag\` CLI isn't installed): notable
+things shipped or achieved, newest last. Append with \`just brag "..."\`.
 
 ## Log
 
 EOF
 fi
-
 printf -- '- %s — %s\n' "$(today)" "$MESSAGE" >> "$BRAG_FILE"
-success "Bragged to ${BRAG_FILE#"${REPO_ROOT}/"}"
+success "brag CLI not found — appended to ${BRAG_FILE#"${REPO_ROOT}/"} instead."
