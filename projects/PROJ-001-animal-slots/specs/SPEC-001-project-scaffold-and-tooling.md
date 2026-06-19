@@ -45,8 +45,7 @@ cost:
     - cycle: design
       agent: claude-opus-4-8
       interface: claude-code
-      tokens_input: null
-      tokens_output: null
+      tokens_total: null
       estimated_usd: null
       duration_minutes: 30
       recorded_at: 2026-06-18
@@ -54,12 +53,11 @@ cost:
     - cycle: build
       agent: claude-opus-4-8
       interface: claude-code
-      tokens_input: null
-      tokens_output: null
-      estimated_usd: null
-      duration_minutes: 20
+      tokens_total: 91115
+      estimated_usd: 3.0
+      duration_minutes: 22
       recorded_at: 2026-06-18
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "metered build subagent (subagent_tokens=91115, ~1309s); estimated_usd is order-of-magnitude at an assumed ~$33/M Opus-class blended rate, no cache discount (AGENTS §4)"
   totals:
     tokens_total: 0
     estimated_usd: 0
