@@ -7,7 +7,7 @@
 task:
   id: SPEC-003
   type: story                      # epic | story | task | bug | chore
-  cycle: verify  # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: M                    # S | M | L  (L means split it)
@@ -66,9 +66,9 @@ cost:
       recorded_at: 2026-06-19
       notes: "metered verify subagent (Sonnet, subagent_tokens=58177); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 120476
+    estimated_usd: 0.79
+    session_count: 3
 ---
 
 # SPEC-003: Four-region portrait layout
@@ -261,10 +261,21 @@ expanding this one:
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Keep the spec's **Outputs** and **Failing Tests** sections in sync — they
+   disagreed here (Outputs listed `regions.test.tsx`; Failing Tests put the
+   assertions in `App.test.tsx`), and the build had to pick (it correctly
+   followed Failing Tests). A design-time self-check that the two agree would
+   remove that ambiguity. Otherwise this was the smoothest spec yet: build →
+   verify → visual check all clean, no rework.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No new constraint. The visual preview check (screenshot at phone + desktop
+   widths before push) proved its worth for a layout spec and is worth doing for
+   every visual spec going forward. DEC-010 is now the binding styling
+   convention for SPEC-004 and all of STAGE-003/004.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — **SPEC-004 (desktop device frame)** is next and completes STAGE-001. Two
+   small non-spec follow-ups: commit `.claude/launch.json` to `main` as dev
+   tooling, and (optional) a rebrand pass so the docs/brief say "Zany Animal
+   Slots" to match the UI title.
