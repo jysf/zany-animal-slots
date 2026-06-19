@@ -49,6 +49,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 15
+      recorded_at: 2026-06-19
+      notes: "metered build subagent (Sonnet); orchestrator to fill tokens_total from subagent_tokens"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -217,26 +225,26 @@ expanding this one:
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-003-four-region-layout
+- **PR (if applicable):** pending — not pushed (held for human review)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - The spec listed `src/ui/regions/regions.test.tsx` as a separate file but the spec's Failing Tests placed them in `src/ui/App.test.tsx`; only `App.test.tsx` was updated (per the explicit Failing Tests section) — no separate `regions.test.tsx` was created, consistent with the spec text.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - SPEC-004 (desktop device-frame wrapper) — already noted in the stage backlog.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The Outputs section listed `src/ui/regions/regions.test.tsx` as a new file, but the Failing Tests section placed the structure tests directly in `src/ui/App.test.tsx`. A small ambiguity, quickly resolved by following the Failing Tests section (the authoritative list).
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints or decisions; DEC-010's BEM-ish prefix guidance and DEC-001's "no engine imports" covered everything encountered.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material; the spec was clear and complete. A tiny clarification in the Outputs section ("update App.test.tsx; do not create a separate regions.test.tsx") would remove the ambiguity above.
 
 ---
 

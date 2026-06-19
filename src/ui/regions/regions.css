@@ -1,0 +1,93 @@
+/*
+ * Cabinet layout — four-region portrait shell.
+ *
+ * Consumes design tokens from src/styles/tokens.css via var(--…).
+ * Class names are prefixed .cabinet / .cabinet__* (DEC-010, BEM-ish).
+ * No raw hex color literals anywhere — themed values are tokens.
+ *
+ * Regions:
+ *   .cabinet__header  — top branding bar, content-sized.
+ *   .cabinet__game    — central play area, flex:1 to fill remaining height.
+ *   .cabinet__status  — balance/bet readout, content-sized.
+ *   .cabinet__action  — controls bar, content-sized, ≥44px reserved (touch-targets-44).
+ *
+ * Portrait-first (constraint: portrait-first): primary layout is 375–430px.
+ * Desktop: cabinet is centered with a sensible max-width (device frame is SPEC-004).
+ */
+
+/* ─── Cabinet wrapper ───────────────────────────────────────────────────────── */
+
+.cabinet {
+  /* Full viewport height: dvh with vh fallback for older browsers. */
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  display: flex;
+  flex-direction: column;
+
+  /* Token-driven background so the whole viewport is themed. */
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+
+  /* Center on desktop; portrait-first so max-width is the width of a phone. */
+  width: 100%;
+  max-width: 430px;
+  margin-inline: auto;
+}
+
+/* ─── Header region ─────────────────────────────────────────────────────────── */
+
+.cabinet__header {
+  background-color: var(--color-surface);
+  padding: var(--space-3) var(--space-4);
+  text-align: center;
+  /* Content-sized: no flex-grow, no flex-shrink override needed. */
+}
+
+.cabinet__title {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-black);
+  line-height: var(--line-height-tight);
+  color: var(--color-accent);
+  margin: var(--space-0);
+}
+
+/* ─── Game region ───────────────────────────────────────────────────────────── */
+
+.cabinet__game {
+  flex: 1;                          /* Take all remaining vertical space. */
+  background-color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+}
+
+/* ─── Status region ─────────────────────────────────────────────────────────── */
+
+.cabinet__status {
+  background-color: var(--color-surface);
+  padding: var(--space-2) var(--space-4);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ─── Action region ─────────────────────────────────────────────────────────── */
+
+.cabinet__action {
+  background-color: var(--color-frame);
+  padding: var(--space-3) var(--space-4);
+
+  /*
+   * Reserve minimum 44px hit area for future controls (constraint: touch-targets-44).
+   * The controls themselves (spin, bet ±, auto-spin) land here in STAGE-003.
+   */
+  min-height: var(--space-7);       /* --space-7 = 3rem = 48px at default 16px root */
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
