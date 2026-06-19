@@ -10,4 +10,4 @@ Cycle prompts live in `prompts/SPEC-002-<cycle>.md`.
 - [x] **design** — completed 2026-06-19
 - [x] **build** — prompt: `prompts/SPEC-002-build.md` (Sonnet) — PR #2; stub→@types/node remediation (DEC-009); completed 2026-06-19
 - [x] **verify** — SHA d288f5b; approved 2026-06-19
-- [ ] **ship** — prompt: `prompts/SPEC-002-ship.md`
+- [x] **ship** — PR #2 squash-merged to main (a9b78ee); total cost 143,206 tok / ~$0.95 (3 sessions); completed 2026-06-19

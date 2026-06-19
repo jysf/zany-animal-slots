@@ -7,7 +7,7 @@
 task:
   id: SPEC-002
   type: story                      # epic | story | task | bug | chore
-  cycle: verify  # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: S                    # S | M | L  (L means split it)
@@ -64,9 +64,9 @@ cost:
       recorded_at: 2026-06-19
       notes: "metered verify subagent (Sonnet, subagent_tokens=67978); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 143206
+    estimated_usd: 0.95
+    session_count: 3
 ---
 
 # SPEC-002: Design-token sheet
@@ -264,10 +264,20 @@ expanding this one:
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Pre-provision `@types/node` in the scaffold (SPEC-001), since file-reading
+   tests are a near-universal need; that would have avoided the hand-rolled
+   stub and the review round-trip entirely. And the *design* should have noticed
+   that an `fs.readFileSync` test needs Node types the project didn't yet have —
+   a small "does the test's type-dependency exist?" check at design time.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — Surfaced a real tension: a non-interactive build agent can't emit a DEC and
+   keep moving, so `no-new-top-level-deps-without-decision` pushed it toward a
+   workaround (the stub) instead of the right dep. Captured as dogfood finding
+   #10 — the template should let a build cycle add a clearly-trivial dev
+   dependency *and* author its DEC in the same pass.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec beyond the backlog: **SPEC-003 (four-region layout)** is next
+   and consumes these tokens. When SPEC-003/004 actually need them, extend
+   `tokens.css` with radius/shadow/motion tokens (deliberately deferred here).

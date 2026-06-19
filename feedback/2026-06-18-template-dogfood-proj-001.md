@@ -118,6 +118,19 @@ appended at the bottom. Scaffold more entries with `just new-feedback "<slug>"`.
      apply." (Related to the existing bragfile note about an `archive-spec`
      stage-shipped false-positive.) `status: addressed` here; upstream open.
 
+10. **A non-interactive build agent can't satisfy `no-new-top-level-deps-without-decision`
+    without either stopping or working around it.** SPEC-002's build needed
+    `@types/node` (its file-reading test won't type-check without it), but the
+    constraint says "emit a DEC first." A sub-agent build can't pause to author a
+    DEC and resume, so it chose a hand-rolled Node-types stub instead of the right
+    dep — which review then had to undo (DEC-009 + `@types/node`, a wasted
+    round-trip).
+    - **Suggested fix (upstream):** let a build cycle add a *clearly-trivial*
+      dev dependency (types packages, test utilities) AND author its DEC in the
+      same pass, rather than forcing a stop-and-ask or a workaround. Or
+      pre-provision the obvious test-time dev deps (`@types/node`) in the scaffold
+      spec. `status: open` (process/template tension surfaced by SPEC-002).
+
 ## What worked (keep)
 
 - The `value:` (project) and `value_contribution:` (stage) blocks forced
