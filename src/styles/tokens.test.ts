@@ -8,9 +8,8 @@
  * Why fs.readFileSync and not a Vite ?raw import:
  * Vite transforms CSS files in the jsdom test environment before the ?raw
  * query can return the raw text, yielding an empty string. Reading via Node's
- * fs module is the reliable path in a Vitest Node runtime. The ambient types
- * for fs/path live in src/test/node-test-types.d.ts (no @types/node package
- * needed — only the signatures used here are declared).
+ * fs module is the reliable path in a Vitest Node runtime (Node types come from
+ * @types/node — see DEC-009).
  */
 
 import { readFileSync } from 'fs';

@@ -26,9 +26,11 @@ agents:
 references:
   decisions:
     - DEC-001
+    - DEC-009
   constraints:
     - test-before-implementation
     - one-spec-per-pr
+    - no-new-top-level-deps-without-decision
   related_specs:
     - SPEC-001
 
@@ -213,20 +215,20 @@ expanding this one:
 - **PR (if applicable):** pending — not pushed (held for human review)
 - **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none
+  - `DEC-009` — Add `@types/node` (dev) for Node-side test code.
 - **Deviations from spec:**
-  - The spec describes the Failing Tests as using `fs.readFileSync` (which works
-    at runtime in Vitest's Node environment). However, the project has no
-    `@types/node` installed, so TypeScript could not type-check those imports.
-    Resolution: added `src/test/node-test-types.d.ts` with minimal ambient
-    declarations for `fs`, `path`, and `__dirname` (no new npm package — pure
-    `.d.ts` file). A `?raw` import alternative was explored but Vite transforms
-    CSS files in the jsdom environment, returning an empty string; the `fs`
-    approach is correct. The tests themselves are spec-faithful.
+  - The Failing Tests use `fs.readFileSync`, but the project had no `@types/node`,
+    so strict `tsc --noEmit` couldn't type-check those imports. The build's
+    initial fix was a minimal hand-rolled ambient `.d.ts` stub (to avoid an
+    un-DEC'd dependency). On review this was **replaced** with the idiomatic
+    fix: `@types/node` as a devDependency + `"node"` in `tsconfig` `types`,
+    recorded as **DEC-009** (the build's own reflection recommended this). The
+    stub (`src/test/node-test-types.d.ts`) was removed. A `?raw` import was
+    explored but Vite transforms CSS in jsdom, returning an empty string — `fs`
+    is the correct path.
 - **Follow-up work identified:**
-  - Consider adding `@types/node` as a devDependency (with a DEC) for future
-    test files that need Node APIs — the minimal ambient approach works but is a
-    workaround, not a permanent solution.
+  - Resolved: `@types/node` is now a devDependency (DEC-009). No further
+    follow-up.
 
 ### Build-phase reflection (3 questions, short answers)
 
