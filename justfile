@@ -6,6 +6,13 @@
 #
 # Run `just --list` to see everything.
 
+# Pass recipe arguments as real argv ($1, $2, ... / "$@") so messages
+# containing shell metacharacters ($, etc.) are NOT re-expanded by the
+# recipe shell. Required for `just brag`/`just new-feedback`, whose free-text
+# arguments routinely contain `$` (costs) — textual {{VAR}} interpolation
+# would expand `$0.95` to the shell name. Additive: {{VAR}} recipes still work.
+set positional-arguments
+
 # Show all commands
 default:
     @just --list
@@ -208,13 +215,13 @@ build:
 # PROJECT TRACKING — brag log + template feedback capture.
 # ----------------------------------------------------------------------------
 
-# Append an accomplishment to the repo-wide ACCOMPLISHMENTS.md (zany-animal-slots).
+# Record an accomplishment (via the Bragfile CLI; falls back to a repo file).
 # Usage: just brag "shipped the slot engine with full coverage"
 brag *MESSAGE:
-    @./scripts/brag.sh "{{MESSAGE}}"
+    @./scripts/brag.sh "$@"
 
 # Scaffold a dated feedback entry (feedback/YYYY-MM-DD-<slug>.md) from the
 # template — capture template/process feedback while dogfooding.
 # Usage: just new-feedback "new-stage glob collides on duplicate proj ids"
 new-feedback *SLUG:
-    @./scripts/new-feedback.sh "{{SLUG}}"
+    @./scripts/new-feedback.sh "$@"
