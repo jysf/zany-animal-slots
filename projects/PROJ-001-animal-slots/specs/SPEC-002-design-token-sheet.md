@@ -50,11 +50,19 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: 35
+      tokens_total: 75228
+      estimated_usd: 0.50
+      duration_minutes: 59
       recorded_at: 2026-06-19
-      notes: "metered build subagent (Sonnet); orchestrator to fill tokens_total from subagent_tokens"
+      notes: "metered build subagent (Sonnet, subagent_tokens=75228); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 67978
+      estimated_usd: 0.45
+      duration_minutes: 23
+      recorded_at: 2026-06-19
+      notes: "metered verify subagent (Sonnet, subagent_tokens=67978); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
   totals:
     tokens_total: 0
     estimated_usd: 0
