@@ -9,5 +9,5 @@ Cycle prompts live in `prompts/SPEC-001-<cycle>.md`.
 
 - [x] **design** — completed 2026-06-18
 - [x] **build** — prompt: `prompts/SPEC-001-build.md` — PR #1, build cost 91,115 tok (~$3, Opus), completed 2026-06-18
-- [~] **verify** — prompt: pending (reviewing PR #1)
-- [ ] **ship** — prompt: pending (waiting on verify)
+- [x] **verify** — approved commit 44ada295daed835c4105687c00a64e8dc48f0652, completed 2026-06-18
+- [ ] **ship** — prompt: `prompts/SPEC-001-ship.md`

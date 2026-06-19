@@ -58,6 +58,14 @@ cost:
       duration_minutes: 22
       recorded_at: 2026-06-18
       notes: "metered build subagent (subagent_tokens=91115, ~1309s); estimated_usd is order-of-magnitude at an assumed ~$33/M Opus-class blended rate, no cache discount (AGENTS §4)"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 72668
+      estimated_usd: 0.48
+      duration_minutes: 14
+      recorded_at: 2026-06-18
+      notes: "metered verify subagent (Sonnet, subagent_tokens=72668, ~854s); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
   totals:
     tokens_total: 0
     estimated_usd: 0
