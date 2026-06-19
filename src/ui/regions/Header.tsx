@@ -3,7 +3,7 @@
 export default function Header() {
   return (
     <header className="cabinet__header">
-      <h1 className="cabinet__title">Animal Slots</h1>
+      <h1 className="cabinet__title">Zany Animal Slots</h1>
     </header>
   );
 }
