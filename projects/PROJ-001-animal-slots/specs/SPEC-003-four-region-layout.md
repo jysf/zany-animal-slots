@@ -7,7 +7,7 @@
 task:
   id: SPEC-003
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: M                    # S | M | L  (L means split it)
@@ -226,7 +226,7 @@ expanding this one:
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
 - **Branch:** feat/spec-003-four-region-layout
-- **PR (if applicable):** pending — not pushed (held for human review)
+- **PR (if applicable):** #3 — https://github.com/jysf/zany-animal-slots/pull/3
 - **All acceptance criteria met?** yes
 - **New decisions emitted:**
   - none
