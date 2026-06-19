@@ -25,3 +25,4 @@ last, accumulating across every project (wave of work). Append one-liners with
 <!-- `just brag "..."` appends dated bullets below this line. -->
 - 2026-06-18 — framed PROJ-001 and wired app commands + dogfood tracking into the justfile
 - 2026-06-18 — switched brag to a repo-wide log keyed to zany-animal-slots
+- 2026-06-18 — shipped SPEC-001: Vite+React+TS scaffold with the engine-no-dom boundary enforced before any engine code; build on Opus, verify on Sonnet, PR #1 squash-merged

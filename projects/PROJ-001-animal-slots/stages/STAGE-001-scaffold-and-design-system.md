@@ -103,12 +103,12 @@ expanded into a full spec via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] SPEC-001 (build) — Project scaffold + tooling: Vite + React + TS (strict), ESLint w/ `engine-no-dom` import boundary, Prettier, Vitest + RTL, CI (lint/typecheck/test). **[M]**
+- [x] SPEC-001 (shipped on 2026-06-18) — Project scaffold + tooling: Vite + React + TS (strict), ESLint w/ `engine-no-dom` import boundary, Prettier, Vitest + RTL, CI (lint/typecheck/test). **[M]**
 - [ ] (not yet written) — Design-token sheet: colors, type scale, spacing from the design spec as CSS custom properties, with a small test that a token resolves. **[S]**
 - [ ] (not yet written) — Four-region portrait layout skeleton (Header / Game / Status / Action), responsive and correct 375–430px, built on the tokens. **[M]**
 - [ ] (not yet written) — Desktop device-frame wrapper: centers the portrait cabinet in a device frame at desktop widths without disturbing the phone layout. **[S]**
 
-**Count:** 0 shipped / 1 active / 3 pending
+**Count:** 1 shipped / 0 active / 3 pending
 
 ## Design Notes
 

@@ -7,7 +7,7 @@
 task:
   id: SPEC-001
   type: story                      # epic | story | task | bug | chore
-  cycle: verify  # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: M                    # S | M | L  (L means split it)
@@ -67,9 +67,9 @@ cost:
       recorded_at: 2026-06-18
       notes: "metered verify subagent (Sonnet, subagent_tokens=72668, ~854s); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 163783
+    estimated_usd: 3.48
+    session_count: 3
 ---
 
 # SPEC-001: Project scaffold and tooling
@@ -303,10 +303,25 @@ rather than expanding this one:
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Commit the `just init` scaffold + project framing to `main` *before*
+   branching the build, rather than after. Because init was never committed and
+   the build agent committed the spec/`ci.yml` onto the feature branch, the
+   foundation and the feature got tangled and had to be untangled with a
+   reset/rebase. Also: set the build sub-agent's model explicitly from the start
+   — it silently defaulted to Opus when Sonnet was the intended (and ~6× cheaper)
+   choice.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — Yes, several captured as dogfood findings in
+   `feedback/2026-06-18-template-dogfood-proj-001.md`. Already fixed in-repo:
+   `find_spec` matching `prompts/` (#7), the `test`-recipe collision (#2), the
+   missing brag requirement (#6). Still open upstream and worth fixing in the
+   template: the cost schema mismatch (#8 — the spec template records
+   `tokens_input/output` but `cost-audit`/`cycle_tokens_total` read a single
+   `tokens_total`).
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec needed beyond the backlog: **SPEC-002 (design-token sheet)** is
+   next and already queued. One optional, deferred item: a `license-checker` CI
+   step to mechanize the advisory `license-policy` constraint (better suited to
+   STAGE-006's audit gate).

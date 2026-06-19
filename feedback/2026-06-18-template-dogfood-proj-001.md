@@ -106,6 +106,18 @@ appended at the bottom. Scaffold more entries with `just new-feedback "<slug>"`.
      one the gate enforces, so converge on that. `status: addressed` here;
      upstream open.
 
+9. **`just archive-spec` doesn't actually update the stage backlog.** The
+   justfile help says "move to done/ and update stage backlog," but on shipping
+   SPEC-001 it moved the files to `specs/done/` and then *printed manual hints*
+   ("Change '[ ] SPEC-001' to '[x] SPEC-001 (shipped …)'", "Update the count")
+   rather than editing `STAGE-001-…md`. Easy to miss → stale backlog/counts.
+   - **Fix applied here:** updated the STAGE-001 backlog by hand (SPEC-001 → `[x]
+     shipped`, count → 1 shipped / 0 active / 3 pending).
+   - **Suggested fix (upstream):** either make `archive-spec` perform the backlog
+     edit it advertises, or change the help text to "prints backlog edits to
+     apply." (Related to the existing bragfile note about an `archive-spec`
+     stage-shipped false-positive.) `status: addressed` here; upstream open.
+
 ## What worked (keep)
 
 - The `value:` (project) and `value_contribution:` (stage) blocks forced
