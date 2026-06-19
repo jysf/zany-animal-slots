@@ -7,7 +7,7 @@
 task:
   id: SPEC-002
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: S                    # S | M | L  (L means split it)
@@ -26,9 +26,11 @@ agents:
 references:
   decisions:
     - DEC-001
+    - DEC-009
   constraints:
     - test-before-implementation
     - one-spec-per-pr
+    - no-new-top-level-deps-without-decision
   related_specs:
     - SPEC-001
 
@@ -45,6 +47,22 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 75228
+      estimated_usd: 0.50
+      duration_minutes: 59
+      recorded_at: 2026-06-19
+      notes: "metered build subagent (Sonnet, subagent_tokens=75228); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 67978
+      estimated_usd: 0.45
+      duration_minutes: 23
+      recorded_at: 2026-06-19
+      notes: "metered verify subagent (Sonnet, subagent_tokens=67978); estimated_usd order-of-magnitude at an assumed ~$6.6/M Sonnet blended rate, no cache discount (AGENTS §4)"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -201,26 +219,43 @@ expanding this one:
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-002-design-token-sheet`
+- **PR (if applicable):** #2 — https://github.com/jysf/zany-animal-slots/pull/2
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - `DEC-009` — Add `@types/node` (dev) for Node-side test code.
 - **Deviations from spec:**
-  - [list]
+  - The Failing Tests use `fs.readFileSync`, but the project had no `@types/node`,
+    so strict `tsc --noEmit` couldn't type-check those imports. The build's
+    initial fix was a minimal hand-rolled ambient `.d.ts` stub (to avoid an
+    un-DEC'd dependency). On review this was **replaced** with the idiomatic
+    fix: `@types/node` as a devDependency + `"node"` in `tsconfig` `types`,
+    recorded as **DEC-009** (the build's own reflection recommended this). The
+    stub (`src/test/node-test-types.d.ts`) was removed. A `?raw` import was
+    explored but Vite transforms CSS in jsdom, returning an empty string — `fs`
+    is the correct path.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - Resolved: `@types/node` is now a devDependency (DEC-009). No further
+    follow-up.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The Failing Tests section specifies `fs.readFileSync` but the project setup
+   lacks `@types/node`, causing tsc failures. The spec doesn't mention this gap.
+   Resolving it without adding a new package (per "no new dependencies") required
+   investigation into `?raw` imports (which fail for CSS in jsdom) before landing
+   on the minimal ambient `.d.ts` workaround.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — A constraint or note about the absence of `@types/node` would have saved
+   time. The "no new dependencies" rule interacts with `@types/node` (which is a
+   devDependency, not a runtime dependency) in a way the spec doesn't address.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Install `@types/node` as a devDependency from the start in SPEC-001 (the
+   scaffold spec) so future test files can use Node APIs freely. It's a near-
+   universal need in any Vitest project that reads files from the filesystem.
 
 ---
 

@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-002-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-19
-- [ ] **build** — prompt: `prompts/SPEC-002-build.md` (run on Sonnet)
-- [ ] **verify** — prompt: pending (waiting on build)
-- [ ] **ship** — prompt: pending (waiting on verify)
+- [x] **build** — prompt: `prompts/SPEC-002-build.md` (Sonnet) — PR #2; stub→@types/node remediation (DEC-009); completed 2026-06-19
+- [x] **verify** — SHA d288f5b; approved 2026-06-19
+- [ ] **ship** — prompt: `prompts/SPEC-002-ship.md`
