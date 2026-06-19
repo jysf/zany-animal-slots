@@ -1,11 +1,18 @@
-// Minimal app shell. Deliberately bare: design tokens (SPEC-002), the
-// four-region layout (SPEC-003), the device frame (SPEC-004), and all
-// engine/game/audio code are out of scope for SPEC-001. The only job here is
-// to render an accessible "Animal Slots" <main> landmark the smoke test asserts.
+// Cabinet shell — composes the four portrait regions (SPEC-003).
+// Restructured from SPEC-001's bare <main>; game content lands in later stages.
+import './regions/regions.css';
+import Header from './regions/Header';
+import Game from './regions/Game';
+import Status from './regions/Status';
+import Action from './regions/Action';
+
 export default function App() {
   return (
-    <main aria-label="Animal Slots">
-      <h1>Animal Slots</h1>
-    </main>
+    <div className="cabinet">
+      <Header />
+      <Game />
+      <Status />
+      <Action />
+    </div>
   );
 }
