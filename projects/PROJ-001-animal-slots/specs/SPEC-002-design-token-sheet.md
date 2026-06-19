@@ -7,7 +7,7 @@
 task:
   id: SPEC-002
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: S                    # S | M | L  (L means split it)
@@ -212,7 +212,7 @@ expanding this one:
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
 - **Branch:** `feat/spec-002-design-token-sheet`
-- **PR (if applicable):** pending — not pushed (held for human review)
+- **PR (if applicable):** #2 — https://github.com/jysf/zany-animal-slots/pull/2
 - **All acceptance criteria met?** yes
 - **New decisions emitted:**
   - `DEC-009` — Add `@types/node` (dev) for Node-side test code.
