@@ -1,0 +1,44 @@
+# .repo-context.yaml
+# Describes the APP (the repo itself). Persists across all projects run
+# against this app. Forward-compatible with ContextCore's ProjectContext CRD.
+#
+# Projects (waves of work against this app) live in ./projects/<id>/ and
+# each has its own brief.md.
+
+apiVersion: contextcore.io/v2
+kind: RepoContext
+
+metadata:
+  repo:
+    id: animal-slots
+    name: "Animal Slots"
+    purpose: "A play-money, mobile-first web slot game themed on North American wildlife, built so game logic is cleanly separable from presentation."
+    url: "github.com/jysf/zany-animal-slots"
+
+  business:
+    criticality: low                  # play-money demo + template dogfood vehicle
+    owner: jysf
+    contacts:
+      - "jyashinsky@gmail.com"
+
+spec:
+  stack:
+    language: "typescript"            # strict
+    runtime: "node-20"
+    framework: "react-18-vite"
+    database: "none"                  # client-only SPA; balance + mute in localStorage
+    hosting: "static-spa"             # optional GitHub Pages / Vercel, out of MVP scope unless trivial
+
+  # Standard paths; do not change without also updating AGENTS.md.
+  paths:
+    agents_md: ./AGENTS.md
+    docs: ./docs
+    guidance: ./guidance
+    decisions: ./decisions
+    projects: ./projects
+    templates: ./projects/_templates
+
+  observability:
+    sampling: null                    # Used if you adopt ContextCore.
+    alert_routing: null               # N/A — client-only SPA, no runtime backend.
+    runbook_base: null                # N/A for the MVP.

@@ -131,7 +131,8 @@ sed_escape_replacement() {
 # like advance-cycle and archive-spec don't silently operate on an
 # already-shipped file. Also excludes `*-timeline.md` so the v5.3
 # timeline artifact (which shares the SPEC-NNN-* prefix) doesn't
-# masquerade as the spec.
+# masquerade as the spec, and excludes the specs/prompts/ directory so
+# cycle-prompt files (SPEC-NNN-<cycle>.md, same prefix) don't either.
 # Uses find's -not -path rather than a grep pipeline: grep returns 1
 # on no matches, which trips pipefail and would make this function
 # silently abort the caller under `set -e`.
@@ -140,6 +141,7 @@ find_spec() {
     local spec_id="$1"
     find "${REPO_ROOT}/projects" -type f -name "${spec_id}-*.md" \
         -not -name '*-timeline.md' \
+        -not -path '*/prompts/*' \
         -not -path '*/done/*' 2>/dev/null | head -n1
 }
 

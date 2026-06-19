@@ -166,9 +166,55 @@ validate:
 info:
     @./scripts/info.sh
 
-# Run the template's end-to-end happy-path tests (uses a temp dir).
-# Intended for template maintainers, not end users. Works from the
-# pre-init template root only — after `just init` runs, variants/ is
-# gone and this test would fail at the first check.
-test:
+# Template maintainer self-test (renamed from `test` so the app owns `just test`;
+# see feedback/2026-06-18-template-dogfood-proj-001.md). Works from the pre-init
+# template root only — after `just init`, variants/ is gone and this fails early.
+# Template's end-to-end happy-path tests (maintainers only; uses a temp dir).
+selftest:
     @./scripts/test.sh
+
+# ----------------------------------------------------------------------------
+# APP COMMANDS (Animal Slots) — the actual app's build/dev/test/lint.
+# These wrap the npm scripts so AGENTS.md §6 and the justfile agree. They
+# work once STAGE-001 scaffolds package.json; before that they fail fast.
+# ----------------------------------------------------------------------------
+
+# Install app dependencies.
+install:
+    @npm install
+
+# Start the Vite dev server.
+dev:
+    @npm run dev
+
+# Run the app test suite (Vitest). Pass a path to run one file:
+#   just test src/engine/spin.test.ts
+test *ARGS:
+    @npm test -- {{ARGS}}
+
+# Lint (ESLint, incl. the engine-no-dom import boundary).
+lint:
+    @npm run lint
+
+# Typecheck (tsc --noEmit, strict).
+typecheck:
+    @npm run typecheck
+
+# Production build (static assets).
+build:
+    @npm run build
+
+# ----------------------------------------------------------------------------
+# PROJECT TRACKING — brag log + template feedback capture.
+# ----------------------------------------------------------------------------
+
+# Append an accomplishment to the repo-wide ACCOMPLISHMENTS.md (zany-animal-slots).
+# Usage: just brag "shipped the slot engine with full coverage"
+brag *MESSAGE:
+    @./scripts/brag.sh "{{MESSAGE}}"
+
+# Scaffold a dated feedback entry (feedback/YYYY-MM-DD-<slug>.md) from the
+# template — capture template/process feedback while dogfooding.
+# Usage: just new-feedback "new-stage glob collides on duplicate proj ids"
+new-feedback *SLUG:
+    @./scripts/new-feedback.sh "{{SLUG}}"
