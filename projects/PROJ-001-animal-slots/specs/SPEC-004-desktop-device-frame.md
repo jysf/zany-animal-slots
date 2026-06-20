@@ -56,6 +56,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-19
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-19
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -273,6 +281,61 @@ Written during **design**, BEFORE build. Build's job is to make these pass.
    leaves the phone layout completely untouched is the correct shape. Process-wise,
    the only lesson is sub-agent fragility (see dogfood finding): an interrupted
    build needs a clean way to resume or hand off mid-task.
+
+---
+
+## Verify
+
+✅ APPROVED — reviewed by claude-sonnet-4-6, 2026-06-19
+
+### Gate results
+
+| Command | Result |
+|---|---|
+| `just typecheck` | EXIT 0 |
+| `just lint` | EXIT 0 |
+| `just test` | EXIT 0 — 13/13 tests pass |
+| `just build` | EXIT 0 |
+| `just decisions-audit --changed main` | EXIT 0 — advisory only, no violations |
+
+### Acceptance criteria
+
+- [x] **Desktop frame (AC1):** `device-frame.css` places all rules inside `@media (min-width: 640px)`. `.device-stage` is full-viewport flex-centered; `.cabinet` gets `border-radius: var(--radius-frame)`, `box-shadow: var(--shadow-frame)`, `height: min(92dvh, 880px)`, `overflow: hidden`. Ambient backdrop uses `--color-jackpot-sky`. Centered both axes confirmed in CSS.
+- [x] **Phone unchanged (AC2):** No rules outside the media query; `regions.css` is untouched (zero diff vs `main`). Phone path adds no layout.
+- [x] **Tokens declared (AC3):** `tokens.css` has `--radius-frame: 2.5rem` and `--shadow-frame: 0 8px 40px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4)`. Frame CSS consumes both via `var()`. No raw hex in `device-frame.css` (grep confirms zero matches).
+- [x] **Min-width gate (AC4):** Single `@media (min-width: 640px)` block; every frame rule is inside it.
+- [x] **All gates pass (AC5):** Confirmed above.
+
+### Tests not vacuous
+
+- `device-frame.test.ts` "gates behind min-width": regex `/@media[^{]*min-width[^{]*\{/` — would FAIL if the `@media` block were removed.
+- `device-frame.test.ts` "styles with radius and shadow tokens": `.includes('var(--radius-frame)')` and `.includes('var(--shadow-frame)')` — would FAIL if either `var()` reference were deleted.
+- `device-frame.test.ts` "no raw hex": `/#[0-9a-fA-F]{3,8}\b/` — would FAIL if a hex literal were introduced. Regex is non-trivial (3–8 hex digits with word boundary).
+- `App.test.tsx` "wraps in device stage": `screen.getByTestId('device-stage')` throws if absent; `.toContainElement` checks nesting structure — would FAIL if the wrapper were removed.
+- `tokens.test.ts` (extended): `--radius-frame` and `--shadow-frame` in `REQUIRED_TOKENS` — pattern test would FAIL if either token were removed from `tokens.css`.
+
+### Constraints
+
+- **portrait-first:** Satisfied — phone layout entirely untouched. Frame styles are exclusively inside `@media (min-width: 640px)`. `regions.css` has zero changes.
+- **test-before-implementation:** Satisfied — failing tests specified in spec's `## Failing Tests` section (design phase); build made them pass.
+- **one-spec-per-pr:** Satisfied — PR #4 covers only SPEC-004.
+- **DEC-001 (engine/presentation separation):** Satisfied — no `src/engine` imports in any touched file.
+- **DEC-010 (global CSS + tokens, no raw hex):** Satisfied — frame CSS is global, token-driven, zero raw hex literals.
+
+### Decision drift
+
+Two decisions govern the touched files (per `just decisions-audit --changed main`): DEC-004 and DEC-010.
+- DEC-004 (CSS animation, not canvas): no animation added; consistent.
+- DEC-010 (global CSS + tokens): frame follows the convention exactly; consistent.
+- No new non-trivial build decision required — additive presentation under existing decisions. Confirmed correct.
+
+### Build reflection
+
+Three questions answered honestly and non-trivially. Deviation (using `--color-jackpot-sky` instead of adding `--color-backdrop`) is documented and matches the spec's explicit guidance.
+
+### Cost sessions
+
+Design (null, main-loop note) and build (null, sub-agent note) present. Verify session appended above. Orchestrator fills real tokens at ship per AGENTS §4.
 
 ---
 
