@@ -4,7 +4,7 @@
 task:
   id: SPEC-006
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
@@ -60,10 +60,18 @@ cost:
       duration_minutes: 2.8
       recorded_at: 2026-06-19
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=57710, 169s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-06-19
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 115648
+    estimated_usd: 0.76
+    session_count: 4
 ---
 
 # SPEC-006: Symbols and weighted reel strips
@@ -245,13 +253,18 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing on execution — pre-computing the canonical strip (with the right
+   counts and no adjacent duplicates) and pinning it in the spec made the build a
+   direct transcription and gave SPEC-007 a stable substrate to compute grids from.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. The spec referenced the exact DECs; `engine-no-dom` covered the boundary.
+   (Same optional `Math.random` lint-rule note as SPEC-005 still stands as a
+   dogfood candidate, not a blocker.)
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-007 (spin resolver) is next and consumes `STRIPS` +
+   `visibleCells` + the RNG; already planned.
 
 ---
 

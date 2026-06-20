@@ -115,14 +115,14 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
 - [x] SPEC-005 (shipped 2026-06-19) — Seedable RNG module (mulberry32) + injection seam; no bare `Math.random()` anywhere in `src/engine/**`. **[S]**
-- [ ] SPEC-006 (build) — Symbol set + weighted reel strips (DEC-011 weights; common animals frequent, Wolf rare); strip-to-grid stop logic. **[S]**
+- [x] SPEC-006 (shipped 2026-06-19) — Symbol set + weighted reel strips (DEC-011 weights; common animals frequent, Wolf rare); strip-to-grid stop logic. **[S]**
 - [ ] (not yet written) — 5×3 spin resolver: given seed/strips, produce the visible grid (draw order reel 0→4). **[S]**
 - [ ] (not yet written) — Payline + paytable evaluation: 5 fixed lines (DEC-003), 3/4/5-of-a-kind per tier (DEC-011), sum of all line wins. **[M]**
 - [ ] (not yet written) — Bet/balance state machine: bet levels 10/25/50, balance debit/credit, reset to 1000, invalid-spin typed result. **[S]**
 - [ ] (not yet written) — Win-tier classification: none / small (<5× bet) / big (≥5× bet) / jackpot (five Wolves), exposed as data. **[S]**
 - [ ] (not yet written) — Public engine interface: typed `spin()` surface the UI consumes, with `SpinResult` fully described. **[M]**
 
-**Count:** 1 shipped / 0 active / 6 pending — sized at Stage Frame (5×S, 2×M; no L). All small/medium, one concern each.
+**Count:** 2 shipped / 0 active / 5 pending — sized at Stage Frame (5×S, 2×M; no L). All small/medium, one concern each.
 
 ## Design Notes
 
