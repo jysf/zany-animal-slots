@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-001                     # stable, zero-padded within the project
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-06-18
-shipped_at: null
+shipped_at: 2026-06-19
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -141,10 +141,65 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1d (Stage Ship) to draft.*
+*Shipped 2026-06-19. All four specs in `specs/done/`.*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <not yet>
-- **How many specs did it actually take?** <not yet>
-- **What changed between starting and shipping?** <not yet>
-- **Lessons that should update AGENTS.md, templates, or constraints?** <not yet>
-- **Should any spec-level reflections be promoted to stage-level lessons?** <not yet>
+### Success criteria — did we deliver?
+
+All five met:
+- ✅ `npm install` → `npm run dev` serves the themed four-region cabinet (verified
+  in-browser at 375px and desktop during SPEC-003/004).
+- ✅ Design tokens are CSS custom properties consumed via `var()`; a token-contract
+  test and a no-raw-hex check in the frame CSS keep literals out of components.
+- ✅ Renders correctly 375–430px portrait and centers in a rounded, shadowed device
+  frame on desktop (SPEC-004), without disturbing the phone layout.
+- ✅ `lint` + `typecheck` pass; `eslint.config.js` carries the `engine-no-dom`
+  `no-restricted-imports` boundary, standing before any engine code (SPEC-001).
+- ✅ CI runs lint + typecheck + test (plus the `cost-data` audit job) on every PR.
+
+### value_contribution — delivered as claimed?
+
+Yes, all four deliverables landed and each spec's `value_link` traces cleanly:
+the app shell + dev server (SPEC-001), tokens (SPEC-002), four-region portrait
+layout (SPEC-003), desktop device frame (SPEC-004). The `engine-no-dom` wall was
+deliberately built empty in SPEC-001 — its real test comes in STAGE-002, but it
+is in place exactly as the contribution promised. No spec over-claimed.
+
+### 3-sentence summary
+
+Built exactly the four specs planned, in order, with no scope added or dropped —
+the empty themed cabinet boots, is tokenized, lays out in four portrait regions,
+and frames on desktop. It moved fast (all four shipped across 2026-06-18→19) and
+the cycle structure mostly stayed out of the way on this small, mechanical stage.
+The one emergent friction was process, not product: a build sub-agent returned a
+truncated mid-task message and a stale timeline marker claimed a build had run
+when git showed none — both caught by trusting git/disk over self-reports
+(dogfood finding #11).
+
+### Stage-Level Reflection answers
+
+- **Did we deliver the outcome in "What This Stage Is"?** Yes — a themed, empty
+  slot cabinet that boots in the browser, full-screen on phones and framed on
+  desktop, with the engine/presentation boundary enforced in tooling from commit
+  one.
+- **How many specs did it actually take?** Four, exactly as the backlog planned
+  (no splits, no additions).
+- **What changed between starting and shipping?** Nothing in scope. The only
+  additions were small and anticipated: `@types/node` + DEC-009 (so the CSS-source
+  tests type-check) and the radius/shadow tokens deferred from SPEC-002 to SPEC-004
+  "until first needed." A `.claude/launch.json` was added for preview/visual checks.
+- **Lessons that should update AGENTS.md, templates, or constraints?** No mandatory
+  template change. The accumulated dogfood findings (esp. #10 trivial-dev-dep
+  tension, #11 sub-agent self-report reliability) are the candidates to promote at
+  the next `just weekly-review`; recording them in the feedback log is the right
+  home for now rather than churning AGENTS.md mid-project.
+- **Should any spec-level reflections be promoted to stage-level lessons?** Yes —
+  the "trust git/disk over any agent self-report" lesson (from SPEC-004's build)
+  generalizes beyond one spec and is the stage's most reusable takeaway.
+
+### Follow-up flags
+
+- **Next:** STAGE-002 (slot engine) — its `engine-no-dom` boundary and the game
+  rules it implements (now authoritative in brief.md's Game-Design Spec + DEC-011)
+  are ready. Framing it active is the immediate next step.
+- No new stage needed here; no spec to defer into a later stage; nothing punted to
+  a future project from STAGE-001.
