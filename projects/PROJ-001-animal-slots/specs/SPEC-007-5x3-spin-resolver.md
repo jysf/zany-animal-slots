@@ -4,7 +4,7 @@
 task:
   id: SPEC-007
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: S
@@ -45,6 +45,22 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 53605
+      estimated_usd: 0.35
+      duration_minutes: 2.4
+      recorded_at: 2026-06-19
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=53605, 145s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 59790
+      estimated_usd: 0.39
+      duration_minutes: 5.4
+      recorded_at: 2026-06-19
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=59790, 327s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -184,26 +200,79 @@ the canonical strip (SPEC-006) and the canonical RNG (SPEC-005).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-007-spin-resolver`
+- **PR (if applicable):** (pending verify)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none — implementation followed the spec exactly; no non-trivial decisions needed.
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned backlog (SPEC-008 paylines, etc.)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing material. The spec was unusually precise: exact function signatures,
+     exact draw-order constraint, exact pinned stops + grid, and a worked-example
+     verification step spelled out in the implementation notes. The `visibleCells`
+     spread-to-`SymbolId[]` cast was the only minor gap (the return type is a tuple
+     but `Grid` expects a plain array), resolved with `as SymbolId[]`.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `DEC-001` (engine boundary) and `DEC-002` (injected RNG) fully cover
+     what `spin.ts` needed. The `engine-no-dom` ESLint rule caught any stray imports
+     automatically.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec's pinned-value approach (compute expected
+     output externally, paste it into the test) is excellent — it nailed a subtle
+     RNG interaction bug before any code existed. I'd use that pattern again.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate results: `just typecheck && just lint && just test && just build` all exit 0 (35/35 tests pass).
+`just decisions-audit --changed`: no changed files in scope (no uncommitted changes); 0 structural errors.
+
+### Checked items
+
+- **ACCEPTANCE CRITERIA** ✅
+  - `resolveStops(rng)` returns 5 integers in [0,35), drawn reel 0→4, one draw per reel — confirmed by implementation and "exactly one draw per reel" test.
+  - `resolveGrid(rng)` returns 5×3 Grid where `grid[reel] == visibleCells(STRIPS[reel], stops[reel])` — confirmed by "each grid column equals visibleCells" test.
+  - Determinism: same seed yields same stops and grid — confirmed by "is deterministic" and "is deterministic and matches the pinned seed" tests.
+  - Pinned seed 12345 fixture confirmed: stops [34,10,16,28,17] and grid manually verified against REEL_STRIP; all 5 columns match spec.
+  - spin.ts imports only `./rng` and `./strips` — no React/DOM/src-ui.
+  - All four gates pass (exit 0).
+
+- **PIPELINE CORRECTNESS** ✅
+  - `resolveStops` uses `strips.map(strip => randomInt(rng, strip.length))` — one draw per reel, Array.map preserves order 0→4.
+  - `resolveGrid` calls `resolveStops` once, then maps stops through `visibleCells` — no double-draw.
+  - `grid[reel]` = `visibleCells(STRIPS[reel], stops[reel])` as specified.
+  - Grid is `SymbolId[][]` indexed `grid[reel][row]`, 5 reels × 3 rows.
+
+- **TESTS NOT VACUOUS** ✅
+  - Pinned stops `[34,10,16,28,17]` and pinned grid are hard-asserted (not skipped).
+  - "Exactly one draw per reel" test: `resolveStops(a)` consumed, then `b` advanced 5× manually; `a() === b()` proves exactly 5 draws in sequence — genuinely meaningful.
+  - "each grid column equals visibleCells" test uses matching seeds on separate RNG instances to compare stop→grid mapping — would catch a double-draw or wrong strip index.
+  - Pinned grid test would fail on any reordering of draws or wrong strip alignment.
+
+- **CONSTRAINTS** ✅
+  - `deterministic-rng`: no bare `Math.random()` in any engine file (grep confirms; only occurrence is in a comment in strips.ts).
+  - `engine-no-dom`: spin.ts imports only `./rng` and `./strips`; ESLint lint passes (exit 0).
+  - `DEC-001` honored: pure engine, no React/DOM, typed interface.
+  - `DEC-002` honored: injected `Rng`, all randomness through `randomInt`.
+
+- **DECISION DRIFT** ✅
+  - No new non-trivial choices made. Builder noted `visibleCells(...) as SymbolId[]` cast: `visibleCells` returns `[SymbolId, SymbolId, SymbolId]` (tuple), `Grid` is `SymbolId[][]` (array). The cast `as SymbolId[]` widens tuple→array structurally — no behavior change, no boundary issue. TypeScript's structural type system accepts this safely; no new DEC warranted.
+  - `just decisions-audit` (no flag): 0 structural errors; 14 pre-existing scope-overlap warnings, none attributable to this spec.
+
+- **BUILD REFLECTION** ✅
+  - All three answers present, honest, non-empty. Builder correctly identified the `visibleCells` tuple→array cast as the only gap. Answers are specific and actionable, not boilerplate.
+  - COST: design session present with note ("main-loop, not separately metered"). Build session present with note ("sub-agent — orchestrator to fill"). Both correctly structured per AGENTS §4.
 
 ---
 
