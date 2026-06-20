@@ -4,7 +4,7 @@
 task:
   id: SPEC-006
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: S
@@ -44,6 +44,22 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 57938
+      estimated_usd: 0.38
+      duration_minutes: 2.3
+      recorded_at: 2026-06-19
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=57938, 135s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 57710
+      estimated_usd: 0.38
+      duration_minutes: 2.8
+      recorded_at: 2026-06-19
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=57710, 169s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -201,26 +217,26 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-006-reel-strips
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (SPEC-007 spin resolver is already planned in the stage backlog)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear. The spec provided the pinned REEL_STRIP array verbatim and the exact `visibleCells` implementation formula, so there was no ambiguity to resolve.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001 (engine-no-dom), DEC-006 (symbols/tiers), and DEC-011 (weights) were exactly the right set. The `deterministic-rng` constraint was not listed in the spec's front-matter but is implicitly satisfied (no `Math.random()` in this file — it's pure data plus one deterministic helper).
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec was self-contained and detailed enough that implementation was direct transcription. The pinned array in "Notes for the Implementer" was the key time-saver.
 
 ---
 
@@ -236,3 +252,34 @@ Written during **design**, BEFORE build.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Reviewer:** claude-sonnet-4-6 (cold sub-agent, 2026-06-19)
+**Verdict: ✅ APPROVED**
+
+### Gate
+
+- `just typecheck` ✅ exit 0
+- `just lint` ✅ exit 0
+- `just test` ✅ exit 0 (8/8 strips tests, 28/28 total)
+- `just build` ✅ exit 0
+- `just decisions-audit --changed` ✅ no drift flagged (build already committed)
+
+### Checked Items
+
+- ✅ **AC: SYMBOLS** — `['DEER','FOX','SQUIRREL','BEAR','EAGLE','OWL','BISON','WOLF']` matches DEC-006 exactly; 8 symbols.
+- ✅ **AC: SYMBOL_TIER** — Low: DEER/FOX/SQUIRREL, Mid: BEAR/EAGLE/OWL, High: BISON, Jackpot: WOLF — matches DEC-006.
+- ✅ **AC: REEL_WEIGHTS** — `{DEER:7, FOX:7, SQUIRREL:6, BEAR:4, EAGLE:4, OWL:4, BISON:2, WOLF:1}` matches DEC-011; sum=35 confirmed by node count.
+- ✅ **AC: REEL_STRIP** — length 35; symbol counts independently verified to exactly match REEL_WEIGHTS; pinned array matches spec's Notes for the Implementer verbatim.
+- ✅ **AC: STRIPS** — length 5 (REEL_COUNT); each entry is the canonical REEL_STRIP (same reference, same composition).
+- ✅ **AC: visibleCells** — wraps via modulo; stop=34 → [34,0,1], stop=33 → [33,34,0]; both wrap cases asserted in tests.
+- ✅ **AC: engine-no-dom** — `strips.ts` has zero React/DOM/src-ui imports; `Math.random` appears only in a comment (line 3), not in executable code.
+- ✅ **Tests not vacuous** — deep-equality pinned-strip test would fail if any element were wrong; weight-count test would fail on wrong symbol set or counts; both visibleCells wrap cases (stop 34 and 33) are genuinely asserted with concrete expectations derived from REEL_STRIP references.
+- ✅ **Constraints** — `engine-no-dom` honored mechanically (lint passes); `test-before-implementation` honored (tests written in design per spec front-matter); `one-spec-per-pr` honored (single SPEC-006 in PR #6); `deterministic-rng` honored (no bare Math.random in engine code).
+- ✅ **DEC-001 honored** — no React/DOM in engine module; UI boundary maintained.
+- ✅ **Decision drift** — no non-trivial build choices that needed a DEC (pure data transcription of existing DECs).
+- ✅ **Build reflection** — all 3 questions answered non-vacuously and honestly; builder notes the `deterministic-rng` constraint was implicitly satisfied though not listed in front-matter (accurate observation, not a problem).
+- ✅ **Cost sessions** — design session present (null-numeric with main-loop note, correct); build session present (null-numeric with orchestrator-fill note, per AGENTS §4 pattern); verify session now appended.
