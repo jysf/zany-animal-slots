@@ -85,5 +85,5 @@ sparse or too dense.
 
 ## References
 
-- Game rules: `/projects/PROJ-001-animal-slots/brief.md` (game-design spec)
-- Related decisions: DEC-001, DEC-002
+- Game rules: `/projects/PROJ-001-animal-slots/brief.md` (Game-Design Spec section)
+- Related decisions: DEC-001, DEC-002, DEC-011 (paytable + reel-strip weights)

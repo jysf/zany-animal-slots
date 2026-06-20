@@ -103,6 +103,124 @@ before we trust it on harder work.
 - Accounts / leaderboards / any backend.
 - Internationalization (i18n).
 
+## Game-Design Spec
+
+*The authoritative game rules the STAGE-002 engine implements. Paylines come from
+`DEC-003`, symbols/tiers from `DEC-006`, the seedable RNG from `DEC-002`, and the
+play-money / no-RTP stance from `DEC-005`. The paytable and reel-strip weights
+below are recorded in `DEC-011` (tuned for feel, not a regulated RTP).*
+
+### Grid & reel model
+
+- The board is **5 reels × 3 rows** (top / mid / bottom = rows 0 / 1 / 2).
+- Each reel has its own **weighted strip** (an array of symbol IDs). A spin draws,
+  per reel, one **stop index** from the injected PRNG; that reel's three visible
+  cells are `strip[stop]`, `strip[(stop+1) % len]`, `strip[(stop+2) % len]`
+  (top, mid, bottom), wrapping at the end of the strip.
+- Draw order is **reel 0 → reel 4** (one PRNG draw per reel), so a given seed
+  produces a fixed, reproducible grid. This order is part of the contract — tests
+  pin a seed and assert the exact grid.
+
+### Symbols & tiers (DEC-006)
+
+| Symbol | Tier | Engine ID |
+|---|---|---|
+| 🦌 Deer | Low | `DEER` |
+| 🦊 Fox | Low | `FOX` |
+| 🐿️ Squirrel | Low | `SQUIRREL` |
+| 🐻 Bear | Mid | `BEAR` |
+| 🦅 Eagle | Mid | `EAGLE` |
+| 🦉 Owl | Mid | `OWL` |
+| 🦬 Bison | High | `BISON` |
+| 🐺 Wolf | Jackpot | `WOLF` |
+
+### Reel-strip weights (DEC-011)
+
+For v1 **all five reels use the same composition** (symmetric, easy to test).
+Weights are relative counts within each reel's strip:
+
+| Symbol | Tier | Weight / reel |
+|---|---|---|
+| 🦌 Deer | Low | 7 |
+| 🦊 Fox | Low | 7 |
+| 🐿️ Squirrel | Low | 6 |
+| 🐻 Bear | Mid | 4 |
+| 🦅 Eagle | Mid | 4 |
+| 🦉 Owl | Mid | 4 |
+| 🦬 Bison | High | 2 |
+| 🐺 Wolf | Jackpot | 1 |
+
+Per-reel total = **35** (Low 20 ≈ 57%, Mid 12 ≈ 34%, Bison 2 ≈ 5.7%, Wolf 1 ≈ 2.9%
+chance per stop). Wolf is deliberately scarce, so a natural five-Wolf jackpot is
+extremely rare — the engine stays correct regardless, and the "jackpot reachable"
+success criterion is met deterministically via a chosen seed and over many
+auto-spins. The exact symbol order within each strip is the build's choice
+(documented in `strips.ts`); only the composition above is contractual.
+
+### Paylines (DEC-003)
+
+Five fixed lines, evaluated left-to-right from reel 0, paying on **3+ consecutive
+matching symbols** starting at reel 0. Multiple lines can hit on one spin; the
+spin's total win is the **sum of all line wins**.
+
+| Line | Rows (reel 0→4) | Shape |
+|---|---|---|
+| L1 | 1, 1, 1, 1, 1 | middle |
+| L2 | 0, 0, 0, 0, 0 | top |
+| L3 | 2, 2, 2, 2, 2 | bottom |
+| L4 | 0, 1, 2, 1, 0 | V |
+| L5 | 2, 1, 0, 1, 2 | ^ |
+
+### Paytable (DEC-011)
+
+Payouts are **multiples of the total bet** (not per-line bet). A line pays its
+tier's multiplier for the longest run of 3/4/5 identical symbols from reel 0.
+
+| Tier (symbols) | 3 of a kind | 4 of a kind | 5 of a kind |
+|---|---|---|---|
+| Low (Deer / Fox / Squirrel) | 0.5× | 2× | 5× |
+| Mid (Bear / Eagle / Owl) | 1× | 4× | 12× |
+| High (Bison) | 3× | 10× | 40× |
+| Jackpot (Wolf) | 8× | 40× | **200×** |
+
+- `lineWin = floor(multiplier × totalBet)` (floor keeps coins whole; only Low
+  3-of-a-kind is fractional — e.g. `0.5 × 25 = 12.5 → 12`).
+- `spinWin = Σ lineWin` over the (up to five) hitting lines.
+- Same symbol within a tier pays the same (per-symbol payout splits are a clean
+  future spec, per DEC-003's consequences).
+
+### Bet & balance
+
+- **Bet levels (total bet):** x1 = **10**, x2 = **25**, x3 = **50** coins. Default x1.
+- **Balance:** starts at **1000**; **Reset** restores it to 1000.
+- A spin requires `balance ≥ totalBet`; otherwise it returns a typed
+  invalid-spin result (no throw — AGENTS §11) and does not debit. On a valid spin
+  the engine debits `totalBet`, then credits `spinWin`.
+- Persisting balance to `localStorage` is **STAGE-003**, not the engine.
+
+### Win-tier classification
+
+Classifies a resolved spin as data (the UI maps it to a celebration; the engine
+fires nothing):
+
+| Tier | Condition |
+|---|---|
+| `none` | `spinWin == 0` |
+| `small` | `0 < spinWin < 5 × totalBet` |
+| `big` | `spinWin ≥ 5 × totalBet` (and not a jackpot) |
+| `jackpot` | the grid shows **five Wolves on at least one payline** |
+
+### Worked examples (for deriving failing tests)
+
+- **All-Wolf grid:** every line is five Wolves → `5 × 200× = 1000×` total bet;
+  tier = `jackpot`. (Bet 10 → 10,000 coins.)
+- **Single 3-Mid:** L1 = Bear, Bear, Bear, Deer, Fox and no other line hits →
+  `1× totalBet`; tier = `small`. (Bet 10 → 10 coins.)
+- **Single 5-Low:** L2 = five Deer → `5× totalBet` → tier = `big` (just crosses
+  the threshold).
+- **Insufficient balance:** balance 5, bet 10 → invalid-spin result, balance
+  unchanged at 5.
+
 ## Stage Plan
 
 - [ ] STAGE-001 (active) — Scaffold & design system (Vite + React + TS boots; design tokens; four-region portrait layout; no game logic).

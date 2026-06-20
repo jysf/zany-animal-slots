@@ -61,9 +61,10 @@ boundary already being in place.
 ## Why Now / Success Criteria / Scope / Design Notes / Dependencies
 
 *Framed lightly for now. Expand via Prompt 1c (Stage Frame) when this stage
-becomes active. Authoritative game rules live in the project's design spec
-section of `brief.md` and in `DEC-002` (seedable RNG), `DEC-003` (fixed
-paylines), and `DEC-005` (play-money / no-RTP).*
+becomes active. Authoritative game rules live in the **Game-Design Spec** section
+of `brief.md` and in `DEC-002` (seedable RNG), `DEC-003` (fixed paylines),
+`DEC-005` (play-money / no-RTP), `DEC-006` (symbols + tiers), and `DEC-011`
+(paytable + reel-strip weights).*
 
 ## Spec Backlog
 
@@ -83,9 +84,11 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
 ## Design Notes
 
-See `DEC-001`, `DEC-002`, `DEC-003`, `DEC-005`. Reel-strip weights are tuned for
-feel (wins land often enough to be fun; balance drifts down over a long
-session), explicitly **not** a regulated RTP — do not advertise an RTP number.
+See `DEC-001`, `DEC-002`, `DEC-003`, `DEC-005`, `DEC-006`, and `DEC-011` (the
+paytable + reel-strip weights), plus the **Game-Design Spec** in `brief.md`.
+Reel-strip weights are tuned for feel (wins land often enough to be fun; balance
+drifts down over a long session), explicitly **not** a regulated RTP — do not
+advertise an RTP number.
 
 ## Dependencies
 

@@ -159,9 +159,11 @@ deploy to GitHub Pages or Vercel is out of scope for the MVP unless trivial.
 
 - Decisions: `/decisions/` — especially `DEC-001` (separation), `DEC-002` (RNG),
   `DEC-003` (paylines), `DEC-004` (CSS animation), `DEC-005` (play-money),
-  `DEC-006` (emoji symbols), `DEC-007` (synthesized audio).
+  `DEC-006` (emoji symbols), `DEC-007` (synthesized audio), `DEC-011` (paytable +
+  reel-strip weights).
 - Constraints: `/guidance/constraints.yaml`
 - Project brief & game-design spec: `/projects/PROJ-001-animal-slots/brief.md`
+  (Game-Design Spec section — the authoritative paytable, weights, and rules)
 - Data model / API contract: not applicable — no persistence schema beyond two
   localStorage keys (balance, mute) and no external API. See those docs'
   notes.
