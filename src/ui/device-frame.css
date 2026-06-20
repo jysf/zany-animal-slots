@@ -1,0 +1,48 @@
+/*
+ * Device-frame layout — desktop wrapper for the portrait cabinet.
+ *
+ * Consumes design tokens from src/styles/tokens.css via var(--…).
+ * No raw hex color literals — all themed values go through tokens.
+ *
+ * Phone (default, no media query): .device-stage is transparent — the cabinet
+ * fills the viewport exactly as SPEC-003 shipped it (full-width, 100dvh,
+ * max-width: 430px centered). Nothing changes below the breakpoint.
+ *
+ * Desktop (@media min-width: 640px): .device-stage becomes a full-viewport
+ * flex center on an ambient backdrop; .cabinet gets the rounded frame and
+ * shadow treatment and is bounded to a phone shape so it doesn't sprawl.
+ *
+ * Portrait-first (constraint: portrait-first): the frame is additive
+ * desktop-only chrome, gated behind min-width so it cannot affect phone.
+ */
+
+/* ─── Phone default (no styles — cabinet owns its own layout) ───────────────── */
+
+/* ─── Desktop: ambient backdrop + framed cabinet ────────────────────────────── */
+
+@media (min-width: 640px) {
+  .device-stage {
+    /* Full viewport, flex-centered both axes. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    min-height: 100vh; /* fallback first, then dvh overrides */
+
+    /* Ambient backdrop — use existing dark token. */
+    background-color: var(--color-jackpot-sky);
+  }
+
+  .cabinet {
+    /* Phone-shaped height: bounded so it reads as a held device, not full-height. */
+    height: min(92dvh, 880px);
+    min-height: 0;
+
+    /* Device frame treatment. */
+    border-radius: var(--radius-frame);
+    box-shadow: var(--shadow-frame);
+
+    /* Clip children (rounded corners must clip the cabinet's content edges). */
+    overflow: hidden;
+  }
+}

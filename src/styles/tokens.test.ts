@@ -64,6 +64,10 @@ const REQUIRED_TOKENS: string[] = [
   '--space-6',
   '--space-7',
   '--space-8',
+  // Radius (added SPEC-004)
+  '--radius-frame',
+  // Shadow (added SPEC-004)
+  '--shadow-frame',
 ];
 
 describe('src/styles/tokens.css', () => {

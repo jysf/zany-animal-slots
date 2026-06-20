@@ -7,7 +7,7 @@
 task:
   id: SPEC-004
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: S                    # S | M | L  (L means split it)
@@ -48,6 +48,22 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 54270
+      estimated_usd: 0.36
+      duration_minutes: 1.2
+      recorded_at: 2026-06-19
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=54270, 72.5s). Sub-agent authored device-frame.css + radius/shadow tokens + token-test list then was interrupted; orchestrator finished mechanical wiring (App wrapper, App/device-frame tests) on main-loop (unmetered, not added here). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 66202
+      estimated_usd: 0.44
+      duration_minutes: 6.9
+      recorded_at: 2026-06-19
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=66202, 414s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -220,26 +236,106 @@ Written during **design**, BEFORE build. Build's job is to make these pass.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-004-desktop-device-frame`
+- **PR (if applicable):** (orchestrator fills at push/PR)
+- **All acceptance criteria met?** yes
+  - Desktop (≥640px): cabinet renders in a centered, rounded (`var(--radius-frame)`),
+    shadowed (`var(--shadow-frame)`) frame on an ambient backdrop, bounded to a
+    phone shape — confirmed by screenshot at 1280px.
+  - Phone (<640px): cabinet full-screen, edge-to-edge, no frame — confirmed by
+    screenshot at 375px (visually identical to SPEC-003).
+  - `tokens.css` declares `--radius-frame` + `--shadow-frame` (rgba lives inside
+    the shadow token); frame CSS consumes them via `var()` with no raw hex.
+  - Frame gated behind `@media (min-width: 640px)`.
+  - `just typecheck && just lint && just test && just build` all exit 0 (13/13 tests pass).
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - None. The frame is additive presentation under existing DEC-010 (global CSS +
+    tokens) and DEC-001 (presentation-only); no new architectural choice.
 - **Deviations from spec:**
-  - [list]
+  - Backdrop uses the existing `--color-jackpot-sky` token rather than adding a new
+    `--color-backdrop` (the spec offered this as an explicit option) — keeps the
+    token set minimal until a distinct backdrop color is actually needed.
+  - Build was completed across two sessions: a Sonnet sub-agent authored
+    `device-frame.css` + the radius/shadow tokens + extended the token test list,
+    then was interrupted mid-task; the orchestrator finished the remaining
+    mechanical wiring (App.tsx `device-stage` wrapper + import, the App.test.tsx
+    structure test, and `device-frame.test.ts`) and ran the gate. No design
+    decisions were made in the finish; cost is attributed to the sub-agent below.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None. STAGE-001's backlog is complete with this spec.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing material. The jsdom caveat and the explicit CSS-contract / token-contract
+   test specifications removed the usual "how do we test responsive CSS" ambiguity.
+   The only open choice was which dark token to use for the backdrop, and the spec
+   pre-empted that by naming candidates.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `portrait-first` plus DEC-010 (tokens, no raw hex) fully governed the work;
+   the "no raw hex in the frame CSS" rule follows directly from DEC-010.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing on the implementation — the additive, `min-width`-gated approach that
+   leaves the phone layout completely untouched is the correct shape. Process-wise,
+   the only lesson is sub-agent fragility (see dogfood finding): an interrupted
+   build needs a clean way to resume or hand off mid-task.
+
+---
+
+## Verify
+
+✅ APPROVED — reviewed by claude-sonnet-4-6, 2026-06-19
+
+### Gate results
+
+| Command | Result |
+|---|---|
+| `just typecheck` | EXIT 0 |
+| `just lint` | EXIT 0 |
+| `just test` | EXIT 0 — 13/13 tests pass |
+| `just build` | EXIT 0 |
+| `just decisions-audit --changed main` | EXIT 0 — advisory only, no violations |
+
+### Acceptance criteria
+
+- [x] **Desktop frame (AC1):** `device-frame.css` places all rules inside `@media (min-width: 640px)`. `.device-stage` is full-viewport flex-centered; `.cabinet` gets `border-radius: var(--radius-frame)`, `box-shadow: var(--shadow-frame)`, `height: min(92dvh, 880px)`, `overflow: hidden`. Ambient backdrop uses `--color-jackpot-sky`. Centered both axes confirmed in CSS.
+- [x] **Phone unchanged (AC2):** No rules outside the media query; `regions.css` is untouched (zero diff vs `main`). Phone path adds no layout.
+- [x] **Tokens declared (AC3):** `tokens.css` has `--radius-frame: 2.5rem` and `--shadow-frame: 0 8px 40px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4)`. Frame CSS consumes both via `var()`. No raw hex in `device-frame.css` (grep confirms zero matches).
+- [x] **Min-width gate (AC4):** Single `@media (min-width: 640px)` block; every frame rule is inside it.
+- [x] **All gates pass (AC5):** Confirmed above.
+
+### Tests not vacuous
+
+- `device-frame.test.ts` "gates behind min-width": regex `/@media[^{]*min-width[^{]*\{/` — would FAIL if the `@media` block were removed.
+- `device-frame.test.ts` "styles with radius and shadow tokens": `.includes('var(--radius-frame)')` and `.includes('var(--shadow-frame)')` — would FAIL if either `var()` reference were deleted.
+- `device-frame.test.ts` "no raw hex": `/#[0-9a-fA-F]{3,8}\b/` — would FAIL if a hex literal were introduced. Regex is non-trivial (3–8 hex digits with word boundary).
+- `App.test.tsx` "wraps in device stage": `screen.getByTestId('device-stage')` throws if absent; `.toContainElement` checks nesting structure — would FAIL if the wrapper were removed.
+- `tokens.test.ts` (extended): `--radius-frame` and `--shadow-frame` in `REQUIRED_TOKENS` — pattern test would FAIL if either token were removed from `tokens.css`.
+
+### Constraints
+
+- **portrait-first:** Satisfied — phone layout entirely untouched. Frame styles are exclusively inside `@media (min-width: 640px)`. `regions.css` has zero changes.
+- **test-before-implementation:** Satisfied — failing tests specified in spec's `## Failing Tests` section (design phase); build made them pass.
+- **one-spec-per-pr:** Satisfied — PR #4 covers only SPEC-004.
+- **DEC-001 (engine/presentation separation):** Satisfied — no `src/engine` imports in any touched file.
+- **DEC-010 (global CSS + tokens, no raw hex):** Satisfied — frame CSS is global, token-driven, zero raw hex literals.
+
+### Decision drift
+
+Two decisions govern the touched files (per `just decisions-audit --changed main`): DEC-004 and DEC-010.
+- DEC-004 (CSS animation, not canvas): no animation added; consistent.
+- DEC-010 (global CSS + tokens): frame follows the convention exactly; consistent.
+- No new non-trivial build decision required — additive presentation under existing decisions. Confirmed correct.
+
+### Build reflection
+
+Three questions answered honestly and non-trivially. Deviation (using `--color-jackpot-sky` instead of adding `--color-backdrop`) is documented and matches the spec's explicit guidance.
+
+### Cost sessions
+
+Design (null, main-loop note) and build (null, sub-agent note) present. Verify session appended above. Orchestrator fills real tokens at ship per AGENTS §4.
 
 ---
 
