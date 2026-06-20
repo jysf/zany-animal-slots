@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-002                     # stable, zero-padded within the project
-  status: proposed                  # proposed | active | shipped | cancelled | on_hold
+  status: active                    # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -58,13 +58,55 @@ STAGE-003 consume a stable contract rather than co-evolving logic and
 presentation. It depends only on STAGE-001's scaffold and the `engine-no-dom`
 boundary already being in place.
 
-## Why Now / Success Criteria / Scope / Design Notes / Dependencies
+## Success Criteria
 
-*Framed lightly for now. Expand via Prompt 1c (Stage Frame) when this stage
-becomes active. Authoritative game rules live in the **Game-Design Spec** section
-of `brief.md` and in `DEC-002` (seedable RNG), `DEC-003` (fixed paylines),
-`DEC-005` (play-money / no-RTP), `DEC-006` (symbols + tiers), and `DEC-011`
-(paytable + reel-strip weights).*
+- A full `spin → evaluate → settle` cycle runs from a Vitest test with no browser:
+  given a seed and a bet, the engine returns a `SpinResult` (grid, winning lines,
+  total win, new balance, win tier).
+- **Determinism:** the same seed always produces the same grid and result; every
+  source of randomness flows through the injected PRNG (constraint
+  `deterministic-rng`) — no bare `Math.random()` anywhere in `src/engine/**`.
+- **Boundary stays clean:** `src/engine/**` imports no React/DOM (constraint
+  `engine-no-dom`, lint-enforced) and depends on nothing in `src/ui/**`.
+- **Rules match the spec:** paylines (DEC-003), paytable + reel weights (DEC-011),
+  symbols/tiers (DEC-006), bet/balance, and win-tier classification all behave per
+  the brief's **Game-Design Spec**, evidenced by tests derived from its tables and
+  worked examples.
+- **High coverage:** the pure logic is unit-tested close to every branch (payline
+  lengths 3/4/5, multi-line spins, all tiers, insufficient-balance, reset).
+- The engine exposes a single typed public surface (`src/engine/index.ts`) the UI
+  will consume in STAGE-003; nothing reaches past it into internals.
+
+## Scope
+
+### In scope
+- `rng.ts` — seedable mulberry32 PRNG + injection seam (DEC-002).
+- `strips.ts` — symbol set, per-reel weighted strips (DEC-011 weights), strip→grid
+  stop logic.
+- `spin.ts` — resolve a 5×3 grid from seed + strips (draw order reel 0→4).
+- `paylines.ts` — the 5 fixed lines (DEC-003) + paytable evaluation (DEC-011),
+  summing all line wins.
+- `balance.ts` — bet levels 10/25/50, balance debit/credit, reset to 1000,
+  invalid-spin as a typed result (no throw).
+- `tiers.ts` — win-tier classification (none/small/big/jackpot) as data.
+- `index.ts` — the typed public interface (`spin`, bet/balance ops, `SpinResult`).
+
+### Explicitly out of scope
+- Anything visual, timed, or audible: rendering, reel-stop animation, spin
+  duration, celebration, audio (STAGE-003 / STAGE-004).
+- `localStorage` persistence of balance/mute (STAGE-003 wires it).
+- Auto-spin orchestration (a UI concern over the engine — STAGE-003).
+- Per-reel asymmetric strips or per-symbol payout splits (clean future specs per
+  DEC-003 / DEC-011).
+- Any RTP claim or tuning toward a regulated payout (DEC-005, `no-real-money`).
+
+## Build order & dependencies (within the stage)
+
+The specs form a dependency chain — build in backlog order: `rng` → `strips` →
+`spin` (needs rng + strips) → `paylines` (evaluates a grid; can be built against
+hand-built grids in parallel-ish) → `balance` (independent) → `tiers` (needs the
+win/total concepts) → `index` (composes all of the above into `spin()`). Each spec
+is small and gets its own branch/PR.
 
 ## Spec Backlog
 
@@ -72,15 +114,15 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] (not yet written) — Seedable RNG module (mulberry32) + injection seam; no bare `Math.random()` anywhere in `src/engine/**`.
-- [ ] (not yet written) — Symbol set + weighted reel strips (common animals frequent, Wolf rare); strip-to-grid stop logic.
-- [ ] (not yet written) — 5×3 spin resolver: given seed/strips, produce the visible grid.
-- [ ] (not yet written) — Payline + paytable evaluation: 5 fixed lines, 3/4/5-of-a-kind per tier, sum of all line wins.
-- [ ] (not yet written) — Bet/balance state machine: bet levels 10/25/50, balance debit/credit, reset to 1000.
-- [ ] (not yet written) — Win-tier classification: small (<5× bet) / big (≥5× bet) / jackpot (five Wolves), exposed as data.
-- [ ] (not yet written) — Public engine interface: typed `spin()` surface the UI consumes, with the engine's outputs fully described.
+- [ ] (not yet written) — Seedable RNG module (mulberry32) + injection seam; no bare `Math.random()` anywhere in `src/engine/**`. **[S]**
+- [ ] (not yet written) — Symbol set + weighted reel strips (DEC-011 weights; common animals frequent, Wolf rare); strip-to-grid stop logic. **[S]**
+- [ ] (not yet written) — 5×3 spin resolver: given seed/strips, produce the visible grid (draw order reel 0→4). **[S]**
+- [ ] (not yet written) — Payline + paytable evaluation: 5 fixed lines (DEC-003), 3/4/5-of-a-kind per tier (DEC-011), sum of all line wins. **[M]**
+- [ ] (not yet written) — Bet/balance state machine: bet levels 10/25/50, balance debit/credit, reset to 1000, invalid-spin typed result. **[S]**
+- [ ] (not yet written) — Win-tier classification: none / small (<5× bet) / big (≥5× bet) / jackpot (five Wolves), exposed as data. **[S]**
+- [ ] (not yet written) — Public engine interface: typed `spin()` surface the UI consumes, with `SpinResult` fully described. **[M]**
 
-**Count:** 0 shipped / 0 active / 7 pending (estimate — refine at Stage Frame)
+**Count:** 0 shipped / 0 active / 7 pending — sized at Stage Frame (5×S, 2×M; no L). All small/medium, one concern each.
 
 ## Design Notes
 
