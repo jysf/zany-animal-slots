@@ -51,19 +51,19 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 54270
+      estimated_usd: 0.36
+      duration_minutes: 1.2
       recorded_at: 2026-06-19
-      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=54270, 72.5s). Sub-agent authored device-frame.css + radius/shadow tokens + token-test list then was interrupted; orchestrator finished mechanical wiring (App wrapper, App/device-frame tests) on main-loop (unmetered, not added here). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 66202
+      estimated_usd: 0.44
+      duration_minutes: 6.9
       recorded_at: 2026-06-19
-      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result at ship"
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=66202, 414s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
