@@ -45,6 +45,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-20
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -208,26 +216,26 @@ DEC-003 lines + DEC-011 paytable (floor rounding). Grids are `grid[reel][row]`.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-008-payline-eval
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (SPEC-009 bet/balance and SPEC-010 win-tier are already in the backlog)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear. The spec was very precise: exact rows per line, exact paytable values, exact test grids with expected outputs including the floor-rounding case. The "run must start at reel 0" test used the same grid G as `lineSymbols`, which required careful reading to confirm no line was actually winning (it isn't — L1 middle row starts with FOX, not BEAR).
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. `engine-no-dom`, `deterministic-rng` (no Math.random), and importing only from `./spin` and `./strips` are all called out explicitly.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec was complete enough that it was a straight translation. Writing the test first (which the spec's Failing Tests section effectively did already) confirmed the logic before I ran the gate.
 
 ---
 
