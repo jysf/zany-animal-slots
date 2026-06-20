@@ -114,7 +114,7 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] (not yet written) — Seedable RNG module (mulberry32) + injection seam; no bare `Math.random()` anywhere in `src/engine/**`. **[S]**
+- [ ] SPEC-005 (build) — Seedable RNG module (mulberry32) + injection seam; no bare `Math.random()` anywhere in `src/engine/**`. **[S]**
 - [ ] (not yet written) — Symbol set + weighted reel strips (DEC-011 weights; common animals frequent, Wolf rare); strip-to-grid stop logic. **[S]**
 - [ ] (not yet written) — 5×3 spin resolver: given seed/strips, produce the visible grid (draw order reel 0→4). **[S]**
 - [ ] (not yet written) — Payline + paytable evaluation: 5 fixed lines (DEC-003), 3/4/5-of-a-kind per tier (DEC-011), sum of all line wins. **[M]**
