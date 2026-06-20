@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-005-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-19 (Opus)
-- [ ] **build** — prompt: `prompts/SPEC-005-build.md` (run on Sonnet)
-- [ ] **verify** — prompt: pending (waiting on build)
-- [ ] **ship** — prompt: pending (waiting on verify)
+- [x] **build** — gate green (20/20); pushed, PR #5 opened 2026-06-19 (Sonnet sub-agent)
+- [x] **verify** — ✅ APPROVED 2026-06-19; all 4 gates green, 7/7 tests non-vacuous, no constraint violations, algorithm exact (Sonnet sub-agent)
+- [~] **ship** — prompt: `prompts/SPEC-005-ship.md`; merging PR #5 (squash) 2026-06-19
