@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-004-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-19
-- [ ] **build** — prompt: `prompts/SPEC-004-build.md` (run on Sonnet)
+- [~] **build** — prompt: `prompts/SPEC-004-build.md` (run on Sonnet) — built + gate green (13/13) + visual check passed (375px / 1280px) 2026-06-19; push/PR pending
 - [ ] **verify** — prompt: pending (waiting on build)
 - [ ] **ship** — prompt: pending (waiting on verify)

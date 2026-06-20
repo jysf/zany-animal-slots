@@ -91,3 +91,17 @@
   --space-7: 3rem;      /* 48px */
   --space-8: 4rem;      /* 64px */
 }
+
+/* ─── Radius tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --radius-sm:    0.25rem;   /* 4px  — tight corners */
+  --radius-md:    0.5rem;    /* 8px  — standard */
+  --radius-lg:    1rem;      /* 16px — generous */
+  --radius-frame: 2.5rem;    /* 40px — phone-shaped device frame */
+}
+
+/* ─── Shadow tokens ─────────────────────────────────────────────────────────── */
+:root {
+  /* Complete box-shadow value — rgba lives here so frame CSS has no color literals. */
+  --shadow-frame: 0 8px 40px rgba(0, 0, 0, 0.6), 0 2px 12px rgba(0, 0, 0, 0.4);
+}
