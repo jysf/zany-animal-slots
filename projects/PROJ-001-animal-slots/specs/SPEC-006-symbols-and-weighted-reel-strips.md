@@ -44,6 +44,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-19
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -201,26 +209,26 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-006-reel-strips
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (SPEC-007 spin resolver is already planned in the stage backlog)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear. The spec provided the pinned REEL_STRIP array verbatim and the exact `visibleCells` implementation formula, so there was no ambiguity to resolve.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001 (engine-no-dom), DEC-006 (symbols/tiers), and DEC-011 (weights) were exactly the right set. The `deterministic-rng` constraint was not listed in the spec's front-matter but is implicitly satisfied (no `Math.random()` in this file — it's pure data plus one deterministic helper).
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec was self-contained and detailed enough that implementation was direct transcription. The pinned array in "Notes for the Implementer" was the key time-saver.
 
 ---
 
