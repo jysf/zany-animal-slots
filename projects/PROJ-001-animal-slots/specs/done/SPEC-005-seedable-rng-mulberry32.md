@@ -7,7 +7,7 @@
 task:
   id: SPEC-005
   type: story                      # epic | story | task | bug | chore
-  cycle: verify  # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: S                    # S | M | L  (L means split it)
@@ -62,10 +62,18 @@ cost:
       duration_minutes: 3.5
       recorded_at: 2026-06-19
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=56119, 209s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-06-19
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 111121
+    estimated_usd: 0.73
+    session_count: 4
 ---
 
 # SPEC-005: Seedable RNG (mulberry32)
@@ -243,16 +251,26 @@ pin the exact algorithm (a different PRNG, or a subtly wrong one, fails test 4/6
 
 ## Reflection (Ship)
 
-*Appended during the **ship** cycle.*
+*Appended during the **ship** cycle. Merged via PR #5 (squash) on 2026-06-19.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Precomputing the canonical mulberry32 fixtures with Node before writing the
+   spec made the failing tests correct on the first build run (no arithmetic
+   surprises). That pattern — derive exact fixtures from a reference, then pin them
+   in the spec — is the right move for every deterministic engine spec, and I'll
+   reuse it for `strips`/`spin`.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No mandatory change. One optional hardening: `deterministic-rng` is enforced
+   by verify review + (indirectly) the engine-no-dom lint, but a bare
+   `Math.random()` in the engine is not *itself* lint-caught. A
+   `no-restricted-syntax`/`no-restricted-globals` rule for `Math.random` under
+   `src/engine/**` would make it mechanical. Logged as a dogfood candidate; not
+   required for this spec.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The next backlog item (SPEC-006, weighted reel strips) is the
+   natural consumer of `createRng`/`randomInt`/`Rng` and is already planned.
 
 ---
 
