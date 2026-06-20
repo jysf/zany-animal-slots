@@ -45,6 +45,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-19
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -184,26 +192,34 @@ the canonical strip (SPEC-006) and the canonical RNG (SPEC-005).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-007-spin-resolver`
+- **PR (if applicable):** (pending verify)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none — implementation followed the spec exactly; no non-trivial decisions needed.
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned backlog (SPEC-008 paylines, etc.)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing material. The spec was unusually precise: exact function signatures,
+     exact draw-order constraint, exact pinned stops + grid, and a worked-example
+     verification step spelled out in the implementation notes. The `visibleCells`
+     spread-to-`SymbolId[]` cast was the only minor gap (the return type is a tuple
+     but `Grid` expects a plain array), resolved with `as SymbolId[]`.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `DEC-001` (engine boundary) and `DEC-002` (injected RNG) fully cover
+     what `spin.ts` needed. The `engine-no-dom` ESLint rule caught any stray imports
+     automatically.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec's pinned-value approach (compute expected
+     output externally, paste it into the test) is excellent — it nailed a subtle
+     RNG interaction bug before any code existed. I'd use that pattern again.
 
 ---
 
