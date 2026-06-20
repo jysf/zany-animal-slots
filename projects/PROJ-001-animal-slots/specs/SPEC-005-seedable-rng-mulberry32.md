@@ -46,6 +46,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-19
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -202,26 +210,26 @@ pin the exact algorithm (a different PRNG, or a subtly wrong one, fails test 4/6
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** `feat/spec-005-seedable-rng`
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none — the exact mulberry32 code from the spec was used verbatim; all seven failing tests implemented as specified; no extra exports or deps added.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing STAGE-002 backlog (strips, spin, paylines, etc.)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear. The spec provided the exact mulberry32 implementation code and pinned canonical fixture values, so there was no ambiguity about algorithm or expected output.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The relevant ones (`deterministic-rng`, `engine-no-dom`) were all listed and straightforward to satisfy with a pure module containing no imports at all.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec was complete and self-contained. The only micro-optimization would be verifying the pinned fixture values before coding (to catch any arithmetic surprise early), but the spec-provided values were correct on first run.
 
 ---
 
