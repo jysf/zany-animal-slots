@@ -131,6 +131,24 @@ appended at the bottom. Scaffold more entries with `just new-feedback "<slug>"`.
       pre-provision the obvious test-time dev deps (`@types/node`) in the scaffold
       spec. `status: open` (process/template tension surfaced by SPEC-002).
 
+11. **A build sub-agent can return a truncated/mid-task message while its work is
+    only half done — and a stale timeline marker can claim a build already ran when
+    it didn't.** SPEC-004's build sub-agent returned the literal fragment
+    "Now create the device-frame CSS file:" as its final message with the App
+    wrapper, the two test files, the gate run, and the commit all still missing;
+    separately, the branch's timeline already said "built locally … push/PR
+    pending" before any code change existed on the branch (`git log main..HEAD` was
+    empty). Trusting `git`/disk state over both the sub-agent's self-report and the
+    timeline marker was what caught it.
+    - **Suggested fix (process):** after a build/verify sub-agent returns, the
+      orchestrator should always reconcile the claimed result against actual disk +
+      `git log` state before advancing — never advance on the self-report alone.
+      The contract's existing "trust git over timeline markers" rule held up well;
+      worth generalizing it to "trust git/disk over *any* agent self-report."
+      `status: addressed` here (orchestrator verified disk state, finished the
+      mechanical remainder on main-loop, attributed cost to the sub-agent's metered
+      portion). Surfaced by SPEC-004.
+
 ## What worked (keep)
 
 - The `value:` (project) and `value_contribution:` (stage) blocks forced

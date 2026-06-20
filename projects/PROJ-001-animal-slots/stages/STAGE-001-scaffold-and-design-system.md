@@ -106,9 +106,9 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-001 (shipped on 2026-06-18) — Project scaffold + tooling: Vite + React + TS (strict), ESLint w/ `engine-no-dom` import boundary, Prettier, Vitest + RTL, CI (lint/typecheck/test). **[M]**
 - [x] SPEC-002 (shipped on 2026-06-19) — Design-token sheet: colors, type scale, spacing as CSS custom properties (`:root`), imported globally, with a token-contract test. **[S]**
 - [x] SPEC-003 (shipped on 2026-06-19) — Four-region portrait layout skeleton (Header / Game / Status / Action), responsive and correct 375–430px, built on the tokens. **[M]**
-- [ ] SPEC-004 (build) — Desktop device-frame wrapper: centers the portrait cabinet in a device frame at desktop widths without disturbing the phone layout. **[S]**
+- [x] SPEC-004 (shipped on 2026-06-19) — Desktop device-frame wrapper: centers the portrait cabinet in a device frame at desktop widths without disturbing the phone layout. **[S]**
 
-**Count:** 3 shipped / 1 active / 0 pending
+**Count:** 4 shipped / 0 active / 0 pending — backlog complete (Stage Ship pending)
 
 ## Design Notes
 

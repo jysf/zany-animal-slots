@@ -7,7 +7,7 @@
 task:
   id: SPEC-004
   type: story                      # epic | story | task | bug | chore
-  cycle: verify  # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: S                    # S | M | L  (L means split it)
@@ -64,10 +64,18 @@ cost:
       duration_minutes: 6.9
       recorded_at: 2026-06-19
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=66202, 414s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 15
+      recorded_at: 2026-06-19
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator: merge, reflection, totals, archive, brag)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 120472
+    estimated_usd: 0.80
+    session_count: 4
 ---
 
 # SPEC-004: Desktop device frame
@@ -344,10 +352,25 @@ Design (null, main-loop note) and build (null, sub-agent note) present. Verify s
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Two things. (a) The build sub-agent got interrupted mid-task and returned a
+   truncated message ("Now create the device-frame CSS file:") while the work was
+   only half done — I trusted git over the report, found the gap, and finished the
+   mechanical wiring on the orchestrator rather than spinning up a second full
+   sub-agent. Next time I'd verify a build sub-agent's *disk state* before assuming
+   its self-report is complete, regardless of how the message reads. (b) The
+   timeline marker said "built locally, push/PR pending" before any build had
+   actually run (a stale marker from a prior attempt) — trusting `git log`/`git
+   diff` over the marker was the right call and confirms the contract's "trust git
+   over timeline markers" rule.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint/decision change is required. The spec, DEC-010 (tokens,
+   no raw hex), and portrait-first fully governed the work. The only process lesson
+   (sub-agent interruption / state verification) is a dogfood finding, not a
+   template change — captured in the feedback log rather than AGENTS.md.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No. SPEC-004 was the last spec in STAGE-001's backlog; STAGE-001's cabinet
+   (scaffold → tokens → four-region layout → desktop frame) is functionally
+   complete. The next work is the STAGE-001 Stage Ship and then STAGE-002 (the slot
+   engine), both already planned — no new spec to capture here.
