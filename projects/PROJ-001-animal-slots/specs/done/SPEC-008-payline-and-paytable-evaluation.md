@@ -4,7 +4,7 @@
 task:
   id: SPEC-008
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: M
@@ -61,10 +61,18 @@ cost:
       duration_minutes: 4.2
       recorded_at: 2026-06-20
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=67684, 249s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-06-21
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 130636
+    estimated_usd: 0.87
+    session_count: 4
 ---
 
 # SPEC-008: Payline and paytable evaluation
@@ -252,13 +260,19 @@ DEC-003 lines + DEC-011 paytable (floor rounding). Grids are `grid[reel][row]`.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing on execution. Computing every expected payout independently (Node,
+   from the DEC-003 lines + DEC-011 paytable) and embedding them as fixtures made
+   the [M] scoring spec verifiable by hand at review — the verifier re-derived 7
+   cases and matched. That up-front fixture computation is what makes a scoring
+   spec trustworthy.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-003 + DEC-011 fully specified the behavior, and the "no wilds in v1"
+   clarification lived in the spec where it belonged.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-009 (bet/balance) and SPEC-010 (win-tier) are next and
+   independent; SPEC-011 composes everything into the public `spin()`. All planned.
 
 ---
 
