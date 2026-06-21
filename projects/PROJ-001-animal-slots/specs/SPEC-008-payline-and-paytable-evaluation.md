@@ -4,7 +4,7 @@
 task:
   id: SPEC-008
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -45,6 +45,22 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-19
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 62952
+      estimated_usd: 0.42
+      duration_minutes: 2.9
+      recorded_at: 2026-06-20
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=62952, 175s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 67684
+      estimated_usd: 0.45
+      duration_minutes: 4.2
+      recorded_at: 2026-06-20
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=67684, 249s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -208,26 +224,26 @@ DEC-003 lines + DEC-011 paytable (floor rounding). Grids are `grid[reel][row]`.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-008-payline-eval
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (SPEC-009 bet/balance and SPEC-010 win-tier are already in the backlog)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear. The spec was very precise: exact rows per line, exact paytable values, exact test grids with expected outputs including the floor-rounding case. The "run must start at reel 0" test used the same grid G as `lineSymbols`, which required careful reading to confirm no line was actually winning (it isn't — L1 middle row starts with FOX, not BEAR).
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. `engine-no-dom`, `deterministic-rng` (no Math.random), and importing only from `./spin` and `./strips` are all called out explicitly.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec was complete enough that it was a straight translation. Writing the test first (which the spec's Failing Tests section effectively did already) confirmed the logic before I ran the gate.
 
 ---
 
@@ -243,3 +259,70 @@ DEC-003 lines + DEC-011 paytable (floor rounding). Grids are `grid[reel][row]`.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Reviewer:** claude-sonnet-4-6 (cold sub-agent, 2026-06-20)
+
+### Verdict: ✅ APPROVED
+
+### Gate results
+
+- [x] `just typecheck` — exit 0
+- [x] `just lint` — exit 0 (engine-no-dom rule passed; no violations)
+- [x] `just test` — exit 0 (11/11 paylines tests pass; 46/46 total)
+- [x] `just build` — exit 0 (Vite production build clean)
+- [x] `just decisions-audit --changed` — "No changed files in scope (your uncommitted changes)" (all changes committed); scope-overlap warnings are pre-existing across entire repo, not introduced here
+
+### Acceptance criteria
+
+- [x] `PAYLINES` has exactly the five DEC-003 rows: L1 [1,1,1,1,1], L2 [0,0,0,0,0], L3 [2,2,2,2,2], L4 [0,1,2,1,0], L5 [2,1,0,1,2] — confirmed in source and asserted per-line in the test.
+- [x] `PAYTABLE` equals DEC-011: low [0.5,2,5], mid [1,4,12], high [3,10,40], jackpot [8,40,200] — confirmed in source and deep-equal asserted.
+- [x] Left-anchored run ≥3 from reel 0; `amount = Math.floor(multiplier × totalBet)` — implementation runs a `for` loop from reel 1, breaking on first mismatch; correct.
+- [x] `evaluatePaylines` sums all hitting lines; non-winning grid returns `{lineWins:[], totalWin:0}`.
+- [x] `paylines.ts` imports only `./spin` and `./strips`; no React/DOM/src-ui; no `Math.random()`.
+- [x] All four just gates exit 0.
+
+### Data vs decisions
+
+- **DEC-003 paylines:** source exactly matches the decision table (verified row-by-row).
+- **DEC-011 paytable:** source exactly matches the decision table (verified cell-by-cell).
+- **DEC-001 pure engine:** only `./spin` and `./strips` imported; lint enforces at the rule level.
+
+### Scoring correctness (hand-derived)
+
+All verified against the formula `amount = floor(PAYTABLE[tier][count-3] × totalBet)`:
+
+1. **All-Wolf, bet=10:** jackpot 5-of-a-kind → multiplier=200; `floor(200×10)=2000`; 5 lines → **10000** ✓
+2. **Multi-line bet=25:** L1 BEAR mid 3→ `floor(1×25)=25`; L3 DEER low 3 → `floor(0.5×25)=floor(12.5)=12`; total **37** ✓
+3. **Floor test bet=25:** DEER low 3 → `floor(0.5×25)=floor(12.5)=`**12** ✓
+4. **BISON 4-of-a-kind high, bet=10:** `PAYTABLE['high'][1]=10`; `floor(10×10)=`**100** ✓
+5. **DEER 5-of-a-kind low, bet=10:** `PAYTABLE['low'][2]=5`; `floor(5×10)=`**50** ✓
+6. **Reel-0 anchor (grid G):** manually walked all 5 lines; reel-0 symbol never repeats to reel 1 on any line → totalWin=0 ✓
+7. **Non-winning grid:** all 5 lines checked; no line reaches run≥3 → totalWin=0 ✓
+
+### Tests not vacuous
+
+- **Wrong paytable value:** the `PAYTABLE matches DEC-011` deep-equal test would catch any single changed multiplier.
+- **Off-by-one run count:** the 3-of-a-kind vs 4-of-a-kind vs 5-of-a-kind tests assert both `count` and `amount` individually; the 4-of-a-kind BISON test has run=4 (reel 4 breaks to DEER), confirming the loop exits on the first mismatch.
+- **Missing floor:** the `floors fractional payouts` test asserts `amount===12` not `12.5`; would fail if `Math.floor` were removed.
+- **Row-major/col-major grid mixup:** `lineSymbols` test asserts `['DEER','BEAR','FOX','BEAR','DEER']` on L4 using a hand-specified grid; any transposition of `grid[reel][row]` → `grid[row][reel]` would break it.
+
+### Constraints
+
+- [x] `engine-no-dom`: paylines.ts imports only `./spin` and `./strips`; lint confirms.
+- [x] `deterministic-rng`: no bare `Math.random()` anywhere in `src/engine/` (grep confirmed; only appears in a comment in strips.ts).
+- [x] `test-before-implementation`: Failing Tests block was written in design; implementation makes them pass.
+- [x] `one-spec-per-pr`: PR #8 references SPEC-008 only.
+- [x] `DEC-001`: pure engine respected structurally and at lint level.
+
+### Decision drift
+
+None. No non-trivial build choices requiring a new DEC-* were made; implementation was a straight translation of the spec. The 14 scope-overlap warnings from `just decisions-audit` are pre-existing across all engine decisions (DEC-001's broad `src/engine/**` scope overlaps with more-specific file scopes); they do not indicate drift in this spec's changes.
+
+### Build reflection
+
+- Three questions answered with specific, non-empty content. Honest assessment ("straight translation").
+- Cost: design session has correct null-with-note; build session has correct null-with-note per AGENTS §4.
