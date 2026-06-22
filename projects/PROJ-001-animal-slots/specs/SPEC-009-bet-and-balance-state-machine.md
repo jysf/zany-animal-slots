@@ -44,6 +44,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-21
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-22
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -183,26 +191,26 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-009-bet-balance
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond what is already in the STAGE-002 backlog (SPEC-010 win-tier, SPEC-011 public interface)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing unclear. The spec was unusually complete: exact export signatures, seven named tests with precise expected values, and explicit notes on clamping and the no-throw contract. The only judgment call was how to express `DebitFailure` using a local type alias versus inline, which the spec leaves open — I chose two named local aliases for readability.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `engine-no-dom`, `no-real-money`, and DEC-001/DEC-005 all applied directly and were already listed. The `deterministic-rng` constraint (`no bare Math.random()`) technically applies to all of `src/engine/**` but is already captured in `constraints.yaml` and noted in STAGE-002; adding it to this spec's front-matter would be belt-and-suspenders given the module has no randomness at all.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing substantial. The module is small and the spec was precise enough to go straight to writing. The only micro-improvement would be to run `just test src/engine/balance.test.ts` first (isolated) to confirm the new tests fail before writing the implementation — the spec says tests-before-implementation, and I wrote both files before running the gate. In practice the gate run still caught any mistakes, but the strict TDD sequence would be: write test file → confirm failures → write implementation → confirm passes.
 
 ---
 
