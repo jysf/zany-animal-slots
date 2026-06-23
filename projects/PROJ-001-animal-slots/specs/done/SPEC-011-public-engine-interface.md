@@ -4,7 +4,7 @@
 task:
   id: SPEC-011
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: M
@@ -66,10 +66,18 @@ cost:
       duration_minutes: 6.9
       recorded_at: 2026-06-23
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=63579, 416s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 124538
+    estimated_usd: 0.82
+    session_count: 4
 ---
 
 # SPEC-011: Public engine interface
@@ -273,10 +281,14 @@ Gates: `just typecheck && just lint && just test && just build` — all exit 0.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. Sequencing the engine so the composing spec came last meant every
+   piece `spin()` needed was already shipped and tested; computing the three
+   full-spin fixtures from the real pipeline made the integration test trustworthy.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-001 (the index.ts boundary) is now concretely realized — the UI will
+   consume only this module in STAGE-003.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No engine spec remains; STAGE-002 is complete. The natural next work is
+   STAGE-003 (wire this `spin()` into the reels UI), which is a separate stage.
