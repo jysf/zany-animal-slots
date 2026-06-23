@@ -46,6 +46,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -233,26 +241,26 @@ an injected `nextSeed`; the fixtures are the SPEC-011 full-spin values.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-013-spin-flow`
+- **PR (if applicable):** (orchestrator will open after verify)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (no non-trivial novel decisions; choices followed DEC-001/002/005 exactly)
 - **Deviations from spec:**
-  - [list]
+  - `@testing-library/user-event` is not installed; Action test uses `fireEvent` from `@testing-library/react` instead. Behavior is equivalent for a disabled-button click assertion.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing stage backlog (bet controls, persistence, animation)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing materially unclear. The only minor friction was discovering `@testing-library/user-event` is absent — the spec's test code used `userEvent.click` by implication but the dep wasn't listed as available. `fireEvent` is an equivalent substitute for this assertion.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The "no new deps" rule (informally stated in the build prompt) is the constraint that matters here; it could be explicit in `constraints.yaml` as `no-new-deps-in-build`, but it's minor enough to leave advisory.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Check the available testing utilities (`grep @testing-library package.json`) before writing test code that might reference a missing package. It's a 5-second check that avoids one test-run/fix cycle.
 
 ---
 
