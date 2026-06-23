@@ -1,6 +1,7 @@
 // Updated for SPEC-003: tests the four-region cabinet structure.
 // The "Animal Slots" accessible name moves from <main aria-label> to the
 // <h1> heading inside the <header> banner region.
+// SPEC-013: extended with Spin control + balance readout assertions.
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
@@ -34,5 +35,14 @@ describe('App', () => {
     expect(stage).toContainElement(cabinet as HTMLElement);
     expect(cabinet).toContainElement(screen.getByRole('banner'));
     expect(cabinet).toContainElement(screen.getByRole('main'));
+  });
+
+  // SPEC-013: Spin control + balance readout wired from the hook.
+  it('renders the Spin control and a balance readout', () => {
+    render(<App />);
+    const spinBtn = screen.getByRole('button', { name: /spin/i });
+    expect(spinBtn).toBeInTheDocument();
+    expect(spinBtn).not.toBeDisabled();
+    expect(screen.getByText('1000')).toBeInTheDocument();
   });
 });

@@ -4,7 +4,7 @@
 task:
   id: SPEC-013
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -46,6 +46,22 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 72052
+      estimated_usd: 0.48
+      duration_minutes: 4.5
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=72052, 267s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 67611
+      estimated_usd: 0.45
+      duration_minutes: 4.2
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=67611, 249s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -233,26 +249,26 @@ an injected `nextSeed`; the fixtures are the SPEC-011 full-spin values.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-013-spin-flow`
+- **PR (if applicable):** (orchestrator will open after verify)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (no non-trivial novel decisions; choices followed DEC-001/002/005 exactly)
 - **Deviations from spec:**
-  - [list]
+  - `@testing-library/user-event` is not installed; Action test uses `fireEvent` from `@testing-library/react` instead. Behavior is equivalent for a disabled-button click assertion.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing stage backlog (bet controls, persistence, animation)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing materially unclear. The only minor friction was discovering `@testing-library/user-event` is absent — the spec's test code used `userEvent.click` by implication but the dep wasn't listed as available. `fireEvent` is an equivalent substitute for this assertion.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The "no new deps" rule (informally stated in the build prompt) is the constraint that matters here; it could be explicit in `constraints.yaml` as `no-new-deps-in-build`, but it's minor enough to leave advisory.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Check the available testing utilities (`grep @testing-library package.json`) before writing test code that might reference a missing package. It's a 5-second check that avoids one test-run/fix cycle.
 
 ---
 
@@ -268,3 +284,70 @@ an injected `nextSeed`; the fixtures are the SPEC-011 full-spin values.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Reviewer: claude-sonnet-4-6 | Date: 2026-06-23
+
+### Gate
+- [x] `just typecheck` — exit 0
+- [x] `just lint` — exit 0
+- [x] `just test` — exit 0 (86/86 tests, 17 files)
+- [x] `just build` — exit 0 (Vite production bundle)
+- [x] `just decisions-audit --changed` — no drift (no uncommitted UI changes in scope)
+- [x] `git diff main..HEAD -- src/engine/` — empty; engine unchanged
+
+### Acceptance Criteria
+- [x] `useSlotMachine()` starts at balance=1000, bet=10, INITIAL_GRID, status='idle', lineWins=[], tier='none', canSpin=true — confirmed in useSlotMachine.test.tsx, all four assertions present
+- [x] spin() calls engineSpin({ seed: nextSeed(), balance, bet }) and applies ok outcome — confirmed; hook does setGrid/setBalance/setLineWins/setTier/setStatus from outcome fields; UI computes nothing
+- [x] canAfford(balance<bet) → canSpin=false, spin() no-op, balance unchanged, no throw — confirmed in test "cannot spin when the balance cannot cover the bet"
+- [x] Action renders accessible Spin button, calls onSpin when enabled, disabled when canSpin=false — confirmed in Action.test.tsx (two tests with fireEvent)
+- [x] Status shows balance and bet — confirmed in Status.test.tsx
+- [x] App wires hook → Game/Status/Action (live grid, balance, canSpin) — confirmed in App.tsx + App.test.tsx SPEC-013 assertion
+- [x] UI imports engine only via src/engine index — grep found zero engine internal imports in src/ui; lint passes with engine-no-dom rule
+
+### Flow Correctness
+- [x] Initial state: STARTING_BALANCE=1000, DEFAULT_BET=10, INITIAL_GRID, status='idle', tier='none', canSpin=true — all match
+- [x] Seed 276 → balance=1045, tier='big', lineWins.length=3 — asserted directly in test
+- [x] Seed 12345 → balance=990, tier='none' — asserted directly in test
+- [x] Unaffordable (initialBalance=5, bet=10) → canSpin=false, spin() no-op, balance stays 5, status stays 'idle' — asserted
+
+### DEC-001 Boundary
+- [x] No imports of engine/rng, engine/spin, engine/strips, engine/paylines, engine/balance, engine/tiers found in src/ui (grep exit 1 = no matches)
+- [x] Engine files unchanged (git diff main..HEAD -- src/engine/ is empty)
+- [x] No Math.random() in src/engine/** (only appears in comments)
+
+### DEC-002 (injectable seed)
+- [x] nextSeed is injectable via opts.nextSeed — tests use { nextSeed: () => 276 } and { nextSeed: () => 12345 }
+- [x] Default is module-level counter seeded from Date.now() — in useSlotMachine.ts lines 19-23
+
+### Tests Not Vacuous
+- [x] Seed-276 fixture: balance, tier, lineWins.length, status, grid — 5 concrete assertions, would catch UI recomputing balance
+- [x] Seed-12345 fixture: balance===990, tier==='none' — catches bet-deduction path
+- [x] Low-balance no-op: canSpin===false before spin, balance===5 after spin, status==='idle' — all three asserted; would catch a spin that fires when it shouldn't
+- [x] Action disabled test: fireEvent.click on disabled button, onSpin not called — correctly asserts browser disabled behavior
+
+### A11y / Constraints
+- [x] Spin button text content "Spin" provides accessible name (getByRole('button', { name: /spin/i }) passes)
+- [x] min-height: 2.75rem = 44px; min-width: 2.75rem = 44px — touch-targets-44 met
+- [x] controls.css: all colors via CSS custom properties (--color-accent, --color-bg, --color-frame, --color-text-muted, --color-coin, --color-text); zero raw hex found
+- [x] ReelGrid untouched (pure, no new imports)
+
+### Decision Drift
+- [x] DEC-001: honored — import boundary clean
+- [x] DEC-002: honored — injected nextSeed, engine receives seed
+- [x] DEC-005: honored — unaffordable spin is a silent no-op; no throw
+- [x] fireEvent instead of @testing-library/user-event: acceptable deviation — no new dep needed, behavior identical for disabled-button assertion; not a DEC-worthy choice
+
+### Build Reflection Quality
+- [x] Three questions answered with non-empty, honest content
+- [x] Deviation (fireEvent vs userEvent) clearly stated with rationale
+
+### Cost Sessions
+- [x] Design session present with null numerics + correct note (main-loop, not separately metered)
+- [x] Build session present with null numerics + note (orchestrator to fill from Agent result)
+- [x] Verify session appended (this cycle)
