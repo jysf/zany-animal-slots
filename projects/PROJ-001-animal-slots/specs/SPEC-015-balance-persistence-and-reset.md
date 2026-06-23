@@ -1,0 +1,222 @@
+---
+# Maps to ContextCore task.* semantic conventions.
+
+task:
+  id: SPEC-015
+  type: story
+  cycle: build
+  blocked: false
+  priority: high
+  complexity: S
+
+project:
+  id: PROJ-001
+  stage: STAGE-003
+repo:
+  id: animal-slots
+
+agents:
+  architect: claude-opus-4-8
+  implementer: claude-sonnet-4-6
+  created_at: 2026-06-23
+
+references:
+  decisions:
+    - DEC-001
+    - DEC-005
+  constraints:
+    - portrait-first
+    - touch-targets-44
+    - test-before-implementation
+    - one-spec-per-pr
+  related_specs:
+    - SPEC-013
+
+value_link: "Makes the balance stick — persists it to localStorage so a session survives reloads, with a Reset that restores 1000 (DEC-005)."
+
+cost:
+  sessions:
+    - cycle: design
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 20
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+  totals:
+    tokens_total: 0
+    estimated_usd: 0
+    session_count: 0
+---
+
+# SPEC-015: Balance persistence and reset
+
+## Context
+
+The fourth STAGE-003 spec. So far the balance is in-memory and resets to 1000 on
+every reload. This spec makes it **persist**: the balance is written to
+localStorage and rehydrated on load, and a **Reset** control restores it to 1000
+(DEC-005: balance is a local-only play-money number). Persistence is a UI concern —
+the engine stays storage-free (DEC-001). One of the project's two localStorage keys
+(`balance`; `mute` arrives with audio in STAGE-004/005).
+
+See `STAGE-003-reels-ui-and-spin-flow.md`, `DEC-005` ("balance ... local-only (a
+`localStorage` number; Reset restores 1000)"), and SPEC-013's `useSlotMachine`.
+
+## Goal
+
+Persist the balance across reloads via localStorage (rehydrate on init, write on
+change) and add a `reset()` (→ `STARTING_BALANCE`) surfaced as a Reset button, with
+a small safe storage module. The engine remains untouched.
+
+## Inputs
+
+- **Files to read:** `src/engine/index.ts` (`STARTING_BALANCE`),
+  `src/ui/useSlotMachine.ts`, `src/ui/App.tsx`, `src/ui/regions/Action.tsx` +
+  `controls.css`, `DEC-005`.
+- **Related code paths:** `src/ui/`.
+
+## Outputs
+
+- **Files created:**
+  - `src/ui/storage.ts` — `BALANCE_KEY`, `readBalance(): number | null`,
+    `writeBalance(n: number): void` (safe: try/catch, ignores non-finite / invalid).
+  - `src/ui/storage.test.ts` — storage round-trip + invalid-value tests.
+- **Files modified:**
+  - `src/ui/useSlotMachine.ts` — initialize balance from
+    `opts.initialBalance ?? readBalance() ?? STARTING_BALANCE`; write balance to
+    storage on change (effect); add `reset()` to the result.
+  - `src/ui/regions/Action.tsx` — render a **Reset** button from props
+    `{ onReset: () => void }` (≥44px, accessible name "Reset").
+  - `src/ui/App.tsx` — thread `reset` → `Action` as `onReset`.
+  - `src/ui/useSlotMachine.test.tsx`, `src/ui/regions/Action.test.tsx` — extend.
+  - `src/ui/regions/controls.css` — style the Reset button (tokens, no raw hex).
+- **New exports:** `reset` on `UseSlotMachineResult`; `storage.ts` exports.
+- **Database changes:** none (localStorage only).
+
+## Acceptance Criteria
+
+- [ ] `writeBalance(n)` then `readBalance()` round-trips the number; `readBalance()`
+      returns `null` when the key is absent or the stored value is not a finite
+      number (no throw).
+- [ ] `useSlotMachine()` with no `initialBalance` rehydrates the balance from
+      localStorage when present, else starts at `STARTING_BALANCE`. An explicit
+      `opts.initialBalance` still takes precedence (for tests).
+- [ ] After a spin (or reset), the new balance is written to localStorage.
+- [ ] `reset()` sets the balance back to `STARTING_BALANCE` (1000) and persists it;
+      a **Reset** button (≥44px, `touch-targets-44`) in the Action region calls it.
+- [ ] The engine is unchanged; UI imports the engine only via `src/engine`;
+      `just typecheck/lint/test/build` exit 0.
+
+## Failing Tests
+
+Written during **design**, BEFORE build. RTL/`renderHook`; tests clear localStorage
+in `beforeEach` so storage state is isolated.
+
+- **`src/ui/storage.test.ts`**
+  - `"round-trips a balance"` — `writeBalance(777)` then `readBalance() === 777`.
+  - `"returns null when absent"` — with cleared storage, `readBalance() === null`.
+  - `"ignores an invalid stored value"` — set the raw key to `"not-a-number"`;
+    `readBalance() === null` (no throw).
+
+- **`src/ui/useSlotMachine.test.tsx`** (extended; `beforeEach(() =>
+  localStorage.clear())`)
+  - `"rehydrates the balance from localStorage"` — `writeBalance(777)` before
+    `renderHook(() => useSlotMachine())` → initial `balance === 777`.
+  - `"falls back to STARTING_BALANCE when storage is empty"` — cleared storage →
+    initial `balance === 1000`.
+  - `"persists the balance after a spin"` — `useSlotMachine({ nextSeed: () => 12345 })`
+    (no initialBalance), `act(spin)` → `balance === 990` **and** `readBalance() === 990`.
+  - `"reset restores 1000 and persists"` — `useSlotMachine({ nextSeed: () => 12345 })`,
+    `act(spin)` (balance 990), then `act(reset)` → `balance === 1000` and
+    `readBalance() === 1000`.
+
+- **`src/ui/regions/Action.test.tsx`** (extended)
+  - `"renders a Reset button that calls onReset"` — render `<Action>` with the props
+    incl. `onReset`; `getByRole('button', { name: /reset/i })` calls `onReset` on click.
+
+## Implementation Context
+
+### Decisions that apply
+
+- `DEC-005` — balance is a local-only play-money number; Reset restores 1000. No
+  real currency, no server.
+- `DEC-001` — persistence is a UI concern; the engine takes/returns plain numbers
+  and never touches storage.
+
+### Constraints that apply
+
+- `touch-targets-44` — the Reset button is ≥44px.
+- `portrait-first`, `test-before-implementation`, `one-spec-per-pr`.
+
+### Prior related work
+
+- `SPEC-013` (shipped) — `useSlotMachine` (balance state + spin). `SPEC-014`
+  (shipped) — bet controls in the Action region (Reset joins that controls bar).
+
+### Out of scope (for this spec specifically)
+
+- The `mute` localStorage key + audio (STAGE-004/005).
+- Reel animation (SPEC-016), auto-spin (SPEC-017), line highlight (SPEC-018).
+- Migrating/ versioning the stored value, or cross-tab sync — a single plain
+  number key is enough for v1.
+
+## Notes for the Implementer
+
+- `storage.ts`: `export const BALANCE_KEY = 'zany-animal-slots.balance';`
+  `readBalance()`: `try { const raw = localStorage.getItem(BALANCE_KEY); if (raw ===
+  null) return null; const n = Number(raw); return Number.isFinite(n) ? n : null; }
+  catch { return null; }`. `writeBalance(n)`: `try { localStorage.setItem(BALANCE_KEY,
+  String(n)); } catch { /* ignore quota/unavailable */ }`.
+- Hook init: `useState<number>(() => opts?.initialBalance ?? readBalance() ??
+  STARTING_BALANCE)`. Persist with `useEffect(() => { writeBalance(balance); },
+  [balance])`. `reset = useCallback(() => setBalance(STARTING_BALANCE), [])`.
+- Note the effect persists `opts.initialBalance` too — fine; the test files clear
+  localStorage in `beforeEach` so suites stay isolated.
+- Action: a `<button>` named "Reset" (≥44px), `onClick={onReset}`. Place it in the
+  controls bar; keep Spin prominent. It can always be enabled.
+- After building, the orchestrator does a preview check (spin a few times, reload →
+  balance persists; click Reset → back to 1000).
+
+---
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:**
+- **PR (if applicable):**
+- **All acceptance criteria met?** yes/no
+- **New decisions emitted:**
+  - `DEC-NNN` — <title> (if any)
+- **Deviations from spec:**
+  - [list]
+- **Follow-up work identified:**
+  - [any new specs for the stage's backlog]
+
+### Build-phase reflection (3 questions, short answers)
+
+1. **What was unclear in the spec that slowed you down?**
+   — <answer>
+
+2. **Was there a constraint or decision that should have been listed but wasn't?**
+   — <answer>
+
+3. **If you did this task again, what would you do differently?**
+   — <answer>
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle.*
+
+1. **What would I do differently next time?**
+   — <answer>
+
+2. **Does any template, constraint, or decision need updating?**
+   — <answer>
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — <answer>
