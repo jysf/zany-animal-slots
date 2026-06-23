@@ -52,6 +52,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-23
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -229,6 +237,26 @@ in `beforeEach` so storage state is isolated.
    in Action.test.tsx needs `onReset` added to it (required prop update for existing
    tests) — but it was an obvious consequence of adding a required prop and took only
    seconds to address.
+
+---
+
+## Verify
+
+Verified 2026-06-23 by claude-sonnet-4-6 (cold sub-agent).
+
+**Verdict: APPROVED**
+
+- ACCEPTANCE CRITERIA: All five checkboxes met — storage round-trips, rehydration, persist-after-spin, reset persists, engine unchanged, gate exit 0.
+- STORAGE SAFETY: `readBalance` is fully wrapped in try/catch and returns `null` on absent key, non-finite value, or any exception. `writeBalance` is fully wrapped with silent catch. The invalid-value test sets a non-numeric raw string and expects `null`. Never throws. PASS.
+- HOOK PERSISTENCE: Init order is `opts?.initialBalance ?? readBalance() ?? STARTING_BALANCE` (lazy initializer). Explicit `initialBalance` wins — existing tests unaffected. `useEffect([balance])` persists on every change. `reset = useCallback(() => setBalance(STARTING_BALANCE), [])` is correct. Persist-after-spin and reset-persists fixtures are genuine (no `initialBalance` passed, so storage path is exercised). PASS.
+- TEST ISOLATION: `beforeEach(() => localStorage.clear())` present in both `storage.test.ts` and `useSlotMachine.test.tsx`. PASS.
+- WIRING/A11Y: `reset-btn` has `min-height: 2.75rem` (44px) and `min-width: 2.75rem` (44px). `aria-label="Reset"` provides accessible name. All CSS colors via design tokens, no raw hex. `App.tsx` passes `onReset={reset}` to `<Action>`. PASS.
+- DEC-001/DEC-005: `git diff main..HEAD -- src/engine/` is empty. Persistence is UI-only. Balance is local play-money. PASS.
+- TESTS NOT VACUOUS: Tests catch: missing `writeBalance` call (persist-after-spin checks `readBalance()`), wrong init precedence (rehydration test), reset not persisting (reset test checks both state and storage), `readBalance` throwing on garbage (invalid-value test). PASS.
+- DECISION DRIFT: No non-trivial build choices needing a new DEC. Spec's implementation notes were specific enough. `just decisions-audit --changed` reports no scope. PASS.
+- BUILD REFLECTION: Three questions answered honestly, non-empty, with real friction identified (existing-test compatibility reasoning, `defaultBetProps` update). PASS.
+- COST: Design null-with-note (main-loop, correct). Build null-with-note (sub-agent, orchestrator fills). Pattern correct per AGENTS §4.
+- GATE: `just typecheck && just lint && just test && just build` all exit 0. 100/100 tests pass.
 
 ---
 
