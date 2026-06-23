@@ -4,7 +4,7 @@
 task:
   id: SPEC-013
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: M
@@ -62,10 +62,18 @@ cost:
       duration_minutes: 4.2
       recorded_at: 2026-06-23
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=67611, 249s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview click-through check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 139663
+    estimated_usd: 0.93
+    session_count: 4
 ---
 
 # SPEC-013: Spin button and flow
@@ -277,13 +285,20 @@ an injected `nextSeed`; the fixtures are the SPEC-011 full-spin values.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Making the hook's `nextSeed` injectable was the key call —
+   it let the flow's behavior be pinned to the SPEC-011 fixtures (276→1045, 12345→990)
+   without mocking the engine, and the preview click-through confirmed the real play
+   the RTL tests can't show.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. One small ecosystem note (not a template change): `@testing-library/user-event`
+   isn't installed, so UI tests use `fireEvent`. Fine for now; if richer interaction
+   tests pile up in later STAGE-003/004 specs, adding it would be a clean, trivial dev-dep.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The remaining STAGE-003 backlog (bet controls, persistence,
+   animation, auto-spin, line highlight) already covers what this deferred. The
+   `status` field + `lineWins`/`tier` on the hook are the seams those layer onto.
 
 ---
 

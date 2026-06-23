@@ -10,4 +10,4 @@ Cycle prompts live in `prompts/SPEC-013-<cycle>.md`.
 - [x] **design** — completed 2026-06-23 (Opus)
 - [x] **build** — gate green (86/86) + preview check (clicked Spin: 1000→990, fresh grid); pushed, PR #13 (Sonnet sub-agent)
 - [x] **verify** — ✅ APPROVED 2026-06-23 (Sonnet sub-agent); all gates green, all criteria met
-- [~] **ship** — prompt: `prompts/SPEC-013-ship.md`; merging PR #13 (squash) 2026-06-23
+- [x] **ship** — PR #13 squash-merged to main 2026-06-23. Total: 139,663 tokens / ~$0.93 (4 sessions). First playable spin.
