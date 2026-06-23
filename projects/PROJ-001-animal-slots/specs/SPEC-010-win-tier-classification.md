@@ -44,6 +44,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-22
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-22
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -167,26 +175,35 @@ explicitly).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-010-win-tier
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (SPEC-011 already planned for the public engine interface)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the spec was unusually precise. The `lw()` helper
+   shorthand, the exact precedence ordering, and the import constraints were
+   all spelled out. No hunting was needed.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `engine-no-dom`, `test-before-implementation`, and `one-spec-per-pr`
+   were all listed and all apply. The import of `SymbolId` from `./strips` is
+   technically not required (the string literal `'WOLF'` resolves against the
+   `SymbolId` union already embedded in `LineWin`), so I kept `strips` out of the
+   implementation import list and imported only from `./paylines`, which is the
+   minimum needed.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec was tight enough that the first cut passed all
+   four gate steps. I'd make the same choice to omit the `strips` import since
+   `LineWin.symbol` already carries the `SymbolId` type.
 
 ---
 
