@@ -36,6 +36,42 @@
   cursor: not-allowed;
 }
 
+/* ─── Bet stepper ───────────────────────────────────────────────────────────── */
+
+/* Wraps the − and + buttons side-by-side. */
+.bet-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bet-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Touch target: ≥44px (constraint: touch-targets-44). */
+  min-height: 2.75rem;   /* 44px */
+  min-width: 2.75rem;    /* 44px */
+
+  background-color: var(--color-frame);
+  color: var(--color-text);
+  border: none;
+  border-radius: var(--radius-md);
+
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+
+  cursor: pointer;
+}
+
+.bet-btn:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
 /* ─── Status readout ────────────────────────────────────────────────────────── */
 
 .status-readout {
