@@ -45,6 +45,14 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -191,26 +199,26 @@ unit test.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-012-reel-grid
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - The spec says "import reels.css" in Game.tsx — the import is handled inside ReelGrid.tsx itself (which is the conventional pattern for co-located CSS in Vite). Game.tsx imports ReelGrid which carries the CSS. No behavioral difference.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing STAGE-003 backlog
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The spec said "Import the engine ONLY from 'src/engine' (the index, via the existing alias/relative path used elsewhere in src/ui)" but no UI file had yet imported the engine, so there was no precedent to follow. No path alias exists in tsconfig/vite.config. Used `../../engine/index` (relative) which works fine.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints; the spec was thorough. One implicit detail: since reels.css is co-located and imported from ReelGrid.tsx rather than Game.tsx directly, Vite bundles it into the same chunk — consistent with how other co-located CSS files work in this project (device-frame.css imported in App.tsx, not in the child component).
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Read the existing import patterns in App.tsx and region files first (before coding) to confirm CSS import placement convention — it would have resolved the Game.tsx vs ReelGrid.tsx import question immediately.
 
 ---
 
