@@ -127,7 +127,7 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] SPEC-012 (build) — Reel grid component: render the engine's 5×3 `Grid` as emoji (`SymbolId → emoji` map in the UI) in the wooden frame. **[S]**
+- [x] SPEC-012 (shipped 2026-06-23) — Reel grid component: render the engine's 5×3 `Grid` as emoji (`SymbolId → emoji` map in the UI) in the wooden frame. **[S]**
 - [ ] (not yet written) — Spin button + spin-flow state machine wired to `spin()`: idle → spinning → resolved, UI-side seed per spin, balance/grid update, controls disabled mid-spin. **[M]**
 - [ ] (not yet written) — Bet +/− controls cycling 10 / 25 / 50 (engine `nextBet`/`prevBet`/`canAfford`), disabled when balance < bet. **[S]**
 - [ ] (not yet written) — Balance persistence to localStorage + rehydrate on load + Reset restoring 1000 (DEC-005). **[S]**
@@ -135,7 +135,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [ ] (not yet written) — Auto-spin toggle: repeats with inter-spin delay; stops on jackpot, count exhaustion (default 10), or balance < bet. **[M]**
 - [ ] (not yet written) — Basic winning-line highlight driven by `lineWins` (no full celebration yet). **[S]**
 
-**Count:** 0 shipped / 0 active / 7 pending — sized at Stage Frame (4×S, 3×M; no L). Reordered so the renderable spin flow lands before animation/auto-spin/highlight layer onto it.
+**Count:** 1 shipped / 0 active / 6 pending — sized at Stage Frame (4×S, 3×M; no L). Reordered so the renderable spin flow lands before animation/auto-spin/highlight layer onto it.
 
 ## Design Notes
 

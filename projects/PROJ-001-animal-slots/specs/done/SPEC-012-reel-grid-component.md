@@ -4,7 +4,7 @@
 task:
   id: SPEC-012
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
@@ -61,10 +61,18 @@ cost:
       duration_minutes: 3.2
       recorded_at: 2026-06-23
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=62584, 193s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview screenshot check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 132880
+    estimated_usd: 0.87
+    session_count: 4
 ---
 
 # SPEC-012: Reel grid component
@@ -269,10 +277,16 @@ Gate: `just typecheck && just lint && just test && just build` — all exit 0. 1
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. The static `INITIAL_GRID` + pure `ReelGrid({grid})` split was
+   the right seam: the board renders now, and SPEC-013 can feed it live spin grids
+   with no component change. The preview check (375px + desktop) confirmed the look
+   that RTL can't.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. This is the first UI spec to import the engine; the path `../../engine/index`
+   honors DEC-001. Worth noting for future UI specs that there's no path alias — a
+   relative import to the engine index is the convention.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-013 (spin button + flow) is next and will lift the grid into
+   spin-flow state, feeding `ReelGrid` live results; already planned.
