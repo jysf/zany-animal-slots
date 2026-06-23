@@ -50,6 +50,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -208,26 +216,26 @@ composed pipeline (canonical RNG + strip + paylines + paytable).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-011-engine-interface`
+- **PR (if applicable):** (local only — orchestrator opens PR at ship)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (STAGE-002 backlog complete after this spec ships)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing truly slowed things down. The only minor friction was that the spec's compose-order diagram showed `import type { LineId, Payline }` as a local import, but TypeScript's `noUnusedLocals` flagged them as unused (they're re-exported via `export type { ... } from './paylines'`, not needed locally). Removing the redundant local imports resolved it immediately.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `engine-no-dom`, `deterministic-rng`, and `DEC-005` (no-throw on insufficient balance) all mapped directly to implementation choices. TypeScript strict mode (`noUnusedLocals`) could have been noted in the context to flag the import issue, but it's a minor compile-error, not an architectural gap.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec was precise: pinned fixtures, exact compose order, exact re-export list. Starting with the test file to confirm the fixtures compile before writing `index.ts` would surface any import-shape issues earlier, but the gate caught it instantly anyway.
 
 ---
 
