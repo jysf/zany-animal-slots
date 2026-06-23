@@ -52,6 +52,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-22
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-22
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -211,6 +219,25 @@ Written during **design**, BEFORE build.
 
 3. **If you did this task again, what would you do differently?**
    — Nothing substantial. The module is small and the spec was precise enough to go straight to writing. The only micro-improvement would be to run `just test src/engine/balance.test.ts` first (isolated) to confirm the new tests fail before writing the implementation — the spec says tests-before-implementation, and I wrote both files before running the gate. In practice the gate run still caught any mistakes, but the strict TDD sequence would be: write test file → confirm failures → write implementation → confirm passes.
+
+---
+
+## Verify
+
+Verified 2026-06-22 by claude-sonnet-4-6 (cold, separate session).
+
+**Verdict: ✅ APPROVED**
+
+- [x] **Gate:** `just typecheck && just lint && just test && just build` — all exit 0. 53/53 tests pass.
+- [x] **Decisions-audit:** `just decisions-audit --changed` — "No changed files in scope." Pre-existing 14 scope warnings are not introduced by this spec; zero structural errors.
+- [x] **Acceptance Criteria:** All 7 checkboxes met. `STARTING_BALANCE === 1000`, `BET_LEVELS === [10,25,50]`, `DEFAULT_BET === 10`; nextBet/prevBet clamp (no wrap); `canAfford` = `bet > 0 && balance >= bet`; `debit` returns typed result (never throws); `credit` adds.
+- [x] **Correctness:** Constants are exact. `nextBet(50) === 50`, `prevBet(10) === 10` (clamped). `canAfford(50,50) === true` (exact-balance allowed), `canAfford(100,0) === false` (zero-bet blocked). `debit(10,10)` → `{ok:true,balance:0}` (drain to zero is allowed). `debit(5,10)` → `{ok:false,reason:'insufficient-balance',balance:5}` (unchanged).
+- [x] **No-throw contract (AGENTS §11 / DEC-005):** `debit` uses `canAfford` guard and returns a `DebitResult` discriminated union on both paths. It does not contain a `throw`. Test explicitly asserts `expect(() => debit(5,10)).not.toThrow()` and checks the unchanged balance via `toEqual`.
+- [x] **Tests not vacuous:** A wraparound bug in nextBet/prevBet would fail `nextBet(50) === 50` / `prevBet(10) === 10`. A `>=` → `>` slip in canAfford would fail `canAfford(50,50) === true`. A thrown error would fail `.not.toThrow()`. A mutated balance would fail the `balance: 5` check in the failure case. All meaningful paths covered.
+- [x] **Constraints:** `balance.ts` has zero imports (no React/DOM/ui). No `Math.random()`. No real-money arithmetic. DEC-001 honored (pure engine module, no DOM). DEC-005 honored (play-coin arithmetic only, no payment surface).
+- [x] **Decision drift:** No non-trivial build choices made. Builder explicitly noted no new DECs needed. Confirmed correct.
+- [x] **Build reflection:** Three questions answered with substance. Builder honestly noted the test-before-implementation process deviation (wrote impl+tests together before running gate), correctly judging it a minor sequence issue not a code defect. Tests were authored from the spec's Failing Tests section and are correct. Acceptable.
+- [x] **Cost sessions:** design session present (null numerics, main-loop note — correct per AGENTS §4). Build session present (null numerics, "orchestrator to fill" note — correct for sub-agent build). Verify session appended by this reviewer. Ship session outstanding (filled at ship — expected).
 
 ---
 
