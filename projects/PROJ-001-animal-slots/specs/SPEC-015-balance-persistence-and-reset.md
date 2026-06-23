@@ -44,6 +44,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -185,26 +193,42 @@ in `beforeEach` so storage state is isolated.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** `feat/spec-015-balance-persistence`
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (storage pattern is straightforward; the spec's Notes for the Implementer was
+    specific enough to not require a new DEC)
 - **Deviations from spec:**
-  - [list]
+  - None. Implemented exactly as specified: storage.ts with BALANCE_KEY/readBalance/writeBalance,
+    hook init via lazy-initializer pattern, useEffect persist, reset callback, Reset button in
+    Action with aria-label "Reset" and ≥44px CSS via tokens, all failing tests written.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None beyond existing STAGE-003 backlog (SPEC-016 animation, SPEC-017 auto-spin,
+    SPEC-018 line highlight).
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing significant. The "Notes for the Implementer" section was exceptionally
+   complete — it gave the exact function bodies for readBalance/writeBalance and the
+   useState/useEffect/useCallback patterns. The only minor thing to reason through was
+   whether adding `beforeEach(localStorage.clear())` to the existing useSlotMachine tests
+   would break any of the prior tests; it didn't, because all pre-existing tests that needed
+   a specific balance already passed `initialBalance` which takes precedence.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing decisions. DEC-001 (engine-no-dom), DEC-005 (play-money / reset to 1000),
+   and the touch-targets-44 constraint covered everything. The "no raw hex in CSS" rule
+   comes from the coding conventions section of AGENTS.md rather than a constraint ID —
+   it could be worth a dedicated constraint entry, but it's not a blocker.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural. The build was smooth and the spec was tight. If anything,
+   I'd note that the spec could have explicitly called out the `defaultBetProps` fixture
+   in Action.test.tsx needs `onReset` added to it (required prop update for existing
+   tests) — but it was an obvious consequence of adding a required prop and took only
+   seconds to address.
 
 ---
 

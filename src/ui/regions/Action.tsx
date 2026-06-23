@@ -1,6 +1,7 @@
 // Action region — controls bar at the bottom (STAGE-003).
 // SPEC-013: renders the Spin button wired to the hook via props.
 // SPEC-014: adds bet −/+ stepper buttons (≥44px, touch-targets-44).
+// SPEC-015: adds Reset button (≥44px, touch-targets-44) via onReset prop.
 // Button is ≥44px (constraint: touch-targets-44) and disabled when canSpin is false
 // (DEC-005: unaffordable spin is a no-op; the button reflects that at the UI level).
 import './controls.css';
@@ -12,9 +13,10 @@ interface Props {
   onBetUp: () => void;
   canBetDown: boolean;
   canBetUp: boolean;
+  onReset: () => void;
 }
 
-export default function Action({ onSpin, canSpin, onBetDown, onBetUp, canBetDown, canBetUp }: Props) {
+export default function Action({ onSpin, canSpin, onBetDown, onBetUp, canBetDown, canBetUp, onReset }: Props) {
   return (
     <section className="cabinet__action" aria-label="Controls">
       <div className="bet-stepper">
@@ -44,6 +46,14 @@ export default function Action({ onSpin, canSpin, onBetDown, onBetUp, canBetDown
         disabled={!canSpin}
       >
         Spin
+      </button>
+      <button
+        type="button"
+        className="reset-btn"
+        aria-label="Reset"
+        onClick={onReset}
+      >
+        Reset
       </button>
     </section>
   );

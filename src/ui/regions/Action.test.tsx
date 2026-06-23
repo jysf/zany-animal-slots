@@ -1,16 +1,18 @@
-// Tests for the Action region (SPEC-013, extended SPEC-014).
+// Tests for the Action region (SPEC-013, extended SPEC-014, SPEC-015).
 // SPEC-013: Spin button enabled/disabled behavior.
 // SPEC-014: Bet − / + buttons wired to handlers, disabled per flags.
+// SPEC-015: Reset button wired to onReset handler.
 import { render, screen, fireEvent } from '@testing-library/react';
 import Action from './Action';
 
-// Default bet props used in every Spin-focused test so they satisfy the
+// Default bet+reset props used in every Spin-focused test so they satisfy the
 // new required props without repeating them.
 const defaultBetProps = {
   onBetDown: vi.fn(),
   onBetUp: vi.fn(),
   canBetDown: true,
   canBetUp: true,
+  onReset: vi.fn(),
 };
 
 describe('Action', () => {
@@ -45,6 +47,7 @@ describe('Action', () => {
         onBetUp={onBetUp}
         canBetDown
         canBetUp
+        onReset={vi.fn()}
       />,
     );
 
@@ -70,6 +73,7 @@ describe('Action', () => {
         onBetUp={vi.fn()}
         canBetDown={false}
         canBetUp={false}
+        onReset={vi.fn()}
       />,
     );
 
@@ -78,5 +82,23 @@ describe('Action', () => {
 
     expect(decBtn).toBeDisabled();
     expect(incBtn).toBeDisabled();
+  });
+
+  // ── SPEC-015: Reset button ─────────────────────────────────────────────────
+
+  it('renders a Reset button that calls onReset', () => {
+    const onReset = vi.fn();
+    render(
+      <Action
+        onSpin={vi.fn()}
+        canSpin
+        {...defaultBetProps}
+        onReset={onReset}
+      />,
+    );
+    const btn = screen.getByRole('button', { name: /reset/i });
+    expect(btn).not.toBeDisabled();
+    fireEvent.click(btn);
+    expect(onReset).toHaveBeenCalledTimes(1);
   });
 });
