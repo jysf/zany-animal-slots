@@ -4,7 +4,7 @@
 task:
   id: SPEC-010
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
@@ -60,10 +60,18 @@ cost:
       duration_minutes: 3.3
       recorded_at: 2026-06-22
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=59883, 196s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 115622
+    estimated_usd: 0.77
+    session_count: 4
 ---
 
 # SPEC-010: Win-tier classification
@@ -241,10 +249,14 @@ Checked items:
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. The thresholds were unambiguous; the value was pinning the boundary
+   (49→small, 50→big) and jackpot precedence as explicit tests, which the build
+   matched first try.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. The build correctly dropped the unnecessary `./strips` import (LineWin
+   already carries the SymbolId type) — a harmless simplification, not drift.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-011 (public engine interface) is the last STAGE-002 spec and
+   composes rng→balance→spin→paylines→tiers into `spin()`; already planned.

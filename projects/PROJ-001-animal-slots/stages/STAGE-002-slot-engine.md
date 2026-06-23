@@ -122,7 +122,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [~] SPEC-010 (build) — Win-tier classification: none / small (<5× bet) / big (≥5× bet) / jackpot (five Wolves), exposed as data. **[S]**
 - [ ] (not yet written) — Public engine interface: typed `spin()` surface the UI consumes, with `SpinResult` fully described. **[M]**
 
-**Count:** 5 shipped / 0 active / 2 pending — sized at Stage Frame (5×S, 2×M; no L). All small/medium, one concern each.
+**Count:** 6 shipped / 0 active / 1 pending — sized at Stage Frame (5×S, 2×M; no L). All small/medium, one concern each.
 
 ## Design Notes
 

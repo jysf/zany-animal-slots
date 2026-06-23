@@ -10,4 +10,4 @@ Cycle prompts live in `prompts/SPEC-010-<cycle>.md`.
 - [x] **design** — completed 2026-06-22 (Opus)
 - [x] **build** — gate green (63/63); pushed, PR #10 opened 2026-06-22 (Sonnet sub-agent)
 - [x] **verify** — ✅ APPROVED 2026-06-22 (Sonnet sub-agent); all gates pass, 63/63 tests
-- [~] **ship** — prompt: `prompts/SPEC-010-ship.md`; merging PR #10 (squash) 2026-06-22
+- [x] **ship** — PR #10 squash-merged to main 2026-06-23. Total: 115,622 tokens / ~$0.77 (4 sessions).
