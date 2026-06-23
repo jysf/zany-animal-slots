@@ -1,0 +1,215 @@
+---
+# Maps to ContextCore task.* semantic conventions.
+
+task:
+  id: SPEC-014
+  type: story
+  cycle: build
+  blocked: false
+  priority: high
+  complexity: S
+
+project:
+  id: PROJ-001
+  stage: STAGE-003
+repo:
+  id: animal-slots
+
+agents:
+  architect: claude-opus-4-8
+  implementer: claude-sonnet-4-6
+  created_at: 2026-06-23
+
+references:
+  decisions:
+    - DEC-001
+    - DEC-005
+  constraints:
+    - portrait-first
+    - touch-targets-44
+    - test-before-implementation
+    - one-spec-per-pr
+  related_specs:
+    - SPEC-009
+    - SPEC-013
+
+value_link: "Lets the player choose a stake — bet +/− across 10/25/50 (engine nextBet/prevBet), bounded by what the balance can afford, feeding the existing spin flow."
+
+cost:
+  sessions:
+    - cycle: design
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 20
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+  totals:
+    tokens_total: 0
+    estimated_usd: 0
+    session_count: 0
+---
+
+# SPEC-014: Bet +/− controls
+
+## Context
+
+The third STAGE-003 spec. SPEC-013 fixed the bet at 10; this adds the player's
+choice of stake: **bet +/−** stepping through the three levels (10 / 25 / 50)
+using the engine's `nextBet`/`prevBet` (DEC-009 cap/floor) and `canAfford`. Raising
+the bet is blocked when the balance can't cover the higher level; lowering is
+blocked at the floor. The chosen bet flows into the existing `spin()` (the spin
+debits the current bet). Pure control wiring — no new game logic (DEC-001).
+
+See `STAGE-003-reels-ui-and-spin-flow.md`, `DEC-005` (play-money), and the engine's
+`nextBet`/`prevBet`/`canAfford`/`BET_LEVELS` (SPEC-009, re-exported via
+`src/engine/index.ts`). Builds on SPEC-013's `useSlotMachine` + Action region.
+
+## Goal
+
+Add bet stepping to `useSlotMachine` (`increaseBet`/`decreaseBet` + `canIncreaseBet`/
+`canDecreaseBet`) driven by the engine's `nextBet`/`prevBet`/`canAfford`, and render
+**−**/**+** bet buttons in the Action region (disabled at the affordable cap/floor),
+with the live bet shown in the Status readout.
+
+## Inputs
+
+- **Files to read:** `src/engine/index.ts` (`nextBet`, `prevBet`, `canAfford`,
+  `BET_LEVELS`, `BetLevel`), `src/ui/useSlotMachine.ts`, `src/ui/regions/Action.tsx`
+  + `Status.tsx` + `controls.css`, `src/ui/App.tsx`.
+- **Related code paths:** `src/ui/`.
+
+## Outputs
+
+- **Files modified:**
+  - `src/ui/useSlotMachine.ts` — make `bet` stateful; add `increaseBet()`,
+    `decreaseBet()`, `canIncreaseBet`, `canDecreaseBet` to the result.
+  - `src/ui/regions/Action.tsx` — render bet **−** and **+** buttons (≥44px) from new
+    props `{ onBetDown, onBetUp, canBetDown, canBetUp }` alongside Spin.
+  - `src/ui/App.tsx` — thread the new hook fields into `Action`.
+  - `src/ui/useSlotMachine.test.tsx`, `src/ui/regions/Action.test.tsx` — extend.
+  - `src/ui/regions/controls.css` — style the bet stepper (tokens, no raw hex).
+- **New exports:** the extended `UseSlotMachineResult` fields above.
+- **Database changes:** none.
+
+## Acceptance Criteria
+
+- [ ] `increaseBet()` steps `bet` 10→25→50 and clamps at 50; `decreaseBet()` steps
+      50→25→10 and clamps at 10 (engine `nextBet`/`prevBet`).
+- [ ] `canIncreaseBet` is true only when not at 50 **and** `canAfford(balance,
+      nextBet(bet))`; `canDecreaseBet` is true only when not at 10. `increaseBet`/
+      `decreaseBet` are no-ops when their flag is false.
+- [ ] The chosen `bet` is what `spin()` uses (a spin debits the current bet).
+- [ ] The Action region renders accessible **−**/**+** bet buttons (≥44px,
+      `touch-targets-44`), disabled per `canBetDown`/`canBetUp`; the Status readout
+      shows the current bet.
+- [ ] UI imports the engine only via `src/engine`; engine unchanged; gate
+      (`typecheck`/`lint`/`test`/`build`) exits 0.
+
+## Failing Tests
+
+Written during **design**, BEFORE build. RTL/`renderHook`; bet stepping is logic,
+the look is a preview check.
+
+- **`src/ui/useSlotMachine.test.tsx`** (extended)
+  - `"increaseBet steps up and clamps at 50"` — `useSlotMachine()` (balance 1000):
+    after `act(increaseBet)` `bet === 25`; again `=== 50`; again `=== 50`;
+    `canIncreaseBet === false` at 50.
+  - `"decreaseBet steps down and clamps at 10"` — from 50, `decreaseBet` →25 →10
+    →10; `canDecreaseBet === false` at 10.
+  - `"cannot raise the bet beyond the affordable balance"` —
+    `useSlotMachine({ initialBalance: 20 })`: `canIncreaseBet === false` (can't
+    afford 25); `act(increaseBet)` leaves `bet === 10`.
+  - `"spin uses the chosen bet"` — `useSlotMachine({ nextSeed: () => 12345 })`:
+    `act(increaseBet)` (bet 25), then `act(spin)` → `balance === 975` (1000 − 25 + 0
+    for the losing seed 12345).
+
+- **`src/ui/regions/Action.test.tsx`** (extended)
+  - `"renders bet − and + buttons wired to handlers"` — render `<Action>` with the
+    bet props; the −/+ buttons (accessible names like /decrease bet/i and
+    /increase bet/i) call `onBetDown`/`onBetUp` when clicked.
+  - `"disables bet buttons per can-bet flags"` — with `canBetUp={false}` the + is
+    `disabled`; with `canBetDown={false}` the − is `disabled`.
+
+## Implementation Context
+
+### Decisions that apply
+
+- `DEC-005` (play-money) — bets are play coins; raising is bounded by the balance.
+- `DEC-001` — bet stepping uses the engine's `nextBet`/`prevBet`/`canAfford`; the UI
+  adds no betting rules of its own.
+
+### Constraints that apply
+
+- `touch-targets-44` — the −/+ buttons (and Spin) are ≥44px.
+- `portrait-first`, `test-before-implementation`, `one-spec-per-pr`.
+
+### Prior related work
+
+- `SPEC-009` (shipped) — `BET_LEVELS [10,25,50]`, `nextBet`/`prevBet` (clamped),
+  `canAfford`. `SPEC-013` (shipped) — `useSlotMachine` + Action region's Spin button.
+
+### Out of scope (for this spec specifically)
+
+- Balance persistence + Reset (SPEC-015); reel animation (SPEC-016); auto-spin
+  (SPEC-017); line highlight (SPEC-018).
+- Disabling controls *during* a spin — there is no spinning phase yet (SPEC-016).
+
+## Notes for the Implementer
+
+- Hook: `const [bet, setBet] = useState<BetLevel>(DEFAULT_BET);`
+  `canIncreaseBet = nextBet(bet) !== bet && canAfford(balance, nextBet(bet));`
+  `canDecreaseBet = prevBet(bet) !== bet;`
+  `increaseBet = () => { if (canIncreaseBet) setBet(nextBet(bet)); };`
+  `decreaseBet = () => { if (canDecreaseBet) setBet(prevBet(bet)); };`
+  (wrap in `useCallback` with the right deps; keep `spin`'s `bet` dependency).
+- Action: two extra `<button>`s with `aria-label` "Decrease bet" / "Increase bet"
+  (show "−"/"+" or "–"/"＋" as text), `disabled={!canBetDown}` / `{!canBetUp}`, ≥44px.
+  Lay them out as a small stepper near Spin; keep Spin the prominent control.
+- The bet value stays displayed in `Status` (already wired) — it updates reactively
+  as `bet` changes. No need to move it.
+- After building, the orchestrator does a preview check (tap + to 25/50, confirm the
+  readout updates and + disables at 50 / when unaffordable).
+
+---
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:**
+- **PR (if applicable):**
+- **All acceptance criteria met?** yes/no
+- **New decisions emitted:**
+  - `DEC-NNN` — <title> (if any)
+- **Deviations from spec:**
+  - [list]
+- **Follow-up work identified:**
+  - [any new specs for the stage's backlog]
+
+### Build-phase reflection (3 questions, short answers)
+
+1. **What was unclear in the spec that slowed you down?**
+   — <answer>
+
+2. **Was there a constraint or decision that should have been listed but wasn't?**
+   — <answer>
+
+3. **If you did this task again, what would you do differently?**
+   — <answer>
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle.*
+
+1. **What would I do differently next time?**
+   — <answer>
+
+2. **Does any template, constraint, or decision need updating?**
+   — <answer>
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — <answer>
