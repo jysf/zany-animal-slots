@@ -53,6 +53,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-23
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -219,6 +227,40 @@ unit test.
 
 3. **If you did this task again, what would you do differently?**
    — Read the existing import patterns in App.tsx and region files first (before coding) to confirm CSS import placement convention — it would have resolved the Game.tsx vs ReelGrid.tsx import question immediately.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate: `just typecheck && just lint && just test && just build` — all exit 0. 14 passed test files, 78/78 tests green. Production build: 143.80 kB JS (46 kB gzip), clean.
+
+- **ACCEPTANCE CRITERIA** — all six checkboxes met.
+  - 15 cells rendered, each with `role="img"` + `aria-label`. ✅
+  - `SYMBOL_DISPLAY` maps all 8 SYMBOLS to DEC-006 emoji + readable label. ✅
+  - `Game` renders `<ReelGrid grid={INITIAL_GRID} />` inside `.cabinet__game`. ✅
+  - `reels.css` is token-only (8 `var(--…)` usages, zero hex literals); fits portrait cabinet. ✅
+  - No engine internals imported; all `src/ui/reels/` imports go to `../../engine/index`. ✅
+  - All four gate commands exit 0. ✅
+
+- **DEC-001 BOUNDARY** — `git diff main..HEAD -- src/engine/` is empty; engine is unchanged. All `src/ui/reels/` imports use `../../engine/index`. No hits on `engine/rng|spin|strips|paylines|balance|tiers` in src/ui. Boundary clean. ✅
+
+- **DEC-006** — `SYMBOL_DISPLAY` in `symbols.ts` maps all 8 symbols to exactly the emoji specified (🦌🦊🐿️🐻🦅🦉🦬🐺) with matching readable labels (Deer/Fox/Squirrel/Bear/Eagle/Owl/Bison/Wolf). ✅
+
+- **DEC-010** — `reels.css` uses 8 `var(--…)` token references; grep for `#[0-9a-fA-F]{3,6}` in reels.css returns no matches. No raw hex. ✅
+
+- **TESTS NOT VACUOUS** — `getAllByRole('img')` length-15 assertion is explicit and would catch a missing cell or wrong reel count. Per-symbol emoji/label test asserts both `getAllByLabelText('Wolf')[0].textContent === '🐺'` and equivalent for Deer — not a vacuous pass. The `maps every DEC-006 symbol` test iterates all `SYMBOLS` and checks both `emoji.length > 0` and `label.length > 0`. The `lays out five reels` test queries `.reel` and checks each has 3 `.reel__cell` children. `Game.test.tsx` asserts 15 `role="img"` cells inside the `role="main"` element — would catch Game not mounting the grid. ✅
+
+- **PURE FUNCTION** — `ReelGrid` has no `useState`/`useRef`/`useEffect`; it is a pure function of its `grid` prop. SPEC-013 can pass a live grid without modification. ✅
+
+- **DECISION DRIFT (CSS import placement)** — Builder co-located `reels.css` import inside `ReelGrid.tsx` rather than `Game.tsx` as the spec's Outputs section suggested. This is idiomatic for co-located component CSS in Vite (same pattern as `device-frame.css`). Vite bundles it regardless of import site; `Game.tsx` gets the styles transitively. Not a defect — an accepted deviation. ✅
+
+- **`just decisions-audit --changed`** — "No changed files in scope (uncommitted changes)" because the branch is fully committed; expected. `just decisions-audit` (no flag) shows 14 pre-existing scope-overlap warnings, 0 structural errors — all pre-date this spec. No new drift introduced. ✅
+
+- **BUILD REFLECTION** — 3 questions answered, non-empty, honest: builder noted the CSS import placement deviation proactively and gave a reasoned justification; noted lack of prior UI import precedent; identified what to read first next time. ✅
+
+- **COST** — design session: null-with-note (main-loop, acceptable per AGENTS §4). Build session: null-with-note ("orchestrator to fill from subagent_tokens") — correct, not a silent omission; orchestrator fills at ship. Verify session just appended (also null-with-note for orchestrator to fill). ✅
 
 ---
 
