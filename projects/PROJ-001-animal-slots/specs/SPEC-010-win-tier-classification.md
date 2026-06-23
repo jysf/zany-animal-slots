@@ -4,7 +4,7 @@
 task:
   id: SPEC-010
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: S
@@ -44,6 +44,22 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-22
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 55739
+      estimated_usd: 0.37
+      duration_minutes: 2.6
+      recorded_at: 2026-06-22
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=55739, 153s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 59883
+      estimated_usd: 0.40
+      duration_minutes: 3.3
+      recorded_at: 2026-06-22
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=59883, 196s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -167,26 +183,56 @@ explicitly).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-010-win-tier
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (SPEC-011 already planned for the public engine interface)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the spec was unusually precise. The `lw()` helper
+   shorthand, the exact precedence ordering, and the import constraints were
+   all spelled out. No hunting was needed.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `engine-no-dom`, `test-before-implementation`, and `one-spec-per-pr`
+   were all listed and all apply. The import of `SymbolId` from `./strips` is
+   technically not required (the string literal `'WOLF'` resolves against the
+   `SymbolId` union already embedded in `LineWin`), so I kept `strips` out of the
+   implementation import list and imported only from `./paylines`, which is the
+   minimum needed.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec was tight enough that the first cut passed all
+   four gate steps. I'd make the same choice to omit the `strips` import since
+   `LineWin.symbol` already carries the `SymbolId` type.
+
+---
+
+## Verify
+
+*Reviewed 2026-06-22 — cold session, Sonnet sub-agent.*
+
+**Verdict: ✅ APPROVED**
+
+Gate: `just typecheck && just lint && just test && just build` — all exit 0 (63/63 tests pass).
+
+Checked items:
+
+- **Acceptance criteria** ✅ All five criteria met: `isJackpot` true only for WOLF count===5; `classifyWin` checks jackpot first; boundary 5× is `big`; `none` iff `totalWin <= 0`; `tiers.ts` imports only `paylines`, no DOM/React; all gate commands exit 0.
+- **Correctness** ✅ Precedence order is `jackpot → none → small → big` (confirmed in source). `classifyWin(50, 10, ...)` returns `'big'` (5× boundary is inclusive-big). `none` is `totalWin <= 0`. `isJackpot` uses `w.symbol === 'WOLF' && w.count === 5` — exact match, no partial.
+- **Tests not vacuous** ✅ The 49-vs-50 boundary is explicitly tested (49 → small, 50 → big). Jackpot precedence is tested with a mixed line list (`[lw('WOLF',5,2000), lw('BISON',4,50)]`). `isJackpot` with count 3 Wolf and count 5 non-Wolf are separately asserted false. The large-non-Wolf-is-big case (`classifyWin(400,10,[lw('BISON',5,400)])`) is asserted `'big'`. These tests would catch a `<` vs `<=` slip, a missing jackpot-precedence path, and isJackpot matching count 3 or 4.
+- **Constraints** ✅ `engine-no-dom`: `tiers.ts` imports only `import type { LineWin } from './paylines'` — no React, no DOM, no `src/ui`. `deterministic-rng`: no `Math.random(` calls in `src/engine/` (confirmed by grep; the only occurrence in strips.ts is a comment). `test-before-implementation` and `one-spec-per-pr` satisfied structurally.
+- **strips import omission** ✅ The builder omitted `import { WOLF } from './strips'` and instead uses the string literal `'WOLF'`. This is a harmless simplification: `LineWin.symbol` is typed `SymbolId` (from `./paylines` → `./strips` via its own chain), so the comparison `w.symbol === 'WOLF'` is well-typed. TypeScript enforces that `'WOLF'` is a valid `SymbolId` member at compile time (confirmed by typecheck exit 0). Not a stringly-typed bug.
+- **Decision drift** ✅ `just decisions-audit --changed main` flagged DEC-001 and DEC-002 as governing `src/engine/tiers.ts`. The build is consistent with DEC-001 (pure engine, no DOM). DEC-002 (no bare Math.random) is honored. No new non-trivial choices required a new DEC.
+- **Build reflection** ✅ Three questions answered, non-empty, honest. Notably flagged the `strips` import omission with clear reasoning.
+- **Cost sessions** ✅ Design session present (null numeric, main-loop note — acceptable per AGENTS §4). Build session present (null tokens, orchestrator-to-fill note — correct, awaiting orchestrator). No blocking issues; orchestrator fills at ship.
 
 ---
 
