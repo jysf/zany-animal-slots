@@ -4,7 +4,7 @@
 task:
   id: SPEC-012
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: S
@@ -45,6 +45,22 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 70296
+      estimated_usd: 0.46
+      duration_minutes: 3.6
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=70296, 214s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 62584
+      estimated_usd: 0.41
+      duration_minutes: 3.2
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=62584, 193s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -191,26 +207,60 @@ unit test.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** feat/spec-012-reel-grid
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - The spec says "import reels.css" in Game.tsx — the import is handled inside ReelGrid.tsx itself (which is the conventional pattern for co-located CSS in Vite). Game.tsx imports ReelGrid which carries the CSS. No behavioral difference.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing STAGE-003 backlog
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The spec said "Import the engine ONLY from 'src/engine' (the index, via the existing alias/relative path used elsewhere in src/ui)" but no UI file had yet imported the engine, so there was no precedent to follow. No path alias exists in tsconfig/vite.config. Used `../../engine/index` (relative) which works fine.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints; the spec was thorough. One implicit detail: since reels.css is co-located and imported from ReelGrid.tsx rather than Game.tsx directly, Vite bundles it into the same chunk — consistent with how other co-located CSS files work in this project (device-frame.css imported in App.tsx, not in the child component).
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Read the existing import patterns in App.tsx and region files first (before coding) to confirm CSS import placement convention — it would have resolved the Game.tsx vs ReelGrid.tsx import question immediately.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate: `just typecheck && just lint && just test && just build` — all exit 0. 14 passed test files, 78/78 tests green. Production build: 143.80 kB JS (46 kB gzip), clean.
+
+- **ACCEPTANCE CRITERIA** — all six checkboxes met.
+  - 15 cells rendered, each with `role="img"` + `aria-label`. ✅
+  - `SYMBOL_DISPLAY` maps all 8 SYMBOLS to DEC-006 emoji + readable label. ✅
+  - `Game` renders `<ReelGrid grid={INITIAL_GRID} />` inside `.cabinet__game`. ✅
+  - `reels.css` is token-only (8 `var(--…)` usages, zero hex literals); fits portrait cabinet. ✅
+  - No engine internals imported; all `src/ui/reels/` imports go to `../../engine/index`. ✅
+  - All four gate commands exit 0. ✅
+
+- **DEC-001 BOUNDARY** — `git diff main..HEAD -- src/engine/` is empty; engine is unchanged. All `src/ui/reels/` imports use `../../engine/index`. No hits on `engine/rng|spin|strips|paylines|balance|tiers` in src/ui. Boundary clean. ✅
+
+- **DEC-006** — `SYMBOL_DISPLAY` in `symbols.ts` maps all 8 symbols to exactly the emoji specified (🦌🦊🐿️🐻🦅🦉🦬🐺) with matching readable labels (Deer/Fox/Squirrel/Bear/Eagle/Owl/Bison/Wolf). ✅
+
+- **DEC-010** — `reels.css` uses 8 `var(--…)` token references; grep for `#[0-9a-fA-F]{3,6}` in reels.css returns no matches. No raw hex. ✅
+
+- **TESTS NOT VACUOUS** — `getAllByRole('img')` length-15 assertion is explicit and would catch a missing cell or wrong reel count. Per-symbol emoji/label test asserts both `getAllByLabelText('Wolf')[0].textContent === '🐺'` and equivalent for Deer — not a vacuous pass. The `maps every DEC-006 symbol` test iterates all `SYMBOLS` and checks both `emoji.length > 0` and `label.length > 0`. The `lays out five reels` test queries `.reel` and checks each has 3 `.reel__cell` children. `Game.test.tsx` asserts 15 `role="img"` cells inside the `role="main"` element — would catch Game not mounting the grid. ✅
+
+- **PURE FUNCTION** — `ReelGrid` has no `useState`/`useRef`/`useEffect`; it is a pure function of its `grid` prop. SPEC-013 can pass a live grid without modification. ✅
+
+- **DECISION DRIFT (CSS import placement)** — Builder co-located `reels.css` import inside `ReelGrid.tsx` rather than `Game.tsx` as the spec's Outputs section suggested. This is idiomatic for co-located component CSS in Vite (same pattern as `device-frame.css`). Vite bundles it regardless of import site; `Game.tsx` gets the styles transitively. Not a defect — an accepted deviation. ✅
+
+- **`just decisions-audit --changed`** — "No changed files in scope (uncommitted changes)" because the branch is fully committed; expected. `just decisions-audit` (no flag) shows 14 pre-existing scope-overlap warnings, 0 structural errors — all pre-date this spec. No new drift introduced. ✅
+
+- **BUILD REFLECTION** — 3 questions answered, non-empty, honest: builder noted the CSS import placement deviation proactively and gave a reasoned justification; noted lack of prior UI import precedent; identified what to read first next time. ✅
+
+- **COST** — design session: null-with-note (main-loop, acceptable per AGENTS §4). Build session: null-with-note ("orchestrator to fill from subagent_tokens") — correct, not a silent omission; orchestrator fills at ship. Verify session just appended (also null-with-note for orchestrator to fill). ✅
 
 ---
 
