@@ -4,7 +4,7 @@
 task:
   id: SPEC-014
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
@@ -61,10 +61,18 @@ cost:
       duration_minutes: 3.6
       recorded_at: 2026-06-23
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=65488, 213s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview check — DOM clicks due to preview_click flakiness on small buttons)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 134998
+    estimated_usd: 0.89
+    session_count: 4
 ---
 
 # SPEC-014: Bet +/− controls
@@ -222,13 +230,18 @@ the look is a preview check.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing on the code. One preview-tooling lesson: `preview_click` targets by
+   coordinates and was unreliable on the small ±44px bet buttons (it reliably hits
+   the large Spin button) — verifying via DOM `.click()` was the dependable path.
+   Worth remembering for the animation/auto-spin specs' small controls.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. The bet logic is entirely the engine's (nextBet/prevBet/canAfford); the UI
+   just wires it. touch-targets-44 held (44px buttons).
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. Next is SPEC-015 (balance persistence + Reset), then animation,
+   auto-spin, and the line highlight — all already in the STAGE-003 backlog.
 
 ---
 
