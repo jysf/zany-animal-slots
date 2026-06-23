@@ -4,7 +4,7 @@
 task:
   id: SPEC-011
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -50,6 +50,22 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 60959
+      estimated_usd: 0.40
+      duration_minutes: 3.3
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=60959, 199s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 63579
+      estimated_usd: 0.42
+      duration_minutes: 6.9
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=63579, 416s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -208,26 +224,47 @@ composed pipeline (canonical RNG + strip + paylines + paytable).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-011-engine-interface`
+- **PR (if applicable):** (local only — orchestrator opens PR at ship)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none (STAGE-002 backlog complete after this spec ships)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing truly slowed things down. The only minor friction was that the spec's compose-order diagram showed `import type { LineId, Payline }` as a local import, but TypeScript's `noUnusedLocals` flagged them as unused (they're re-exported via `export type { ... } from './paylines'`, not needed locally). Removing the redundant local imports resolved it immediately.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `engine-no-dom`, `deterministic-rng`, and `DEC-005` (no-throw on insufficient balance) all mapped directly to implementation choices. TypeScript strict mode (`noUnusedLocals`) could have been noted in the context to flag the import issue, but it's a minor compile-error, not an architectural gap.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec was precise: pinned fixtures, exact compose order, exact re-export list. Starting with the test file to confirm the fixtures compile before writing `index.ts` would surface any import-shape issues earlier, but the gate caught it instantly anyway.
+
+---
+
+## Verify
+
+*Completed 2026-06-23 by claude-sonnet-4-6 (cold sub-agent).*
+
+**Verdict: ✅ APPROVED**
+
+Gates: `just typecheck && just lint && just test && just build` — all exit 0.
+72/72 tests pass. `just decisions-audit --changed` — no uncommitted changes in scope; PR-branch changes (`src/engine/index.ts`, `src/engine/index.test.ts`) are governed by DEC-001 (`affected_scope: src/engine/**`), honored.
+
+- [x] **ACCEPTANCE CRITERIA** — all six boxes met. `spin()` returns `ok: true` with correct grid/lineWins/totalWin/balance/tier/bet on affordable bets; returns `{ ok: false, reason: 'insufficient-balance', balance }` (original, unchanged) and no grid on unaffordable bets; identical inputs yield identical output; index.ts re-exports the full listed surface; no React/DOM/src-ui imports; all four gates green.
+- [x] **COMPOSITION CORRECTNESS** — compose order in `spin()` is exactly debit → (if !d.ok return insufficient-balance with original balance, no grid, no throw) → resolveGrid(createRng(seed)) → evaluatePaylines(grid, bet) → credit(d.balance, totalWin) → classifyWin. The unaffordable path returns before `resolveGrid` is called and carries the original `balance` arg, not the debited one. Balance math: `(1000 − 10) + 55 = 1045` confirmed by test "the balance reflects debit then credit".
+- [x] **FIXTURES** — three pinned full-spin fixtures genuine and self-consistent. seed 12345 → totalWin 0, tier 'none' (0 ≤ 0), balance 990 (1000−10+0). seed 12 → totalWin 10, tier 'small' (10 > 0, 10 < 5×10=50), balance 1000 (1000−10+10). seed 276 → totalWin 55, tier 'big' (55 ≥ 5×10=50), balance 1045 (1000−10+55), lineWins.length 3. Tier thresholds match `classifyWin` (jackpot-first, then ≤0 → none, <5×bet → small, ≥5×bet → big). All three asserted in test suite and pass.
+- [x] **RE-EXPORTS** — index.ts exports: types `SymbolId`, `Tier`, `Grid`, `LineId`, `Payline`, `LineWin`, `WinTier`, `BetLevel`; values `SYMBOLS`, `SYMBOL_TIER`, `PAYLINES`, `PAYTABLE`, `BET_LEVELS`, `DEFAULT_BET`, `STARTING_BALANCE`, `nextBet`, `prevBet`, `canAfford`; plus `SpinResult`, `SpinOutcome`, `spin`. Re-export test asserts `BET_LEVELS`, `DEFAULT_BET`, `STARTING_BALANCE`, `PAYLINES.length`, `SYMBOLS.length`, `nextBet`/`prevBet`/`canAfford` as functions — key ones covered.
+- [x] **TESTS NOT VACUOUS** — wrong compose order (e.g. credit before debit) would break "the balance reflects debit then credit" (would yield 1000+55−10=1045 only by accident; more critically, credit-before-debit would mean crediting on the pre-debit balance, which the explicit `credit(d.balance, totalWin)` catches). Grid on unaffordable path caught by `expect('grid' in result).toBe(false)`. Non-determinism caught by deep-equal of two identical-seed calls. Missing re-export caught by import + value assertions. Tests are genuine.
+- [x] **CONSTRAINTS** — `engine-no-dom`: index.ts imports only `./rng`, `./spin`, `./paylines`, `./balance`, `./tiers` — no React, no DOM, no src/ui. `deterministic-rng`: no bare `Math.random()` call anywhere in src/engine/ (only in a JSDoc comment). DEC-001/002/005 all honored: public boundary is index.ts only; seed injected via `createRng(seed)`; unaffordable spin is typed outcome, not throw.
+- [x] **DECISION DRIFT** — no non-trivial build choices that need a new DEC-*. Build was pure composition + re-exports as specified. Builder correctly emitted "none".
+- [x] **BUILD REFLECTION** — three answers present, honest, and non-empty. Friction (noUnusedLocals on redundant local imports) is real and plausible. No architectural gaps identified. "Nothing significant" on what to do differently is appropriate given the spec's precision.
+- [x] **COST** — design session: null with valid main-loop note (correct per AGENTS §4). Build session: null with "orchestrator to fill" note (correct for sub-agent run). Verify session: appended this cycle with same null/orchestrator pattern.
 
 ---
 
