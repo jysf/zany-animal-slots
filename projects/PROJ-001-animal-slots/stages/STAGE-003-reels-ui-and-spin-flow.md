@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-003                     # stable, zero-padded within the project
-  status: proposed                  # proposed | active | shipped | cancelled | on_hold
+  status: active                    # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -49,13 +49,77 @@ restores it to 1000. When this stage ships, a player can actually spin, bet,
 and watch the balance move — but the celebratory payoff (particles, jackpot
 moment, jingle) is intentionally still flat, reserved for STAGE-004.
 
-## Why Now / Success Criteria / Scope / Design Notes / Dependencies
+## Why Now
 
-*Framed lightly for now. Expand via Prompt 1c (Stage Frame) when this stage
-becomes active. Relevant decisions: `DEC-001` (engine/presentation separation —
-the UI consumes the engine only through its typed interface), `DEC-004` (CSS
-transform / keyframe animation for the reels), `DEC-005` (balance persistence
-is local-only, play-money), `DEC-006` (emoji symbols).*
+The engine (STAGE-002) is complete and frozen behind `src/engine/index.ts`, and
+the cabinet (STAGE-001) gives us the four layout regions and tokens. This is the
+stage where the two halves meet: the thesis claim — an animation-heavy UI sitting
+on a DOM-free engine without leaking logic back — only becomes *true* once a real
+spin renders. Doing it now, before the celebration layer (STAGE-004), keeps the
+hard wiring (state machine, engine calls, persistence) separate from the
+subjective juice work, so each gets the right kind of review.
+
+## Success Criteria
+
+- Pressing **Spin** calls the engine `spin({ seed, balance, bet })` once, renders
+  the returned 5×3 grid in the reel frame, and updates the displayed balance to the
+  engine's new balance — the UI never recomputes game outcomes itself (DEC-001).
+- The spin flow moves through explicit states **idle → spinning → resolved** and
+  back to idle, with a reel-stop bounce; controls are disabled mid-spin.
+- **Bet** +/− cycles 10 / 25 / 50 and is blocked when the balance can't cover the
+  next bet; **Spin** is disabled when `balance < bet`.
+- **Auto-spin** repeats with an inter-spin delay and stops on jackpot, count
+  exhaustion (default 10), or `balance < bet`.
+- **Balance persists** to localStorage across reloads; **Reset** restores 1000.
+- Winning lines from the engine's `lineWins` get a basic highlight (no particles,
+  count-up, jackpot moment, or audio — those are STAGE-004).
+- Behavior is unit-tested (RTL: state transitions, control enable/disable, engine
+  called with the right args, persistence) and visually verified in the preview at
+  phone (375px) and desktop; `prefers-reduced-motion` is respected from the start
+  (constraint `respect-reduced-motion`) so STAGE-005's audit isn't a rewrite.
+
+## Scope
+
+### In scope
+- A reel-grid component rendering the engine's `Grid` as emoji (DEC-006), mapping
+  `SymbolId → emoji` in the **UI** (the engine stays glyph-free).
+- The spin-flow state machine (idle/spinning/resolved) wired to `spin()`, including
+  UI-side seed generation per spin (the engine only consumes a provided seed).
+- Spin button, bet +/− controls, auto-spin toggle, Reset — all ≥44px
+  (constraint `touch-targets-44`, inherited from STAGE-001).
+- Reel spin/stop CSS-transform animation + reel-stop bounce (DEC-004), with a
+  reduced-motion path.
+- Balance persistence to localStorage and rehydration on load.
+- A basic winning-line highlight driven by `lineWins`.
+
+### Explicitly out of scope
+- Win celebrations beyond the basic line highlight — particles, the wolf jackpot
+  moment, balance count-up, tier-scaled feel (STAGE-004).
+- Any audio (STAGE-004 / STAGE-005).
+- Any change to engine logic — the UI consumes `src/engine/index.ts` only and adds
+  no game rules.
+- The full a11y audit (contrast, colorblind-safe shapes, the formal reduced-motion
+  pass) — STAGE-005; here we only avoid actively breaking reduced-motion.
+
+## Build order & dependencies (within the stage)
+
+Suggested order: **reel grid** (render a static `Grid`) → **spin button + flow**
+(wire `spin()`, idle→spinning→resolved, balance update) → **bet controls** →
+**balance persistence + Reset** → **reel spin/stop animation** (layer feel onto the
+working flow) → **auto-spin** (loop over the flow) → **winning-line highlight**.
+Rendering + the spin-flow state machine are the spine; animation, auto-spin, and
+the highlight layer onto a flow that already works and is testable.
+
+## Testing approach (note — differs from STAGE-002)
+
+Unlike the pure-logic engine, this stage's specs are tested with **React Testing
+Library** for *behavior and state* — spin transitions idle→spinning→resolved, the
+engine is called with the expected `{ seed, balance, bet }`, controls
+enable/disable correctly, balance persists/rehydrates — **not** pixel-exact
+animation or feel (AGENTS §12). The animation and overall look are verified with a
+**preview screenshot** check (375px + desktop), the same way SPEC-004 was. Failing
+Tests in each spec are real RTL assertions; the visual/feel parts are called out
+explicitly as review/screenshot checks, not unit tests.
 
 ## Spec Backlog
 
@@ -63,15 +127,15 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] (not yet written) — Reel grid component: render the engine's 5×3 emoji grid in the wooden frame.
-- [ ] (not yet written) — Spin button (campfire) wired to the engine `spin()` call and bet/balance update.
-- [ ] (not yet written) — Bet +/− controls cycling 10 / 25 / 50, disabled when balance < bet.
-- [ ] (not yet written) — Reel spin/stop animation: idle → spinning → stopped with the reel-stop bounce (CSS transforms per DEC-004).
-- [ ] (not yet written) — Auto-spin toggle: repeats with inter-spin delay; stops on jackpot, count exhaustion (default 10), or balance < bet.
-- [ ] (not yet written) — Balance persistence to localStorage + Reset restoring 1000.
-- [ ] (not yet written) — Basic winning-line highlight (no full celebration yet).
+- [ ] (not yet written) — Reel grid component: render the engine's 5×3 `Grid` as emoji (`SymbolId → emoji` map in the UI) in the wooden frame. **[S]**
+- [ ] (not yet written) — Spin button + spin-flow state machine wired to `spin()`: idle → spinning → resolved, UI-side seed per spin, balance/grid update, controls disabled mid-spin. **[M]**
+- [ ] (not yet written) — Bet +/− controls cycling 10 / 25 / 50 (engine `nextBet`/`prevBet`/`canAfford`), disabled when balance < bet. **[S]**
+- [ ] (not yet written) — Balance persistence to localStorage + rehydrate on load + Reset restoring 1000 (DEC-005). **[S]**
+- [ ] (not yet written) — Reel spin/stop animation: idle → spinning → stopped with the reel-stop bounce (CSS transforms per DEC-004), reduced-motion path. **[M]**
+- [ ] (not yet written) — Auto-spin toggle: repeats with inter-spin delay; stops on jackpot, count exhaustion (default 10), or balance < bet. **[M]**
+- [ ] (not yet written) — Basic winning-line highlight driven by `lineWins` (no full celebration yet). **[S]**
 
-**Count:** 0 shipped / 0 active / 7 pending (estimate — refine at Stage Frame)
+**Count:** 0 shipped / 0 active / 7 pending — sized at Stage Frame (4×S, 3×M; no L). Reordered so the renderable spin flow lands before animation/auto-spin/highlight layer onto it.
 
 ## Design Notes
 
