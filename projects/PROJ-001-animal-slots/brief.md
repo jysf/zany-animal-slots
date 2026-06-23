@@ -224,13 +224,13 @@ fires nothing):
 ## Stage Plan
 
 - [x] STAGE-001 (shipped 2026-06-19) — Scaffold & design system (Vite + React + TS boots; design tokens; four-region portrait layout; no game logic).
-- [ ] STAGE-002 (active) — Slot engine: pure logic, zero DOM (RNG, reels, spin resolution, paylines/paytable, bet/balance, win-tier classification; fully unit-tested).
-- [ ] STAGE-003 (pending) — Reels UI & spin flow (wire engine to UI; grid, spin button, bet controls, auto-spin; idle → spinning → stopped with reel-stop bounce).
+- [x] STAGE-002 (shipped 2026-06-23) — Slot engine: pure logic, zero DOM (RNG, reels, spin resolution, paylines/paytable, bet/balance, win-tier classification; fully unit-tested).
+- [ ] STAGE-003 (active) — Reels UI & spin flow (wire engine to UI; grid, spin button, bet controls, auto-spin; idle → spinning → stopped with reel-stop bounce).
 - [ ] STAGE-004 (pending) — Win celebration & juice (small/big/jackpot states, payline trail, particles, wolf jackpot moment, balance count-up, tier-scaled win jingle + mute).
 - [ ] STAGE-005 (stretch) — Audio suite, a11y, polish (full audio suite, prefers-reduced-motion, contrast/44px audit, colorblind-safe shapes, perf pass).
 - [ ] STAGE-006 (pending) — Release & deploy (Cloudflare Pages deploy via CI on merge, security headers/CSP, dependency+license audit gate, SECURITY.md, prod smoke check).
 
-**Count:** 1 shipped / 1 active / 4 pending
+**Count:** 2 shipped / 1 active / 3 pending
 
 ## Dependencies
 

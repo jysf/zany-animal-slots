@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-002                     # stable, zero-padded within the project
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-06-18
-shipped_at: null
+shipped_at: 2026-06-23
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -119,7 +119,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-007 (shipped 2026-06-19) — 5×3 spin resolver: given seed/strips, produce the visible grid (draw order reel 0→4). **[S]**
 - [x] SPEC-008 (shipped 2026-06-21) — Payline + paytable evaluation: 5 fixed lines (DEC-003), 3/4/5-of-a-kind per tier (DEC-011), sum of all line wins. **[M]**
 - [x] SPEC-009 (shipped 2026-06-22) — Bet/balance state machine: bet levels 10/25/50, balance debit/credit, reset to 1000, invalid-spin typed result. **[S]**
-- [~] SPEC-010 (build) — Win-tier classification: none / small (<5× bet) / big (≥5× bet) / jackpot (five Wolves), exposed as data. **[S]**
+- [x] SPEC-010 (shipped 2026-06-23) — Win-tier classification: none / small (<5× bet) / big (≥5× bet) / jackpot (five Wolves), exposed as data. **[S]**
 - [x] SPEC-011 (shipped 2026-06-23) — Public engine interface: typed `spin()` surface the UI consumes, with `SpinResult` fully described. **[M]**
 
 **Count:** 7 shipped / 0 active / 0 pending — backlog complete (Stage Ship pending).
@@ -142,4 +142,76 @@ advertise an RTP number.
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1d (Stage Ship) to draft.*
+*Shipped 2026-06-23. All seven specs in `specs/done/`.*
+
+### Success criteria — did we deliver?
+
+All six met:
+- ✅ A full `spin → evaluate → settle` cycle runs from a Vitest test, no browser:
+  `spin({ seed, balance, bet })` returns a `SpinResult` (grid, lineWins, totalWin,
+  new balance, tier) — pinned end-to-end (e.g. seed 276 → 55-coin big win, balance
+  1045).
+- ✅ **Determinism:** every draw flows through the injected mulberry32 (`createRng`);
+  a grep confirms no bare `Math.random()` anywhere in `src/engine/**`.
+- ✅ **Boundary clean:** `src/engine/**` has zero React/DOM/`src/ui` imports
+  (lint-enforced `engine-no-dom`, re-confirmed by grep at stage close).
+- ✅ **Rules match the spec:** paylines (DEC-003), paytable + reel weights (DEC-011),
+  symbols/tiers (DEC-006), bet/balance, and win-tier all behave per the brief's
+  Game-Design Spec — every expected value was computed independently (Node) and
+  pinned as a fixture (SPEC-008's payouts were even hand-re-derived at verify).
+- ✅ **High coverage:** 72 engine tests across the 7 modules — payline lengths
+  3/4/5, multi-line spins, all tiers, insufficient-balance, the 5× boundary,
+  floor rounding, jackpot precedence, and the canonical-RNG/strip/grid pipeline.
+- ✅ Single typed public surface at `src/engine/index.ts` (`spin()` + re-exports);
+  nothing reaches past it.
+
+### value_contribution — delivered as claimed?
+
+Yes. The stage's thesis claim — "the hard part of a slot game can live behind a
+typed interface with no UI coupling" — is now load-bearing evidence, not a promise:
+a complete, deterministic engine that scores a full spin from a test with zero DOM.
+All three `delivers` items (pure engine, typed interface, high deterministic
+coverage) landed; all four `explicitly_does_not` items held (no rendering, no
+timing, no localStorage, no celebration/audio — those stay in STAGE-003/004).
+
+### 3-sentence summary
+
+Built exactly the seven specs framed, in dependency order (rng → strips → spin →
+paylines → balance → tiers → index), each its own branch/PR, with no scope added or
+dropped. It went smoothly and fast — the engine is the TDD sweet spot the frame
+predicted, so every spec got real failing tests derived from the game-design spec
+and most builds passed first try. The one process wrinkle was sub-agent
+reliability (a truncated build return, a stale timeline marker, a stale CI `CLEAN`
+read) — all caught by trusting git/disk state over self-reports.
+
+### Stage-Level Reflection answers
+
+- **Did we deliver the outcome in "What This Stage Is"?** Yes — the brain of the
+  game with no face: a pure-TS, fully deterministic, fully unit-tested slot engine
+  behind one typed interface.
+- **How many specs did it actually take?** Seven, exactly as framed (no splits, no
+  additions). Sizing held: 5×S, 2×M, no L.
+- **What changed between starting and shipping?** Nothing in scope. The only
+  pre-work was authoring the game-design spec (paytable + reel weights, DEC-011) +
+  fixing three dangling references — a gap the frame had assumed already existed in
+  `brief.md`. Once that was in place, the seven specs ran clean.
+- **Lessons that should update AGENTS.md, templates, or constraints?** Two dogfood
+  candidates, neither blocking: (a) generalize "trust git over timeline markers" to
+  "trust git/disk over any agent self-report" (finding #11), and (b) optionally
+  make `deterministic-rng` lint-enforced (a `no-restricted-syntax` rule banning
+  `Math.random` under `src/engine/**`) rather than verify-enforced. Both belong in
+  the next weekly review, not a mid-project AGENTS edit.
+- **Should any spec-level reflections be promoted to stage-level lessons?** Yes —
+  the "compute exact fixtures from a reference, then pin them" pattern (used for the
+  RNG sequence, the reel strip, the paytable payouts, and the full-spin results) is
+  the reusable technique that made a deterministic engine trustworthy under
+  sub-agent builds. It is the stage's most transferable takeaway.
+
+### Follow-up flags
+
+- **Next:** STAGE-003 (reels UI & spin flow) — consumes this engine's `spin()` +
+  re-exported surface through `src/engine/index.ts` only. Now unblocked.
+- No new engine stage needed; no engine spec deferred. Two template/process
+  candidates noted above for the weekly review. Per-reel asymmetric strips and
+  per-symbol payout splits remain clean *future-project* specs (DEC-003/DEC-011),
+  not MVP work.
