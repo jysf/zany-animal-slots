@@ -4,7 +4,7 @@
 task:
   id: SPEC-009
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
@@ -60,10 +60,18 @@ cost:
       duration_minutes: 2.9
       recorded_at: 2026-06-22
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=55502, 176s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-22
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 109590
+    estimated_usd: 0.73
+    session_count: 4
 ---
 
 # SPEC-009: Bet and balance state machine
@@ -246,10 +254,14 @@ Verified 2026-06-22 by claude-sonnet-4-6 (cold, separate session).
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. A pure-arithmetic spec like this needs no computed fixtures — the
+   expected values are obvious — so the value was in nailing the typed no-throw
+   `debit` contract, which the tests pin directly (`.not.toThrow()` + unchanged
+   balance).
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. AGENTS §11 (typed results over throws) and DEC-005 fully governed it.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-010 (win-tier) and SPEC-011 (public interface, which
+   composes debit → spin → evaluate → credit) remain; both already planned.
