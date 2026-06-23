@@ -45,6 +45,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -178,26 +186,26 @@ the look is a preview check.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** `feat/spec-014-bet-controls`
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned SPEC-015–018
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing material. The spec's "Notes for the Implementer" section was precise enough that the hook logic was a direct transcription. The one thing I double-checked was whether `--radius-md` was a defined token (it is).
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `touch-targets-44`, `portrait-first`, DEC-001 and DEC-005 were all the relevant constraints; they were listed. The only minor gap is that there's no explicit note about `--radius-md` being available for the bet buttons, but the token exists in `tokens.css` so it wasn't a real blocker.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec was small and well-specified. I would still read all the engine source before touching the hook, which confirmed `nextBet`/`prevBet` clamp behaviour and saved any guessing about the no-op condition.
 
 ---
 

@@ -11,7 +11,7 @@ import Action from './regions/Action';
 import { useSlotMachine } from './useSlotMachine';
 
 export default function App() {
-  const { grid, balance, bet, spin, canSpin } = useSlotMachine();
+  const { grid, balance, bet, spin, canSpin, increaseBet, decreaseBet, canIncreaseBet, canDecreaseBet } = useSlotMachine();
 
   return (
     <div className="device-stage" data-testid="device-stage">
@@ -19,7 +19,7 @@ export default function App() {
         <Header />
         <Game grid={grid} />
         <Status balance={balance} bet={bet} />
-        <Action onSpin={spin} canSpin={canSpin} />
+        <Action onSpin={spin} canSpin={canSpin} onBetDown={decreaseBet} onBetUp={increaseBet} canBetDown={canDecreaseBet} canBetUp={canIncreaseBet} />
       </div>
     </div>
   );

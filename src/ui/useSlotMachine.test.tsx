@@ -1,7 +1,8 @@
-// Hook tests for useSlotMachine (SPEC-013).
+// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014).
 // Uses renderHook + act. Outcomes are pinned via injected nextSeed (DEC-002).
 // Fixtures from SPEC-011: seed 276 → big win, balance 1045, 3 line wins;
-//                          seed 12345 → no win, balance 990.
+//                          seed 12345 → no win, balance 990 at bet 10;
+//                                       balance 975 at bet 25.
 import { renderHook, act } from '@testing-library/react';
 import { useSlotMachine } from './useSlotMachine';
 import { INITIAL_GRID } from './reels/symbols';
@@ -53,5 +54,70 @@ describe('useSlotMachine', () => {
     });
     expect(result.current.balance).toBe(5);
     expect(result.current.status).toBe('idle');
+  });
+
+  // ── SPEC-014: bet stepping ──────────────────────────────────────────────────
+
+  it('increaseBet steps up and clamps at 50', () => {
+    const { result } = renderHook(() => useSlotMachine());
+    // default bet = 10
+    expect(result.current.bet).toBe(10);
+    expect(result.current.canIncreaseBet).toBe(true);
+
+    act(() => { result.current.increaseBet(); });
+    expect(result.current.bet).toBe(25);
+
+    act(() => { result.current.increaseBet(); });
+    expect(result.current.bet).toBe(50);
+
+    // clamped at 50 — further calls are no-ops
+    act(() => { result.current.increaseBet(); });
+    expect(result.current.bet).toBe(50);
+    expect(result.current.canIncreaseBet).toBe(false);
+  });
+
+  it('decreaseBet steps down and clamps at 10', () => {
+    const { result } = renderHook(() => useSlotMachine());
+    // step up to 50 first
+    act(() => { result.current.increaseBet(); }); // 25
+    act(() => { result.current.increaseBet(); }); // 50
+
+    expect(result.current.bet).toBe(50);
+
+    act(() => { result.current.decreaseBet(); });
+    expect(result.current.bet).toBe(25);
+
+    act(() => { result.current.decreaseBet(); });
+    expect(result.current.bet).toBe(10);
+
+    // clamped at 10 — further calls are no-ops
+    act(() => { result.current.decreaseBet(); });
+    expect(result.current.bet).toBe(10);
+    expect(result.current.canDecreaseBet).toBe(false);
+  });
+
+  it('cannot raise the bet beyond the affordable balance', () => {
+    // initialBalance 20: can afford 10 but not 25
+    const { result } = renderHook(() =>
+      useSlotMachine({ initialBalance: 20 }),
+    );
+    expect(result.current.bet).toBe(10);
+    expect(result.current.canIncreaseBet).toBe(false);
+
+    // increaseBet must be a no-op
+    act(() => { result.current.increaseBet(); });
+    expect(result.current.bet).toBe(10);
+  });
+
+  it('spin uses the chosen bet', () => {
+    // seed 12345 with bet 25 → 1000 − 25 + 0 = 975
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => { result.current.increaseBet(); }); // bet → 25
+    expect(result.current.bet).toBe(25);
+
+    act(() => { result.current.spin(); });
+    expect(result.current.balance).toBe(975);
   });
 });

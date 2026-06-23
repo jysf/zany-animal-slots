@@ -1,15 +1,19 @@
-// useSlotMachine — spin-flow hook (SPEC-013).
+// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014).
 // Holds grid/balance/bet/lineWins/tier/status state and wires the Spin action to
 // the engine's spin(). All randomness in the UI (the seed generator) is injectable
 // so tests can pin outcomes deterministically (DEC-002). The engine owns outcomes;
 // the hook only passes args and applies the result (DEC-001). An unaffordable spin
 // is a silent no-op — never throws (DEC-005).
+// SPEC-014: bet is now stateful; increaseBet/decreaseBet step via engine
+// nextBet/prevBet; canIncreaseBet guards affordable raises (DEC-005).
 import { useState, useCallback } from 'react';
 import {
   spin as engineSpin,
   STARTING_BALANCE,
   DEFAULT_BET,
   canAfford,
+  nextBet,
+  prevBet,
 } from '../engine/index';
 import type { Grid, BetLevel, LineWin, WinTier } from '../engine/index';
 import { INITIAL_GRID } from './reels/symbols';
@@ -31,6 +35,10 @@ export interface UseSlotMachineResult {
   status: 'idle' | 'resolved';
   canSpin: boolean;
   spin: () => void;
+  canIncreaseBet: boolean;
+  canDecreaseBet: boolean;
+  increaseBet: () => void;
+  decreaseBet: () => void;
 }
 
 export interface UseSlotMachineOpts {
@@ -43,12 +51,20 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
 
   const [grid, setGrid] = useState<Grid>(INITIAL_GRID);
   const [balance, setBalance] = useState<number>(opts?.initialBalance ?? STARTING_BALANCE);
-  const [bet] = useState<BetLevel>(DEFAULT_BET);
+  const [bet, setBet] = useState<BetLevel>(DEFAULT_BET);
   const [lineWins, setLineWins] = useState<LineWin[]>([]);
   const [tier, setTier] = useState<WinTier>('none');
   const [status, setStatus] = useState<'idle' | 'resolved'>('idle');
 
   const isSpinable = canAfford(balance, bet);
+
+  // canIncreaseBet: only when nextBet would actually step up AND balance can cover it.
+  // nextBet clamps at 50 so nextBet(bet) === bet means we're already at the top.
+  const canIncreaseBet = nextBet(bet) !== bet && canAfford(balance, nextBet(bet));
+
+  // canDecreaseBet: only when prevBet would actually step down.
+  // prevBet clamps at 10 so prevBet(bet) === bet means we're already at the floor.
+  const canDecreaseBet = prevBet(bet) !== bet;
 
   const spin = useCallback(() => {
     if (!canAfford(balance, bet)) return;
@@ -62,6 +78,16 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     }
   }, [balance, bet, nextSeed]);
 
+  const increaseBet = useCallback(() => {
+    if (!canIncreaseBet) return;
+    setBet(nextBet(bet));
+  }, [bet, canIncreaseBet]);
+
+  const decreaseBet = useCallback(() => {
+    if (!canDecreaseBet) return;
+    setBet(prevBet(bet));
+  }, [bet, canDecreaseBet]);
+
   return {
     grid,
     balance,
@@ -71,5 +97,9 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     status,
     canSpin: isSpinable,
     spin,
+    canIncreaseBet,
+    canDecreaseBet,
+    increaseBet,
+    decreaseBet,
   };
 }
