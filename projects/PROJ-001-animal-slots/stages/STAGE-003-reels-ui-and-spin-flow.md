@@ -127,7 +127,7 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] (not yet written) — Reel grid component: render the engine's 5×3 `Grid` as emoji (`SymbolId → emoji` map in the UI) in the wooden frame. **[S]**
+- [ ] SPEC-012 (build) — Reel grid component: render the engine's 5×3 `Grid` as emoji (`SymbolId → emoji` map in the UI) in the wooden frame. **[S]**
 - [ ] (not yet written) — Spin button + spin-flow state machine wired to `spin()`: idle → spinning → resolved, UI-side seed per spin, balance/grid update, controls disabled mid-spin. **[M]**
 - [ ] (not yet written) — Bet +/− controls cycling 10 / 25 / 50 (engine `nextBet`/`prevBet`/`canAfford`), disabled when balance < bet. **[S]**
 - [ ] (not yet written) — Balance persistence to localStorage + rehydrate on load + Reset restoring 1000 (DEC-005). **[S]**
