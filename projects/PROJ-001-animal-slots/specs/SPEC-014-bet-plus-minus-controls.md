@@ -53,6 +53,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-23
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -221,3 +229,64 @@ the look is a preview check.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Reviewed by: claude-sonnet-4-6 (sub-agent, cold session) on 2026-06-23.
+
+### Gate
+- [x] `just typecheck` — exit 0
+- [x] `just lint` — exit 0
+- [x] `just test` — exit 0 (92/92 tests passed; 8 in useSlotMachine.test.tsx, 4 in Action.test.tsx)
+- [x] `just build` — exit 0
+
+### Acceptance Criteria
+- [x] `increaseBet()` steps 10→25→50 and clamps at 50; `decreaseBet()` steps 50→25→10 and clamps at 10 — implemented via engine `nextBet`/`prevBet`; verified by test assertions.
+- [x] `canIncreaseBet = nextBet(bet)!==bet && canAfford(balance, nextBet(bet))`; `canDecreaseBet = prevBet(bet)!==bet`; both step fns are no-ops when their flag is false — exact formula used (useSlotMachine.ts lines 63–67); no-op guards in useCallback.
+- [x] The chosen `bet` is what `spin()` uses — `spin` useCallback captures `bet` as a dependency; seed-12345+bet-25 → balance 975 assertion passes.
+- [x] Action region renders accessible −/+ buttons (≥44px, `touch-targets-44`), disabled per flags; Status readout shows live bet — `aria-label="Decrease bet"` / `"Increase bet"` present; `.bet-btn` min-height/width 2.75rem (44px) in controls.css; all tokens-only (no raw hex).
+- [x] UI imports engine only via `src/engine/index`; `git diff main..HEAD -- src/engine/` empty (engine unchanged); gate exits 0.
+
+### Bet Logic
+- [x] Steps 10→25→50, clamp at 50: `nextBet(50)===50` so `canIncreaseBet` becomes false and `increaseBet` is a no-op. Confirmed by test "increaseBet steps up and clamps at 50".
+- [x] Steps 50→25→10, clamp at 10: `prevBet(10)===10` so `canDecreaseBet` becomes false. Confirmed by test "decreaseBet steps down and clamps at 10".
+- [x] Affordability guard: `initialBalance: 20` → `canIncreaseBet === false` (can't afford 25); `increaseBet()` leaves `bet === 10`. Confirmed by test "cannot raise the bet beyond the affordable balance".
+- [x] Spin uses chosen bet: seed 12345 + bet 25 → balance 975 (1000 − 25 + 0). Confirmed by test "spin uses the chosen bet".
+
+### Wiring
+- [x] App.tsx line 14 destructures all four fields and passes them as `onBetDown/onBetUp/canBetDown/canBetUp` to `<Action>`. Exact match to spec.
+- [x] + button `disabled={!canBetUp}`, − button `disabled={!canBetDown}` — correct.
+- [x] Accessible names "Decrease bet" / "Increase bet" via `aria-label`.
+
+### Tests Not Vacuous
+- [x] Missing clamp: the clamp tests assert bet stays at 50/10 after extra calls — would fail if `nextBet`/`prevBet` didn't clamp.
+- [x] Missing affordability guard: `initialBalance: 20` test would fail if the `canAfford` check were absent from `canIncreaseBet`.
+- [x] Wrong button disabled: Action.test.tsx "disables bet buttons per can-bet flags" passes `canBetUp={false}` / `canBetDown={false}` and asserts `toBeDisabled()` — directly caught by the test.
+- [x] Spin ignoring chosen bet: the 975 fixture is genuine — a mismatched bet would produce 990 (default 10) instead.
+
+### A11y / Constraints
+- [x] `.bet-btn` min-height: 2.75rem (44px), min-width: 2.75rem (44px) — satisfies `touch-targets-44`.
+- [x] Accessible names "Decrease bet" / "Increase bet" present.
+- [x] controls.css uses only CSS custom properties (tokens); no raw hex, rgb, hsl values.
+- [x] Existing Spin button unchanged and tested.
+
+### DEC-001 Boundary
+- [x] `git diff main..HEAD -- src/engine/` is empty — engine untouched.
+- [x] UI imports only from `../engine/index` (verified by grep); no engine internals accessed.
+
+### Decision Drift
+- [x] `just decisions-audit --changed` — no changed files in governing scope. Pre-existing 14 scope-overlap warnings are repo-wide, predating this spec, and none cover the UI files changed here.
+- [x] No non-trivial build choices requiring a new DEC-*. Builder confirmed none emitted — correct.
+
+### Build Reflection
+- [x] Three questions answered honestly and non-empty. Answers are specific (mentions `--radius-md` token check, spec precision). Not boilerplate.
+
+### Cost Sessions
+- [x] design: null-with-note (main-loop — correct per AGENTS §4).
+- [x] build: null-with-note ("orchestrator to fill" — correct; sub-agent, real cost filled at ship).
+- [x] verify: appended by this cycle (null-with-note, orchestrator to fill at ship).
+- Note: build tokens_total will be filled by orchestrator from subagent_tokens at ship — not a blocker for approval.
