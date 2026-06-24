@@ -4,7 +4,7 @@
 task:
   id: SPEC-015
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
@@ -60,10 +60,18 @@ cost:
       duration_minutes: 3.2
       recorded_at: 2026-06-23
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=64262, 191s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview persistence/reset check via eval)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 136534
+    estimated_usd: 0.90
+    session_count: 4
 ---
 
 # SPEC-015: Balance persistence and reset
@@ -265,10 +273,15 @@ Verified 2026-06-23 by claude-sonnet-4-6 (cold sub-agent).
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. Extracting a tiny `storage.ts` (safe read/write) kept the hook clean
+   and made the storage edge cases (absent/invalid/throwing) unit-testable on their
+   own. The preview eval (spin → reload → persists → Reset) confirmed the full
+   round-trip the unit tests approximate with jsdom localStorage.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-005 already specified "localStorage number; Reset restores 1000"; this
+   implements it exactly. The `mute` key is correctly deferred to the audio stage.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. Next is SPEC-016 (reel spin/stop animation), then auto-spin and
+   the winning-line highlight — all in the STAGE-003 backlog.
