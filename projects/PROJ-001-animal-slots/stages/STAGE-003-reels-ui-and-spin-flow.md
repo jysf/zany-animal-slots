@@ -131,7 +131,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-013 (shipped 2026-06-23) — Spin button + spin-flow wired to `spin()`: UI-side seed per spin, balance/grid update, Spin disabled when balance < bet (animated spinning phase deferred to the animation spec). **[M]**
 - [x] SPEC-014 (shipped 2026-06-23) — Bet +/− controls cycling 10 / 25 / 50 (engine `nextBet`/`prevBet`/`canAfford`), disabled at the affordable cap/floor. **[S]**
 - [x] SPEC-015 (shipped 2026-06-23) — Balance persistence to localStorage + rehydrate on load + Reset restoring 1000 (DEC-005). **[S]**
-- [ ] (not yet written) — Reel spin/stop animation: idle → spinning → stopped with the reel-stop bounce (CSS transforms per DEC-004), reduced-motion path. **[M]**
+- [ ] SPEC-016 (build) — Reel spin/stop animation: idle → spinning → stopped with the reel-stop bounce (CSS transforms per DEC-004), reduced-motion path. **[M]**
 - [ ] (not yet written) — Auto-spin toggle: repeats with inter-spin delay; stops on jackpot, count exhaustion (default 10), or balance < bet. **[M]**
 - [ ] (not yet written) — Basic winning-line highlight driven by `lineWins` (no full celebration yet). **[S]**
 
