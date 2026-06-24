@@ -1,16 +1,25 @@
-// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015).
+// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016).
 // Uses renderHook + act. Outcomes are pinned via injected nextSeed (DEC-002).
 // Fixtures from SPEC-011: seed 276 → big win, balance 1045, 3 line wins;
 //                          seed 12345 → no win, balance 990 at bet 10;
 //                                       balance 975 at bet 25.
+//
+// SPEC-016: spin is now timed. All tests that assert on the post-spin state
+// must advance fake timers by SPIN_DURATION_MS inside act() so the reveal
+// callback fires before the assertion.
 import { renderHook, act } from '@testing-library/react';
-import { useSlotMachine } from './useSlotMachine';
+import { useSlotMachine, SPIN_DURATION_MS } from './useSlotMachine';
 import { INITIAL_GRID } from './reels/symbols';
 import { writeBalance, readBalance } from './storage';
 
 describe('useSlotMachine', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('starts idle at 1000 with default bet and the initial grid', () => {
@@ -31,6 +40,10 @@ describe('useSlotMachine', () => {
     act(() => {
       result.current.spin();
     });
+    // Advance the timer so the reveal fires.
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
     expect(result.current.balance).toBe(1045);
     expect(result.current.tier).toBe('big');
     expect(result.current.lineWins).toHaveLength(3);
@@ -44,6 +57,9 @@ describe('useSlotMachine', () => {
     );
     act(() => {
       result.current.spin();
+    });
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
     });
     expect(result.current.balance).toBe(990);
     expect(result.current.tier).toBe('none');
@@ -123,6 +139,7 @@ describe('useSlotMachine', () => {
     expect(result.current.bet).toBe(25);
 
     act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
     expect(result.current.balance).toBe(975);
   });
 
@@ -145,6 +162,7 @@ describe('useSlotMachine', () => {
       useSlotMachine({ nextSeed: () => 12345 }),
     );
     act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
     expect(result.current.balance).toBe(990);
     expect(readBalance()).toBe(990);
   });
@@ -153,9 +171,79 @@ describe('useSlotMachine', () => {
     const { result } = renderHook(() =>
       useSlotMachine({ nextSeed: () => 12345 }),
     );
-    act(() => { result.current.spin(); }); // balance → 990
+    act(() => { result.current.spin(); }); // spinning
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); }); // balance → 990
     act(() => { result.current.reset(); }); // balance → 1000
     expect(result.current.balance).toBe(1000);
     expect(readBalance()).toBe(1000);
+  });
+
+  // ── SPEC-016: timed spin flow ───────────────────────────────────────────────
+
+  it('spin enters the spinning state without revealing yet', () => {
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 276 }),
+    );
+    act(() => {
+      result.current.spin();
+    });
+    // Status is 'spinning' immediately; grid and balance are unchanged.
+    expect(result.current.status).toBe('spinning');
+    expect(result.current.isSpinning).toBe(true);
+    expect(result.current.canSpin).toBe(false);
+    expect(result.current.grid).toEqual(INITIAL_GRID);
+    expect(result.current.balance).toBe(1000);
+  });
+
+  it('after SPIN_DURATION_MS the outcome is revealed', () => {
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 276 }),
+    );
+    act(() => {
+      result.current.spin();
+    });
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+    expect(result.current.status).toBe('resolved');
+    expect(result.current.isSpinning).toBe(false);
+    expect(result.current.balance).toBe(1045);
+    expect(result.current.tier).toBe('big');
+    expect(result.current.grid).not.toEqual(INITIAL_GRID);
+  });
+
+  it('a second spin mid-spin is ignored', () => {
+    // seed 12345 → balance 990 (one spin). If a second spin fired it would
+    // apply another outcome from the same seed, landing at 980.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => {
+      result.current.spin();
+    });
+    // Try a second spin before the timer fires — should be a no-op.
+    act(() => {
+      result.current.spin();
+    });
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+    // Exactly one spin's debit: 1000 − 10 = 990.
+    expect(result.current.balance).toBe(990);
+  });
+
+  it('the resolve timer is cleaned up on unmount', () => {
+    const { result, unmount } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => {
+      result.current.spin();
+    });
+    // Unmount before the timer fires — should not throw or produce an act warning.
+    unmount();
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+    // No error / no act warning — test passes by not throwing.
   });
 });

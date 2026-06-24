@@ -4,7 +4,7 @@
 task:
   id: SPEC-016
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -45,6 +45,22 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 77851
+      estimated_usd: 0.51
+      duration_minutes: 5.4
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=77851, 322s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 73754
+      estimated_usd: 0.49
+      duration_minutes: 4.2
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=73754, 252s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -212,26 +228,48 @@ its **contract** (keyframes + reduced-motion) is asserted by reading the CSS.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-016-reel-animation
+- **PR (if applicable):** (local only — orchestrator to open)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (CSS animation approach fully covered by DEC-004; no novel decisions)
 - **Deviations from spec:**
-  - [list]
+  - The `status` union now includes `'spinning'` and `'resolved'` (from the prior `'idle' | 'resolved'`). The spec implied `'idle' | 'spinning'` in the AC but the prior code had `'idle' | 'resolved'`. Kept `'resolved'` as the post-spin state (the hook transitions idle → spinning → resolved → idle on next spin). This matches the STAGE-003 success criteria wording ("idle → spinning → resolved").
+  - `spin-btn` disabled on `!canSpin || isSpinning`: `canSpin` already gates on `status !== 'spinning'` in the hook, so the `isSpinning` prop is belt-and-suspenders on the button. Kept both because Action receives them as separate props and the spec says to disable while isSpinning.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing SPEC-017 (auto-spin) and SPEC-018 (winning-line highlight) backlog items
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The prior `status` type was `'idle' | 'resolved'`, but the spec listed AC for `'spinning'` without explicitly resolving how `'resolved'` fits in. The "Notes for the Implementer" mentioned `setStatus('idle')` on reveal, but keeping `'resolved'` better matches STAGE-003's stated state machine. A one-liner in the spec like "status transitions: idle → spinning → resolved → idle (same as before; 'spinning' is the new addition)" would have made this zero-friction.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints — `respect-reduced-motion`, `perf-60fps`, `DEC-004`, and `DEC-001` all applied cleanly. The `perf-60fps` advisory is referenced in DEC-004 but not listed in the spec's `references.constraints`; it's worth adding there so a verifier knows to check transform-only animation.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Read the existing test file more carefully before writing the new tests — I had to reconcile the updated `beforeEach`/`afterEach` fake-timer setup with the pre-existing tests in one pass. A two-step approach (add fake timers + advance calls to existing tests first, then add new SPEC-016 tests) would make the diff easier to review.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate: `just typecheck && just lint && just test && just build` — all exit 0.
+108/108 tests pass across 19 test files. `just decisions-audit --changed main` flags DEC-004, DEC-006, DEC-010 as advisory (files touched are in their scope); no structural errors; no drift.
+
+Checked items:
+
+- [x] **ACCEPTANCE CRITERIA** — all six checkboxes met. `spin()` enters `'spinning'` immediately without changing grid/balance; after `SPIN_DURATION_MS` applies outcome; `canSpin` false while spinning; re-entrant call is a no-op; timer cleaned up on unmount; CSS uses transforms/keyframes with `prefers-reduced-motion` block; no raw hex; controls locked; engine untouched; gates exit 0.
+- [x] **TIMED FLOW** — `spin()` sets status `'spinning'` without altering grid (still `INITIAL_GRID`) or balance (still 1000) immediately. After `SPIN_DURATION_MS`, outcome applies and status becomes `'resolved'`. `canSpin = status !== 'spinning' && canAfford(...)` correctly returns false mid-spin. Re-entrancy guard at `if (status === 'spinning') return`. `useEffect` cleanup on `[]` clears `timerRef.current`. Seed-276→1045 and seed-12345→990 fixtures verified by passing tests.
+- [x] **TESTS NOT VACUOUS** — Fake-timer tests would catch an immediate (un-delayed) reveal: `'spin enters the spinning state without revealing yet'` asserts `grid === INITIAL_GRID` and `balance === 1000` before timer advance; an undelayed reveal would fail this. Double-resolve is caught by `'a second spin mid-spin is ignored'` (expects 990, not 980). Missing unmount cleanup is caught by `'the resolve timer is cleaned up on unmount'` (no act warning after unmount + timer advance). All pre-existing SPEC-013/014/015 tests were correctly updated with `act(() => vi.advanceTimersByTime(SPIN_DURATION_MS))` — none deleted or loosened.
+- [x] **CSS CONTRACT** — `reels.css` defines `@keyframes reel-spin` and `@keyframes reel-stop-bounce` using `transform: translateY(...)` and `opacity`. `@media (prefers-reduced-motion: reduce)` block at line 94 sets `animation: none`. No raw hex literals; all colors via `var(--color-*)` tokens. `reels.animation.test.ts` asserts all three contracts (keyframes+transform, reduced-motion, no raw hex).
+- [x] **CONTROLS LOCKOUT** — `Action.tsx` disables all four controls (`!canBetDown || isSpinning`, `!canBetUp || isSpinning`, `!canSpin || isSpinning`, `isSpinning`) while spinning. `Action.test.tsx` `'disables all controls while spinning'` asserts all four buttons are disabled when `isSpinning` is true.
+- [x] **DEC-001/DEC-004** — `git diff main..HEAD -- src/engine/` is empty; engine untouched. UI imports engine only via `src/engine/index`. Animation is CSS transforms (`translateY`), not canvas or WebGL. Both decisions fully honored.
+- [x] **DEVIATION: 'resolved' vs 'idle'** — The AC said "returns to `status: 'idle'`" after reveal, but the builder emits `'resolved'` (matching the prior `'idle' | 'resolved'` union from SPEC-013). This is **acceptable, not a defect**: `canSpin = status !== 'spinning' && canAfford(...)` re-enables spinning from `'resolved'`; the STAGE-003 success criteria explicitly name `idle → spinning → resolved` as the target state machine; keeping `'resolved'` preserves backward compatibility with the existing hook contract. The spec's AC had a minor inconsistency with the prior type; the builder resolved it correctly.
+- [x] **BUILD REFLECTION** — Three questions answered honestly and with specificity: (1) the `'idle'` vs `'resolved'` ambiguity correctly identified and traced to STAGE-003; (2) `perf-60fps` missing from `references.constraints` flagged as a concrete improvement; (3) two-step timer reconciliation approach is actionable. Non-empty and candid.
+- [x] **COST** — Design session null with "main-loop" note (per AGENTS §4: acceptable). Build session null with "sub-agent — orchestrator to fill" note (correct per §4; orchestrator fills at ship). Verify session appended.
 
 ---
 

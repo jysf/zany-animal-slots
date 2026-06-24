@@ -1,9 +1,12 @@
 /*
  * Reel grid layout — 5 columns × 3 rows of emoji symbols (SPEC-012).
+ * SPEC-016: reel-spin + reel-stop-bounce keyframe animations (DEC-004).
  *
  * Token-driven: no raw hex, no hardcoded px for themed values (DEC-010).
  * Portrait-first: fits the 375–430px cabinet width without overflow.
  * Class names: .reel-grid, .reel, .reel__cell (BEM-ish per DEC-010).
+ * Animation: transform/opacity only (GPU-composited, perf-60fps constraint).
+ * Reduced-motion: @media block sets animation to none (respect-reduced-motion).
  */
 
 /* ─── Grid wrapper ───────────────────────────────────────────────────────────── */
@@ -44,4 +47,52 @@
 
   background-color: var(--color-bg);
   border-radius: var(--radius-sm);
+}
+
+/* ─── Keyframe definitions ───────────────────────────────────────────────────── */
+
+/* reel-spin: vertical blur-and-scroll illusion via transform + opacity cycling.
+   A single period of translateY oscillation suggests rapid symbol scrolling
+   without actually moving the symbols off-screen (SPEC-016, DEC-004). */
+@keyframes reel-spin {
+  0%   { transform: translateY(0);      opacity: 1;    }
+  25%  { transform: translateY(-8px);   opacity: 0.7;  }
+  50%  { transform: translateY(0);      opacity: 0.85; }
+  75%  { transform: translateY(8px);    opacity: 0.7;  }
+  100% { transform: translateY(0);      opacity: 1;    }
+}
+
+/* reel-stop-bounce: a short settle-snap when the reel lands on its final
+   position. Plays once per reel (staggered so reels stop left→right). */
+@keyframes reel-stop-bounce {
+  0%   { transform: translateY(0);  }
+  30%  { transform: translateY(-6px); }
+  60%  { transform: translateY(3px);  }
+  80%  { transform: translateY(-2px); }
+  100% { transform: translateY(0);  }
+}
+
+/* ─── Spinning state ─────────────────────────────────────────────────────────── */
+
+/* Each reel plays the spin loop and then (via animation-delay from --reel-index)
+   plays the stop-bounce so left reels stop fractionally before right ones. The
+   delay offsets (0.1s × --reel-index) create the cascading left→right stop. */
+.reel--spinning {
+  animation:
+    reel-spin 0.18s ease-in-out infinite,
+    reel-stop-bounce 0.35s ease-out calc(var(--reel-index, 0) * 0.07s) forwards;
+  /* spin runs first; bounce fires simultaneously so it's visible at stop.
+     The overall reveal is controlled by JS (SPIN_DURATION_MS); here we simply
+     animate the reel for visual feedback while status === 'spinning'. */
+}
+
+/* ─── Reduced-motion override ────────────────────────────────────────────────── */
+
+/* Honor the user's preference: disable all motion. The outcome reveal still
+   happens (JS timeout still fires); only the visual animation is suppressed.
+   See constraint: respect-reduced-motion, DEC-004. */
+@media (prefers-reduced-motion: reduce) {
+  .reel--spinning {
+    animation: none;
+  }
 }

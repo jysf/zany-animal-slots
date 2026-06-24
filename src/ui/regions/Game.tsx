@@ -2,17 +2,19 @@
 // SPEC-013: now accepts a `grid` prop from App (live hook state) so the board
 // reflects each spin result. ReelGrid remains pure — it only renders what it
 // is given.
+// SPEC-016: threads the `spinning` prop to ReelGrid so the CSS animation can start.
 import type { Grid } from '../../engine/index';
 import ReelGrid from '../reels/ReelGrid';
 
 interface Props {
   grid: Grid;
+  spinning?: boolean;
 }
 
-export default function Game({ grid }: Props) {
+export default function Game({ grid, spinning = false }: Props) {
   return (
     <main className="cabinet__game">
-      <ReelGrid grid={grid} />
+      <ReelGrid grid={grid} spinning={spinning} />
     </main>
   );
 }

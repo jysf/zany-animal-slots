@@ -2,6 +2,8 @@
 // SPEC-013: calls useSlotMachine() and threads live state into child regions.
 // SPEC-004: wrapped in a device-stage that frames the cabinet on desktop while
 // leaving the phone layout full-screen (frame styles are gated behind min-width).
+// SPEC-016: threads isSpinning into Game (as `spinning`) and Action so controls
+// freeze and the reel animation plays during the spin phase.
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -11,15 +13,36 @@ import Action from './regions/Action';
 import { useSlotMachine } from './useSlotMachine';
 
 export default function App() {
-  const { grid, balance, bet, spin, canSpin, increaseBet, decreaseBet, canIncreaseBet, canDecreaseBet, reset } = useSlotMachine();
+  const {
+    grid,
+    balance,
+    bet,
+    spin,
+    canSpin,
+    isSpinning,
+    increaseBet,
+    decreaseBet,
+    canIncreaseBet,
+    canDecreaseBet,
+    reset,
+  } = useSlotMachine();
 
   return (
     <div className="device-stage" data-testid="device-stage">
       <div className="cabinet">
         <Header />
-        <Game grid={grid} />
+        <Game grid={grid} spinning={isSpinning} />
         <Status balance={balance} bet={bet} />
-        <Action onSpin={spin} canSpin={canSpin} onBetDown={decreaseBet} onBetUp={increaseBet} canBetDown={canDecreaseBet} canBetUp={canIncreaseBet} onReset={reset} />
+        <Action
+          onSpin={spin}
+          canSpin={canSpin}
+          isSpinning={isSpinning}
+          onBetDown={decreaseBet}
+          onBetUp={increaseBet}
+          canBetDown={canDecreaseBet}
+          canBetUp={canIncreaseBet}
+          onReset={reset}
+        />
       </div>
     </div>
   );
