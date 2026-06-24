@@ -45,6 +45,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-23
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -212,26 +220,27 @@ its **contract** (keyframes + reduced-motion) is asserted by reading the CSS.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-016-reel-animation
+- **PR (if applicable):** (local only — orchestrator to open)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (CSS animation approach fully covered by DEC-004; no novel decisions)
 - **Deviations from spec:**
-  - [list]
+  - The `status` union now includes `'spinning'` and `'resolved'` (from the prior `'idle' | 'resolved'`). The spec implied `'idle' | 'spinning'` in the AC but the prior code had `'idle' | 'resolved'`. Kept `'resolved'` as the post-spin state (the hook transitions idle → spinning → resolved → idle on next spin). This matches the STAGE-003 success criteria wording ("idle → spinning → resolved").
+  - `spin-btn` disabled on `!canSpin || isSpinning`: `canSpin` already gates on `status !== 'spinning'` in the hook, so the `isSpinning` prop is belt-and-suspenders on the button. Kept both because Action receives them as separate props and the spec says to disable while isSpinning.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing SPEC-017 (auto-spin) and SPEC-018 (winning-line highlight) backlog items
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The prior `status` type was `'idle' | 'resolved'`, but the spec listed AC for `'spinning'` without explicitly resolving how `'resolved'` fits in. The "Notes for the Implementer" mentioned `setStatus('idle')` on reveal, but keeping `'resolved'` better matches STAGE-003's stated state machine. A one-liner in the spec like "status transitions: idle → spinning → resolved → idle (same as before; 'spinning' is the new addition)" would have made this zero-friction.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints — `respect-reduced-motion`, `perf-60fps`, `DEC-004`, and `DEC-001` all applied cleanly. The `perf-60fps` advisory is referenced in DEC-004 but not listed in the spec's `references.constraints`; it's worth adding there so a verifier knows to check transform-only animation.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Read the existing test file more carefully before writing the new tests — I had to reconcile the updated `beforeEach`/`afterEach` fake-timer setup with the pre-existing tests in one pass. A two-step approach (add fake timers + advance calls to existing tests first, then add new SPEC-016 tests) would make the diff easier to review.
 
 ---
 

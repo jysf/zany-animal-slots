@@ -1,0 +1,33 @@
+// CSS contract tests for reels.css (SPEC-016).
+// Reads the raw CSS file and asserts structural contracts that must hold for
+// the spec's constraints to be satisfied. Follows the same pattern as SPEC-004's
+// CSS contract tests (fs.readFileSync approach).
+// These tests do NOT exercise rendered animation — they assert that the CSS
+// *declarations* necessary for the constraint to be met are present.
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const css = readFileSync(resolve(__dirname, 'reels.css'), 'utf-8');
+
+describe('reels.css animation contract (SPEC-016)', () => {
+  it('defines a reel-stop / spin keyframe animation', () => {
+    // Both the spin loop and the stop-bounce keyframes must be present.
+    expect(css).toMatch(/@keyframes/);
+    // Keyframes must use transform (GPU-composited per DEC-004 / perf-60fps).
+    expect(css).toMatch(/transform/);
+  });
+
+  it('has a reduced-motion fallback', () => {
+    // A prefers-reduced-motion: reduce media query must exist (constraint:
+    // respect-reduced-motion, DEC-004).
+    expect(css).toMatch(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/);
+  });
+
+  it('uses no raw hex color literals', () => {
+    // All color values must come from design tokens (var(--...)), not raw hex.
+    // Raw hex: #NNN or #NNNNNN or #NNNNNNNN (3, 6, or 8 hex digits).
+    expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+});

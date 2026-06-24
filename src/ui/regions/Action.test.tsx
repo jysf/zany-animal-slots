@@ -101,4 +101,26 @@ describe('Action', () => {
     fireEvent.click(btn);
     expect(onReset).toHaveBeenCalledTimes(1);
   });
+
+  // ── SPEC-016: all controls disabled while spinning ─────────────────────────
+
+  it('disables all controls while spinning', () => {
+    render(
+      <Action
+        onSpin={vi.fn()}
+        canSpin
+        onBetDown={vi.fn()}
+        onBetUp={vi.fn()}
+        canBetDown
+        canBetUp
+        onReset={vi.fn()}
+        isSpinning
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /spin/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /decrease bet/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /increase bet/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /reset/i })).toBeDisabled();
+  });
 });
