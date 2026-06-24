@@ -72,6 +72,36 @@
   cursor: not-allowed;
 }
 
+/* ─── Reset button ──────────────────────────────────────────────────────────── */
+
+/* Subdued style — visually secondary to Spin but still a full 44px touch target. */
+.reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Touch target: ≥44px (constraint: touch-targets-44). */
+  min-height: 2.75rem;   /* 44px */
+  min-width: 2.75rem;    /* 44px */
+  padding: var(--space-3) var(--space-5);
+
+  background-color: var(--color-frame);
+  color: var(--color-text-muted);
+  border: none;
+  border-radius: var(--radius-md);
+
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+
+  cursor: pointer;
+}
+
+.reset-btn:hover {
+  color: var(--color-text);
+}
+
 /* ─── Status readout ────────────────────────────────────────────────────────── */
 
 .status-readout {

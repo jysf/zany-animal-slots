@@ -1,4 +1,4 @@
-// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014).
+// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015).
 // Uses renderHook + act. Outcomes are pinned via injected nextSeed (DEC-002).
 // Fixtures from SPEC-011: seed 276 → big win, balance 1045, 3 line wins;
 //                          seed 12345 → no win, balance 990 at bet 10;
@@ -6,8 +6,13 @@
 import { renderHook, act } from '@testing-library/react';
 import { useSlotMachine } from './useSlotMachine';
 import { INITIAL_GRID } from './reels/symbols';
+import { writeBalance, readBalance } from './storage';
 
 describe('useSlotMachine', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('starts idle at 1000 with default bet and the initial grid', () => {
     const { result } = renderHook(() => useSlotMachine());
     expect(result.current.balance).toBe(1000);
@@ -119,5 +124,38 @@ describe('useSlotMachine', () => {
 
     act(() => { result.current.spin(); });
     expect(result.current.balance).toBe(975);
+  });
+
+  // ── SPEC-015: balance persistence ──────────────────────────────────────────
+
+  it('rehydrates the balance from localStorage', () => {
+    writeBalance(777);
+    const { result } = renderHook(() => useSlotMachine());
+    expect(result.current.balance).toBe(777);
+  });
+
+  it('falls back to STARTING_BALANCE when storage is empty', () => {
+    // localStorage already cleared by beforeEach
+    const { result } = renderHook(() => useSlotMachine());
+    expect(result.current.balance).toBe(1000);
+  });
+
+  it('persists the balance after a spin', () => {
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => { result.current.spin(); });
+    expect(result.current.balance).toBe(990);
+    expect(readBalance()).toBe(990);
+  });
+
+  it('reset restores 1000 and persists', () => {
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => { result.current.spin(); }); // balance → 990
+    act(() => { result.current.reset(); }); // balance → 1000
+    expect(result.current.balance).toBe(1000);
+    expect(readBalance()).toBe(1000);
   });
 });

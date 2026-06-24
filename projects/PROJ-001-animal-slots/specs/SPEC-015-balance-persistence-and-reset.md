@@ -4,7 +4,7 @@
 task:
   id: SPEC-015
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: S
@@ -44,6 +44,22 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 72272
+      estimated_usd: 0.48
+      duration_minutes: 4.2
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=72272, 253s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 64262
+      estimated_usd: 0.42
+      duration_minutes: 3.2
+      recorded_at: 2026-06-23
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=64262, 191s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -185,26 +201,62 @@ in `beforeEach` so storage state is isolated.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** `feat/spec-015-balance-persistence`
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (storage pattern is straightforward; the spec's Notes for the Implementer was
+    specific enough to not require a new DEC)
 - **Deviations from spec:**
-  - [list]
+  - None. Implemented exactly as specified: storage.ts with BALANCE_KEY/readBalance/writeBalance,
+    hook init via lazy-initializer pattern, useEffect persist, reset callback, Reset button in
+    Action with aria-label "Reset" and ≥44px CSS via tokens, all failing tests written.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None beyond existing STAGE-003 backlog (SPEC-016 animation, SPEC-017 auto-spin,
+    SPEC-018 line highlight).
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing significant. The "Notes for the Implementer" section was exceptionally
+   complete — it gave the exact function bodies for readBalance/writeBalance and the
+   useState/useEffect/useCallback patterns. The only minor thing to reason through was
+   whether adding `beforeEach(localStorage.clear())` to the existing useSlotMachine tests
+   would break any of the prior tests; it didn't, because all pre-existing tests that needed
+   a specific balance already passed `initialBalance` which takes precedence.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing decisions. DEC-001 (engine-no-dom), DEC-005 (play-money / reset to 1000),
+   and the touch-targets-44 constraint covered everything. The "no raw hex in CSS" rule
+   comes from the coding conventions section of AGENTS.md rather than a constraint ID —
+   it could be worth a dedicated constraint entry, but it's not a blocker.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural. The build was smooth and the spec was tight. If anything,
+   I'd note that the spec could have explicitly called out the `defaultBetProps` fixture
+   in Action.test.tsx needs `onReset` added to it (required prop update for existing
+   tests) — but it was an obvious consequence of adding a required prop and took only
+   seconds to address.
+
+---
+
+## Verify
+
+Verified 2026-06-23 by claude-sonnet-4-6 (cold sub-agent).
+
+**Verdict: APPROVED**
+
+- ACCEPTANCE CRITERIA: All five checkboxes met — storage round-trips, rehydration, persist-after-spin, reset persists, engine unchanged, gate exit 0.
+- STORAGE SAFETY: `readBalance` is fully wrapped in try/catch and returns `null` on absent key, non-finite value, or any exception. `writeBalance` is fully wrapped with silent catch. The invalid-value test sets a non-numeric raw string and expects `null`. Never throws. PASS.
+- HOOK PERSISTENCE: Init order is `opts?.initialBalance ?? readBalance() ?? STARTING_BALANCE` (lazy initializer). Explicit `initialBalance` wins — existing tests unaffected. `useEffect([balance])` persists on every change. `reset = useCallback(() => setBalance(STARTING_BALANCE), [])` is correct. Persist-after-spin and reset-persists fixtures are genuine (no `initialBalance` passed, so storage path is exercised). PASS.
+- TEST ISOLATION: `beforeEach(() => localStorage.clear())` present in both `storage.test.ts` and `useSlotMachine.test.tsx`. PASS.
+- WIRING/A11Y: `reset-btn` has `min-height: 2.75rem` (44px) and `min-width: 2.75rem` (44px). `aria-label="Reset"` provides accessible name. All CSS colors via design tokens, no raw hex. `App.tsx` passes `onReset={reset}` to `<Action>`. PASS.
+- DEC-001/DEC-005: `git diff main..HEAD -- src/engine/` is empty. Persistence is UI-only. Balance is local play-money. PASS.
+- TESTS NOT VACUOUS: Tests catch: missing `writeBalance` call (persist-after-spin checks `readBalance()`), wrong init precedence (rehydration test), reset not persisting (reset test checks both state and storage), `readBalance` throwing on garbage (invalid-value test). PASS.
+- DECISION DRIFT: No non-trivial build choices needing a new DEC. Spec's implementation notes were specific enough. `just decisions-audit --changed` reports no scope. PASS.
+- BUILD REFLECTION: Three questions answered honestly, non-empty, with real friction identified (existing-test compatibility reasoning, `defaultBetProps` update). PASS.
+- COST: Design null-with-note (main-loop, correct). Build null-with-note (sub-agent, orchestrator fills). Pattern correct per AGENTS §4.
+- GATE: `just typecheck && just lint && just test && just build` all exit 0. 100/100 tests pass.
 
 ---
 

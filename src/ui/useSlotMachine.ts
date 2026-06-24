@@ -1,4 +1,4 @@
-// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014).
+// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014, SPEC-015).
 // Holds grid/balance/bet/lineWins/tier/status state and wires the Spin action to
 // the engine's spin(). All randomness in the UI (the seed generator) is injectable
 // so tests can pin outcomes deterministically (DEC-002). The engine owns outcomes;
@@ -6,7 +6,10 @@
 // is a silent no-op — never throws (DEC-005).
 // SPEC-014: bet is now stateful; increaseBet/decreaseBet step via engine
 // nextBet/prevBet; canIncreaseBet guards affordable raises (DEC-005).
-import { useState, useCallback } from 'react';
+// SPEC-015: balance is persisted to localStorage on every change; rehydrated on
+// init; reset() restores STARTING_BALANCE (DEC-005). opts.initialBalance still
+// takes precedence (useful for tests that need a specific starting balance).
+import { useState, useCallback, useEffect } from 'react';
 import {
   spin as engineSpin,
   STARTING_BALANCE,
@@ -17,6 +20,7 @@ import {
 } from '../engine/index';
 import type { Grid, BetLevel, LineWin, WinTier } from '../engine/index';
 import { INITIAL_GRID } from './reels/symbols';
+import { readBalance, writeBalance } from './storage';
 
 // Module-level default seed generator: a simple additive hash seeded once from
 // Date.now(). Injectable in tests via opts.nextSeed (DEC-002).
@@ -39,6 +43,7 @@ export interface UseSlotMachineResult {
   canDecreaseBet: boolean;
   increaseBet: () => void;
   decreaseBet: () => void;
+  reset: () => void;
 }
 
 export interface UseSlotMachineOpts {
@@ -50,11 +55,23 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const nextSeed = opts?.nextSeed ?? _defaultNextSeed;
 
   const [grid, setGrid] = useState<Grid>(INITIAL_GRID);
-  const [balance, setBalance] = useState<number>(opts?.initialBalance ?? STARTING_BALANCE);
+  // Init: explicit opts.initialBalance (used in tests) → persisted value → default.
+  const [balance, setBalance] = useState<number>(
+    () => opts?.initialBalance ?? readBalance() ?? STARTING_BALANCE,
+  );
   const [bet, setBet] = useState<BetLevel>(DEFAULT_BET);
   const [lineWins, setLineWins] = useState<LineWin[]>([]);
   const [tier, setTier] = useState<WinTier>('none');
   const [status, setStatus] = useState<'idle' | 'resolved'>('idle');
+
+  // Persist balance to localStorage whenever it changes.
+  useEffect(() => {
+    writeBalance(balance);
+  }, [balance]);
+
+  const reset = useCallback(() => {
+    setBalance(STARTING_BALANCE);
+  }, []);
 
   const isSpinable = canAfford(balance, bet);
 
@@ -101,5 +118,6 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     canDecreaseBet,
     increaseBet,
     decreaseBet,
+    reset,
   };
 }
