@@ -10,4 +10,4 @@ Cycle prompts live in `prompts/SPEC-016-<cycle>.md`.
 - [x] **design** — completed 2026-06-23 (Opus)
 - [x] **build** — gate green (108/108) + preview check (mid-spin lockout + delayed reveal, eval-confirmed); pushed, PR #16 (Sonnet sub-agent)
 - [x] **verify** — ✅ APPROVED 2026-06-23; gate 108/108; all criteria met; resolved-vs-idle deviation accepted; ship prompt written
-- [~] **ship** — prompt: `prompts/SPEC-016-ship.md`; merging PR #16 (squash) 2026-06-23
+- [x] **ship** — PR #16 squash-merged to main 2026-06-23. Total: 151,605 tokens / ~$1.00 (4 sessions).

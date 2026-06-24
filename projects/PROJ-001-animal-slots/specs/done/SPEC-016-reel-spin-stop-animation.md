@@ -4,7 +4,7 @@
 task:
   id: SPEC-016
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: M
@@ -61,10 +61,18 @@ cost:
       duration_minutes: 4.2
       recorded_at: 2026-06-23
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=73754, 252s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 14
+      recorded_at: 2026-06-23
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview eval check of the timed flow)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 151605
+    estimated_usd: 1.00
+    session_count: 4
 ---
 
 # SPEC-016: Reel spin/stop animation
@@ -278,10 +286,17 @@ Checked items:
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — The spec's AC said "returns to status 'idle'" while the shipped state machine
+   used 'resolved' — a small internal inconsistency the builder resolved sensibly.
+   Next time I'd reconcile the status vocabulary across specs up front. Otherwise the
+   "engine computes up front, UI delays the reveal" split made a timed flow testable
+   with fake timers and kept determinism intact.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — Minor: `perf-60fps` could be listed in this spec's `references.constraints`
+   (it was honored — transform/opacity only — just not enumerated). Not blocking;
+   a weekly-review note.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-017 (auto-spin) layers a loop over this timed spin, and
+   SPEC-018 (winning-line highlight) is the last STAGE-003 item — both already framed.
