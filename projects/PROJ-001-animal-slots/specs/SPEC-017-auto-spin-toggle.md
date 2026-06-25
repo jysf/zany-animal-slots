@@ -45,6 +45,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-24
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -202,26 +210,26 @@ totalWin 2000, balance 2990, tier 'jackpot').
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-017-auto-spin`
+- **PR (if applicable):** (local only — orchestrator opens PR)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none — implemented exactly as specced: AUTO_SPIN_COUNT=10, AUTO_SPIN_DELAY_MS=400, ref-based continuation (autoRef + spinRef), all six failing tests pass, Action Auto toggle with aria-pressed + ≥44px, App threaded through.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond existing backlog (SPEC-018 winning-line highlight)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed this down. The spec's Notes section was exceptionally detailed: the autoRef/spinRef pattern, the exact stop conditions, and the two-act loop (SPIN_DURATION_MS then AUTO_SPIN_DELAY_MS) in the test iteration were all spelled out precisely.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The existing references (DEC-001 engine-unchanged, DEC-005 affordability guard, touch-targets-44) covered everything.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — The spec shipped with the implementation already in place on the branch, so the main effort was gate verification. If starting fresh, I would verify the jackpot seed (407947) against the engine upfront before writing the test, to confirm the expected balance (2990) independently.
 
 ---
 

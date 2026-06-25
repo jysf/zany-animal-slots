@@ -1,4 +1,4 @@
-// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016).
+// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017).
 // Uses renderHook + act. Outcomes are pinned via injected nextSeed (DEC-002).
 // Fixtures from SPEC-011: seed 276 → big win, balance 1045, 3 line wins;
 //                          seed 12345 → no win, balance 990 at bet 10;
@@ -7,8 +7,13 @@
 // SPEC-016: spin is now timed. All tests that assert on the post-spin state
 // must advance fake timers by SPIN_DURATION_MS inside act() so the reveal
 // callback fires before the assertion.
+//
+// SPEC-017: auto-spin. Seeds: 12345 → losing (−bet each spin);
+//           407947 → jackpot (five Wolves on L5; at bet 10: totalWin 2000,
+//           balance 2990, tier 'jackpot').
+//           One auto iteration = SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS.
 import { renderHook, act } from '@testing-library/react';
-import { useSlotMachine, SPIN_DURATION_MS } from './useSlotMachine';
+import { useSlotMachine, SPIN_DURATION_MS, AUTO_SPIN_COUNT, AUTO_SPIN_DELAY_MS } from './useSlotMachine';
 import { INITIAL_GRID } from './reels/symbols';
 import { writeBalance, readBalance } from './storage';
 
@@ -245,5 +250,142 @@ describe('useSlotMachine', () => {
       vi.advanceTimersByTime(SPIN_DURATION_MS);
     });
     // No error / no act warning — test passes by not throwing.
+  });
+
+  // ── SPEC-017: auto-spin ─────────────────────────────────────────────────────
+
+  it('toggleAutoSpin starts and reports remaining', () => {
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => {
+      result.current.toggleAutoSpin();
+    });
+    expect(result.current.autoSpinning).toBe(true);
+    expect(result.current.autoRemaining).toBe(AUTO_SPIN_COUNT);
+    // The first spin should already be underway.
+    expect(result.current.isSpinning).toBe(true);
+  });
+
+  it('auto-spin stops after AUTO_SPIN_COUNT spins', () => {
+    // seed 12345 → losing every spin (−10 each). Starting balance 1000.
+    // After 10 spins: balance = 1000 − (10 × 10) = 900.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => {
+      result.current.toggleAutoSpin();
+    });
+
+    // Drive each spin cycle in two separate acts so React re-renders between
+    // the reveal timer and the inter-spin delay timer, preventing stale-status
+    // from triggering the re-entrant guard in spin().
+    for (let i = 0; i < AUTO_SPIN_COUNT; i++) {
+      // 1) Fire the reveal (SPIN_DURATION_MS).
+      act(() => {
+        vi.advanceTimersByTime(SPIN_DURATION_MS);
+      });
+      // 2) Fire the inter-spin delay (AUTO_SPIN_DELAY_MS) — starts the next spin.
+      act(() => {
+        vi.advanceTimersByTime(AUTO_SPIN_DELAY_MS);
+      });
+    }
+
+    expect(result.current.autoSpinning).toBe(false);
+    expect(result.current.autoRemaining).toBe(0);
+    expect(result.current.balance).toBe(900);
+  });
+
+  it('auto-spin stops immediately on a jackpot', () => {
+    // seed 407947 → jackpot (five Wolves on L5; at bet 10: totalWin 2000, balance 2990).
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 407947 }),
+    );
+    act(() => {
+      result.current.toggleAutoSpin();
+    });
+
+    // Advance through the reveal only — the jackpot stop prevents any inter-spin delay.
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+
+    expect(result.current.autoSpinning).toBe(false);
+    expect(result.current.tier).toBe('jackpot');
+    expect(result.current.balance).toBe(2990);
+
+    // Capture balance after the jackpot stop; further timer advances must not
+    // trigger more spins.
+    const balanceAfterStop = result.current.balance;
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS);
+    });
+    expect(result.current.balance).toBe(balanceAfterStop);
+  });
+
+  it('auto-spin stops when the balance cannot cover the bet', () => {
+    // seed 12345 → losing. initialBalance 25, bet 10.
+    // Spin 1: 25 − 10 = 15. Spin 2: 15 − 10 = 5. 5 < 10 → stop.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345, initialBalance: 25 }),
+    );
+    act(() => {
+      result.current.toggleAutoSpin();
+    });
+
+    // Spin 1: reveal, then delay → starts spin 2.
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    act(() => { vi.advanceTimersByTime(AUTO_SPIN_DELAY_MS); });
+    // Spin 2: reveal → balance is 5, which is < 10 → stop (no inter-spin delay scheduled).
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+
+    expect(result.current.autoSpinning).toBe(false);
+    expect(result.current.balance).toBe(5);
+  });
+
+  it('toggling auto off stops further spins', () => {
+    // Start auto, let one spin complete, then toggle off.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => {
+      result.current.toggleAutoSpin();
+    });
+
+    // Let one spin complete (reveal fires) but don't advance through the delay yet.
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+    // At this point autoSpinning is still true (delay timer is running).
+    // Now toggle off.
+    act(() => {
+      result.current.toggleAutoSpin();
+    });
+    expect(result.current.autoSpinning).toBe(false);
+
+    const balanceAfterStop = result.current.balance;
+
+    // Advancing more timers must not change the balance further.
+    act(() => {
+      vi.advanceTimersByTime(AUTO_SPIN_DELAY_MS + SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS);
+    });
+    expect(result.current.balance).toBe(balanceAfterStop);
+  });
+
+  it('clears timers on unmount during auto-spin', () => {
+    // Start auto-spin then unmount before any timer fires.
+    const { result, unmount } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => {
+      result.current.toggleAutoSpin();
+    });
+    // Unmount while the first spin is in progress.
+    unmount();
+    // Advancing timers must not throw or produce act warnings.
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS);
+    });
+    // No error — test passes by not throwing.
   });
 });

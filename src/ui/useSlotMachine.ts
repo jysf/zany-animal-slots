@@ -1,4 +1,4 @@
-// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016).
+// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017).
 // Holds grid/balance/bet/lineWins/tier/status state and wires the Spin action to
 // the engine's spin(). All randomness in the UI (the seed generator) is injectable
 // so tests can pin outcomes deterministically (DEC-002). The engine owns outcomes;
@@ -13,6 +13,10 @@
 // status 'spinning' (reveal not applied yet), then after SPIN_DURATION_MS applies
 // the outcome and returns to 'idle'. Re-entrant spins are a no-op. The timer is
 // cleared on unmount so there are no act-warning / state-update-after-unmount leaks.
+// SPEC-017: auto-spin loop. toggleAutoSpin() starts (or stops) a sequence of
+// back-to-back timed spins. Each spin-resolve callback schedules the next spin
+// after AUTO_SPIN_DELAY_MS using a ref-based continuation so stale-closure bugs
+// are avoided. Auto-spin stops on jackpot, count exhaustion, or !canAfford.
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   spin as engineSpin,
@@ -29,6 +33,12 @@ import { readBalance, writeBalance } from './storage';
 // How long the reel-spin animation plays before the outcome is revealed.
 // Exported so tests can advance fake timers by exactly this value.
 export const SPIN_DURATION_MS = 700;
+
+// Number of spins in a single auto-spin run.
+export const AUTO_SPIN_COUNT = 10;
+
+// Delay between the reveal of one auto-spin and the start of the next.
+export const AUTO_SPIN_DELAY_MS = 400;
 
 // Module-level default seed generator: a simple additive hash seeded once from
 // Date.now(). Injectable in tests via opts.nextSeed (DEC-002).
@@ -53,6 +63,9 @@ export interface UseSlotMachineResult {
   increaseBet: () => void;
   decreaseBet: () => void;
   reset: () => void;
+  autoSpinning: boolean;
+  autoRemaining: number;
+  toggleAutoSpin: () => void;
 }
 
 export interface UseSlotMachineOpts {
@@ -73,14 +86,33 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const [tier, setTier] = useState<WinTier>('none');
   const [status, setStatus] = useState<'idle' | 'spinning' | 'resolved'>('idle');
 
+  // Auto-spin React state (drives rendering).
+  const [autoSpinning, setAutoSpinning] = useState(false);
+  const [autoRemaining, setAutoRemaining] = useState(0);
+
   // Ref holding the pending reveal timer so we can cancel it on unmount.
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Clear the timer on unmount so there are no state-update-after-unmount warnings.
+  // Ref holding the auto-spin inter-spin delay timer so we can cancel it on stop.
+  const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Ref mirror of auto state so the spin-resolve callback (a stale closure) can
+  // read and mutate the live values without needing to be re-created on every state
+  // change. This is the core of the ref-based continuation pattern from the spec Notes.
+  const autoRef = useRef({ active: false, remaining: 0 });
+
+  // Ref to the latest spin() function so the scheduled continuation always calls
+  // the current closure (which captures the latest balance/bet/status).
+  const spinRef = useRef<() => void>(() => {});
+
+  // Clear both timers on unmount so there are no state-update-after-unmount warnings.
   useEffect(() => {
     return () => {
       if (timerRef.current !== null) {
         clearTimeout(timerRef.current);
+      }
+      if (autoTimerRef.current !== null) {
+        clearTimeout(autoTimerRef.current);
       }
     };
   }, []);
@@ -119,6 +151,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     setStatus('spinning');
 
     // After the animation duration, reveal the outcome and return to idle.
+    // If auto-spin is active, also schedule the next spin (or stop).
     timerRef.current = setTimeout(() => {
       setGrid(outcome.grid);
       setBalance(outcome.balance);
@@ -126,8 +159,36 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
       setTier(outcome.tier);
       setStatus('resolved');
       timerRef.current = null;
+
+      // Auto-spin continuation: if still active, decide next action.
+      if (autoRef.current.active) {
+        const remaining = autoRef.current.remaining - 1;
+        autoRef.current.remaining = remaining;
+        setAutoRemaining(remaining);
+
+        const shouldStop =
+          outcome.tier === 'jackpot' ||
+          remaining <= 0 ||
+          !canAfford(outcome.balance, bet);
+
+        if (shouldStop) {
+          // Stop auto-spin.
+          autoRef.current.active = false;
+          setAutoSpinning(false);
+        } else {
+          // Schedule the next spin after the inter-spin delay.
+          autoTimerRef.current = setTimeout(() => {
+            autoTimerRef.current = null;
+            spinRef.current();
+          }, AUTO_SPIN_DELAY_MS);
+        }
+      }
     }, SPIN_DURATION_MS);
   }, [balance, bet, nextSeed, status]);
+
+  // Keep spinRef pointing at the latest spin closure so scheduled continuations
+  // always call the version that sees the current balance/bet/status.
+  spinRef.current = spin;
 
   const increaseBet = useCallback(() => {
     if (!canIncreaseBet) return;
@@ -138,6 +199,29 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     if (!canDecreaseBet) return;
     setBet(prevBet(bet));
   }, [bet, canDecreaseBet]);
+
+  const toggleAutoSpin = useCallback(() => {
+    if (autoRef.current.active) {
+      // Stop auto-spin: clear the inter-spin delay timer, update ref + state.
+      autoRef.current.active = false;
+      autoRef.current.remaining = 0;
+      if (autoTimerRef.current !== null) {
+        clearTimeout(autoTimerRef.current);
+        autoTimerRef.current = null;
+      }
+      setAutoSpinning(false);
+      setAutoRemaining(0);
+    } else {
+      // Only start if we can actually spin right now.
+      if (!canAfford(balance, bet) || status === 'spinning') return;
+      autoRef.current.active = true;
+      autoRef.current.remaining = AUTO_SPIN_COUNT;
+      setAutoSpinning(true);
+      setAutoRemaining(AUTO_SPIN_COUNT);
+      // Kick off the first spin immediately.
+      spinRef.current();
+    }
+  }, [balance, bet, status]);
 
   return {
     grid,
@@ -154,5 +238,8 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     increaseBet,
     decreaseBet,
     reset,
+    autoSpinning,
+    autoRemaining,
+    toggleAutoSpin,
   };
 }

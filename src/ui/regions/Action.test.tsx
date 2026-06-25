@@ -1,7 +1,10 @@
-// Tests for the Action region (SPEC-013, extended SPEC-014, SPEC-015).
+// Tests for the Action region (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017).
 // SPEC-013: Spin button enabled/disabled behavior.
 // SPEC-014: Bet − / + buttons wired to handlers, disabled per flags.
 // SPEC-015: Reset button wired to onReset handler.
+// SPEC-016: all controls disabled while spinning.
+// SPEC-017: Auto toggle button — calls onToggleAuto, reflects autoSpinning state;
+//           Spin/bet/Reset are disabled while auto-spinning.
 import { render, screen, fireEvent } from '@testing-library/react';
 import Action from './Action';
 
@@ -122,5 +125,64 @@ describe('Action', () => {
     expect(screen.getByRole('button', { name: /decrease bet/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /increase bet/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /reset/i })).toBeDisabled();
+  });
+
+  // ── SPEC-017: Auto toggle ──────────────────────────────────────────────────
+
+  it('renders an Auto toggle that calls onToggleAuto', () => {
+    const onToggleAuto = vi.fn();
+    render(
+      <Action
+        onSpin={vi.fn()}
+        canSpin
+        {...defaultBetProps}
+        autoSpinning={false}
+        onToggleAuto={onToggleAuto}
+      />,
+    );
+    const autoBtn = screen.getByRole('button', { name: /auto/i });
+    expect(autoBtn).not.toBeDisabled();
+    fireEvent.click(autoBtn);
+    expect(onToggleAuto).toHaveBeenCalledTimes(1);
+  });
+
+  it('reflects the auto-spinning state with aria-pressed and label', () => {
+    render(
+      <Action
+        onSpin={vi.fn()}
+        canSpin
+        {...defaultBetProps}
+        autoSpinning
+        onToggleAuto={vi.fn()}
+      />,
+    );
+    // When auto is active the button label changes to "Stop".
+    const autoBtn = screen.getByRole('button', { name: /stop auto-spin/i });
+    expect(autoBtn).toHaveAttribute('aria-pressed', 'true');
+    // The Auto button stays enabled (it's the escape hatch).
+    expect(autoBtn).not.toBeDisabled();
+  });
+
+  it('disables Spin, bet, and Reset while auto-spinning', () => {
+    render(
+      <Action
+        onSpin={vi.fn()}
+        canSpin
+        onBetDown={vi.fn()}
+        onBetUp={vi.fn()}
+        canBetDown
+        canBetUp
+        onReset={vi.fn()}
+        autoSpinning
+        onToggleAuto={vi.fn()}
+      />,
+    );
+    // Use exact name 'Spin' to avoid collision with 'Stop auto-spin' aria-label.
+    expect(screen.getByRole('button', { name: 'Spin' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /decrease bet/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /increase bet/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /reset/i })).toBeDisabled();
+    // Auto button itself must remain enabled.
+    expect(screen.getByRole('button', { name: /stop auto-spin/i })).not.toBeDisabled();
   });
 });
