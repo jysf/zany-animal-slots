@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-018-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-26 (Opus)
-- [ ] **build** — prompt: `prompts/SPEC-018-build.md` (run on Sonnet)
+- [~] **build** — prompt: `prompts/SPEC-018-build.md` (run on Sonnet)
 - [ ] **verify** — prompt: pending (waiting on build)
 - [ ] **ship** — prompt: pending (waiting on verify)

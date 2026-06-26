@@ -3,17 +3,27 @@
 // reel and .reel-grid--spinning on the wrapper so CSS can animate the spin. Each
 // reel also carries an inline --reel-index custom property so the CSS can stagger
 // animation delays left→right (the reel-stop bounce cascades column by column).
+// SPEC-018: accepts lineWins; adds .reel__cell--win to winning cells when not
+// spinning. While spinning the highlight is suppressed so no stale win shows.
 // Pure function of its props; no internal state.
-import type { Grid } from '../../engine/index';
+import type { Grid, LineWin } from '../../engine/index';
 import { SYMBOL_DISPLAY } from './symbols';
+import { winningCellKeys } from './winningCells';
 import './reels.css';
+
+// A stable empty set so the reference never changes when lineWins is empty.
+const EMPTY = new Set<string>();
 
 interface Props {
   grid: Grid;
   spinning?: boolean;
+  lineWins?: LineWin[];
 }
 
-export default function ReelGrid({ grid, spinning = false }: Props) {
+export default function ReelGrid({ grid, spinning = false, lineWins = [] }: Props) {
+  // Suppress the highlight while spinning so a stale win doesn't flash mid-spin.
+  const winKeys = spinning ? EMPTY : winningCellKeys(lineWins);
+
   return (
     <div className={`reel-grid${spinning ? ' reel-grid--spinning' : ''}`}>
       {grid.map((cells, reelIndex) => (
@@ -25,10 +35,11 @@ export default function ReelGrid({ grid, spinning = false }: Props) {
         >
           {cells.map((symbolId, rowIndex) => {
             const { emoji, label } = SYMBOL_DISPLAY[symbolId];
+            const isWin = winKeys.has(`${reelIndex}:${rowIndex}`);
             return (
               <span
                 key={rowIndex}
-                className="reel__cell"
+                className={`reel__cell${isWin ? ' reel__cell--win' : ''}`}
                 role="img"
                 aria-label={label}
               >

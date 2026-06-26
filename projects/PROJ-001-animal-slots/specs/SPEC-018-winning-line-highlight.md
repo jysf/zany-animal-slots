@@ -46,6 +46,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-26
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-26
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -191,26 +199,26 @@ check.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** `feat/spec-018-line-highlight`
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (no non-trivial build decisions; all choices were specified in the spec)
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none within this stage; celebration polish (tier-scaled highlight, particles, animation) is explicitly STAGE-004
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down; the spec was unusually precise. The `winningCellKeys` pseudocode in the Notes section and the exact key format `"reel:row"` left no ambiguity.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. `DEC-010` (no raw hex) was the only CSS-relevant decision and it was correctly listed; using `box-shadow` for the highlight meant zero layout shift, which is exactly what the spec called for.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The implementation was a clean four-step threading: helper → component → CSS → App/Game. The spec's test list was complete and each test translated directly without interpretation.
 
 ---
 
