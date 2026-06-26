@@ -4,7 +4,7 @@
 task:
   id: SPEC-017
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -45,6 +45,22 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-23
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 62586
+      estimated_usd: 0.41
+      duration_minutes: 2.1
+      recorded_at: 2026-06-24
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=62586, 127s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 72273
+      estimated_usd: 0.48
+      duration_minutes: 6.2
+      recorded_at: 2026-06-25
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=72273, 375s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -202,26 +218,26 @@ totalWin 2000, balance 2990, tier 'jackpot').
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-017-auto-spin`
+- **PR (if applicable):** (local only — orchestrator opens PR)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none — implemented exactly as specced: AUTO_SPIN_COUNT=10, AUTO_SPIN_DELAY_MS=400, ref-based continuation (autoRef + spinRef), all six failing tests pass, Action Auto toggle with aria-pressed + ≥44px, App threaded through.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond existing backlog (SPEC-018 winning-line highlight)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed this down. The spec's Notes section was exceptionally detailed: the autoRef/spinRef pattern, the exact stop conditions, and the two-act loop (SPIN_DURATION_MS then AUTO_SPIN_DELAY_MS) in the test iteration were all spelled out precisely.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The existing references (DEC-001 engine-unchanged, DEC-005 affordability guard, touch-targets-44) covered everything.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — The spec shipped with the implementation already in place on the branch, so the main effort was gate verification. If starting fresh, I would verify the jackpot seed (407947) against the engine upfront before writing the test, to confirm the expected balance (2990) independently.
 
 ---
 
@@ -237,3 +253,63 @@ totalWin 2000, balance 2990, tier 'jackpot').
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Reviewed by claude-sonnet-4-6 on 2026-06-25 (cold session, fresh context).
+
+### Gate: all four checks exit 0
+
+- [x] `just typecheck` — exit 0 (tsc --noEmit, no errors)
+- [x] `just lint` — exit 0 (ESLint, engine-no-dom boundary clean)
+- [x] `just test` — 117/117 pass (19 test files)
+- [x] `just build` — exit 0 (Vite production build, 149 kB JS)
+- [x] `just decisions-audit --changed` — no new files in scope; 14 scope warnings are pre-existing structural overlaps, none introduced by this spec
+
+### Acceptance Criteria
+
+- [x] `toggleAutoSpin()` from idle sets `autoSpinning === true`, `autoRemaining === AUTO_SPIN_COUNT` (10), kicks off the first spin immediately — asserted by "toggleAutoSpin starts and reports remaining" test
+- [x] Auto-spin performs back-to-back timed spins (SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS per iteration), decrements `autoRemaining`, stops on all three conditions — covered by three dedicated stop-condition tests
+- [x] Count exhaustion: 10 losing spins at seed 12345, balance 900, `autoSpinning false`, `autoRemaining 0` — asserted
+- [x] Jackpot stop: seed 407947, one spin reveal → `autoSpinning false`, `tier 'jackpot'`, `balance 2990`; no further spins on additional timer advance — asserted
+- [x] Balance stop: `initialBalance 25`, 2 spins (25→15→5), stops because 5 < bet 10 — asserted
+- [x] Controls lockout: Spin/bet±/Reset disabled while `isSpinning` OR `autoSpinning`; Auto toggle stays enabled — asserted in Action.test.tsx
+- [x] Engine unchanged: `git diff main..HEAD -- src/engine/` is empty; UI imports via `src/engine/index.ts` only
+
+### Loop Correctness
+
+- [x] `autoRef.current.active` + `autoRef.current.remaining` are ref-based — stale-closure bug eliminated
+- [x] `spinRef.current = spin` kept current on every render — scheduled continuations always call the latest closure
+- [x] `remaining` decremented in the reveal callback before the stop check — correct ordering
+- [x] Stop conditions checked in order: `tier === 'jackpot'` OR `remaining <= 0` OR `!canAfford(outcome.balance, bet)` — all three verified by separate fixtures
+- [x] `autoTimerRef` set for next spin only when NOT stopping; `timerRef` cleared by existing unmount effect; `autoTimerRef` also cleared on unmount and on toggle-off — no leaked timers
+- [x] `spin()` re-entrant guard (`status === 'spinning'`) prevents double-firing; toggle-off also no-ops if `status === 'spinning'`
+
+### Stop-Condition Fixtures (non-vacuous)
+
+- [x] **Count exhaustion** (seed 12345, balance 1000): loop drives exactly 10 iterations as two separate `act()` calls each; final assertions `balance === 900`, `autoRemaining === 0`, `autoSpinning === false` would fail if auto ran 9 or 11 spins
+- [x] **Jackpot** (seed 407947): after one reveal advance, captures `balanceAfterStop`; then advances `SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS` more and asserts `balance === balanceAfterStop` — directly proves no further spins fired
+- [x] **Balance** (initialBalance 25): asserts `balance === 5` and `autoSpinning === false` after exactly 2 reveals + 1 inter-spin delay, with no extra timer advance — would catch off-by-one in stop check
+- [x] **Toggle-off**: captures `balanceAfterStop` after stopping mid-delay, then advances `AUTO_SPIN_DELAY_MS + SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS`; balance unchanged — proves `autoTimerRef` was actually cleared
+
+### Controls Lockout
+
+- [x] `locked = isSpinning || autoSpinning` — both conditions covered
+- [x] Auto button has `aria-pressed={autoSpinning}` and `aria-label` changes to "Stop auto-spin" when active
+- [x] `auto-btn` CSS: `min-height: 2.75rem` (44px), `min-width: 2.75rem` (44px) — touch-targets-44 satisfied
+- [x] Auto button NOT disabled while auto-spinning (escape hatch) — explicitly tested
+
+### DEC-001 / DEC-005
+
+- [x] DEC-001: engine directory unchanged; auto-spin is a pure UI loop over `spin()`; the hook calls `engineSpin()` via `src/engine/index.ts` only
+- [x] DEC-005: `!canAfford(outcome.balance, bet)` is the affordability stop guard; no real money, no payment surface
+
+### Decision Drift
+
+- [x] No non-trivial architectural choices introduced that would require a new DEC-*
+- [x] Build reflection is honest and substantive (3 questions answered; the note about pre-verifying the jackpot seed is a genuine observation)
+- [x] Cost sessions present for design and build (both null-with-note per AGENTS §4 — build is sub-agent, orchestrator fills at ship; design is main-loop, correctly noted)

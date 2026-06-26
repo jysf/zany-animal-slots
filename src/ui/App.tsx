@@ -4,6 +4,7 @@
 // leaving the phone layout full-screen (frame styles are gated behind min-width).
 // SPEC-016: threads isSpinning into Game (as `spinning`) and Action so controls
 // freeze and the reel animation plays during the spin phase.
+// SPEC-017: threads autoSpinning / toggleAutoSpin into Action for the Auto toggle.
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -25,6 +26,8 @@ export default function App() {
     canIncreaseBet,
     canDecreaseBet,
     reset,
+    autoSpinning,
+    toggleAutoSpin,
   } = useSlotMachine();
 
   return (
@@ -42,6 +45,8 @@ export default function App() {
           canBetDown={canDecreaseBet}
           canBetUp={canIncreaseBet}
           onReset={reset}
+          autoSpinning={autoSpinning}
+          onToggleAuto={toggleAutoSpin}
         />
       </div>
     </div>
