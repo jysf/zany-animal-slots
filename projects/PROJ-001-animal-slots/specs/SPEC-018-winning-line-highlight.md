@@ -54,6 +54,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-26
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-26
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -219,6 +227,36 @@ check.
 
 3. **If you did this task again, what would you do differently?**
    — Nothing material. The implementation was a clean four-step threading: helper → component → CSS → App/Game. The spec's test list was complete and each test translated directly without interpretation.
+
+---
+
+## Verify
+
+Reviewer: claude-sonnet-4-6 (sub-agent, cold review). Date: 2026-06-26.
+
+**Verdict: ✅ APPROVED**
+
+Gate: `just typecheck && just lint && just test && just build` — all exit 0. 125/125 tests pass. `just decisions-audit --changed` → 0 structural errors (14 pre-existing scope warnings across non-overlapping decisions; none new; none contradictory).
+
+### Criteria checked
+
+- **ACCEPTANCE CRITERIA** ✅ All four checkboxes met. `winningCellKeys` returns correct `"reel:row"` key sets; `ReelGrid` adds `.reel__cell--win` exactly when resolved and suppresses it while spinning; highlight is token-based, additive; engine is unchanged.
+
+- **HELPER CORRECTNESS** ✅ `winningCellKeys` iterates `lineWins`, looks up the PAYLINES entry by `w.line`, then loops `reel` from `0` to `w.count-1` adding `"${reel}:${line.rows[reel]}"`. This correctly implements the left-anchored run rule (DEC-003). Empty input → empty set; multiple wins union correctly. V-line (L4 `rows [0,1,2,1,0]`) count-5 case → `{"0:0","1:1","2:2","3:1","4:0"}` is explicitly asserted by the `"a V-line uses its per-reel rows"` test and would catch a rows-mismatch bug (e.g. if a flat row was substituted).
+
+- **HIGHLIGHT BEHAVIOR** ✅ `ReelGrid` computes `winKeys = spinning ? EMPTY : winningCellKeys(lineWins)` and adds `.reel__cell--win` only when `winKeys.has(...)`. Test `"highlights the winning cells when resolved"` asserts exactly 3 cells win for L1 count=3, and verifies the correct reel+row positions — would catch both under-highlighting and over-highlighting. Test `"suppresses the highlight while spinning"` asserts 0 cells — would catch a missing suppression guard. Test `"no highlight when there are no wins"` asserts 0 cells for `lineWins=[]`. `lineWins` defaults to `[]` (verified in Props interface), so existing callers/tests are unbroken.
+
+- **STYLING** ✅ `.reel__cell--win` uses `box-shadow: 0 0 0 2px var(--color-coin), 0 0 8px 2px var(--color-coin)`. No raw hex in `reels.css` (grepped: 0 matches). Additive only — `box-shadow` causes no layout shift and does not alter the symbol or cell dimensions.
+
+- **DEC-001/DEC-003 compliance** ✅ `git diff main..HEAD -- src/engine/` is empty. `winningCells.ts` imports only from `src/engine/index` (PAYLINES, LineWin). The count→cells mapping matches the left-anchored run rule exactly.
+
+- **TESTS NOT VACUOUS** ✅ Tests would catch: wrong rows (V-line test), too many/few highlighted cells (exact `toHaveLength(3)` assertion with per-cell verification), highlight leaking during spin (explicit `spinning={true}` → `toHaveLength(0)` test).
+
+- **DECISION DRIFT** ✅ None. No non-trivial build choices requiring a new DEC. All choices (key format, suppression guard, token usage, import boundary) were specified in the spec.
+
+- **BUILD REFLECTION** ✅ Honest, non-empty. Three questions answered with specific detail. Builder notes the spec's pseudocode left no ambiguity — consistent with the clean implementation.
+
+- **COST SESSIONS** ✅ Design session present (null-with-note, main-loop — correct per AGENTS §4). Build session present (null-with-note awaiting orchestrator fill — correct for sub-agent cycles). No blocking issue; orchestrator fills at ship.
 
 ---
 
