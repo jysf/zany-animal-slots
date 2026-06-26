@@ -4,7 +4,7 @@
 task:
   id: SPEC-018
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
@@ -62,10 +62,18 @@ cost:
       duration_minutes: 3.1
       recorded_at: 2026-06-26
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=65872, 185s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-06-26
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview win-highlight check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 140413
+    estimated_usd: 0.92
+    session_count: 4
 ---
 
 # SPEC-018: Winning-line highlight
@@ -265,10 +273,17 @@ Gate: `just typecheck && just lint && just test && just build` — all exit 0. 1
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. Deriving the winning cells from `lineWins` + `PAYLINES` (rather than
+   re-deriving runs in the UI) kept the engine the single source of truth, and
+   suppressing the highlight while `spinning` avoided a stale-glow flash. The
+   preview caught it perfectly — a real 4-Squirrel win glowed exactly the right 4
+   cells.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-003 (paylines/run) + DEC-010 (token CSS) covered it; tier-scaled color
+   and the celebration layer are correctly deferred to STAGE-004.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. This completes STAGE-003's backlog. STAGE-004 (win celebration &
+   juice) is the next stage and will build the tier-scaled feel on top of this basic
+   highlight + the `tier` the hook already exposes.

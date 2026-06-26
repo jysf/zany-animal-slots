@@ -10,4 +10,4 @@ Cycle prompts live in `prompts/SPEC-018-<cycle>.md`.
 - [x] **design** — completed 2026-06-26 (Opus)
 - [x] **build** — gate green (125/125) + preview check (4-cell L1 win glows gold); pushed, PR #18 (Sonnet sub-agent)
 - [x] **verify** — ✅ APPROVED 2026-06-26 (Sonnet sub-agent; 125/125 tests, gate green)
-- [~] **ship** — prompt: `prompts/SPEC-018-ship.md`; merging PR #18 (squash) 2026-06-26
+- [x] **ship** — PR #18 squash-merged to main 2026-06-26. Total: 140,413 tokens / ~$0.92 (4 sessions). Completes STAGE-003 backlog (7/7).
