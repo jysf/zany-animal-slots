@@ -132,10 +132,10 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-014 (shipped 2026-06-23) — Bet +/− controls cycling 10 / 25 / 50 (engine `nextBet`/`prevBet`/`canAfford`), disabled at the affordable cap/floor. **[S]**
 - [x] SPEC-015 (shipped 2026-06-23) — Balance persistence to localStorage + rehydrate on load + Reset restoring 1000 (DEC-005). **[S]**
 - [x] SPEC-016 (shipped 2026-06-23) — Reel spin/stop animation: idle → spinning → stopped with the reel-stop bounce (CSS transforms per DEC-004), reduced-motion path. **[M]**
-- [ ] SPEC-017 (build) — Auto-spin toggle: repeats with inter-spin delay; stops on jackpot, count exhaustion (default 10), or balance < bet. **[M]**
+- [x] SPEC-017 (shipped 2026-06-25) — Auto-spin toggle: repeats with inter-spin delay; stops on jackpot, count exhaustion (default 10), or balance < bet. **[M]**
 - [ ] (not yet written) — Basic winning-line highlight driven by `lineWins` (no full celebration yet). **[S]**
 
-**Count:** 5 shipped / 0 active / 2 pending — sized at Stage Frame (4×S, 3×M; no L). Reordered so the renderable spin flow lands before animation/auto-spin/highlight layer onto it.
+**Count:** 6 shipped / 0 active / 1 pending — sized at Stage Frame (4×S, 3×M; no L). Reordered so the renderable spin flow lands before animation/auto-spin/highlight layer onto it.
 
 ## Design Notes
 

@@ -4,7 +4,7 @@
 task:
   id: SPEC-017
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: M
@@ -61,10 +61,18 @@ cost:
       duration_minutes: 6.2
       recorded_at: 2026-06-25
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=72273, 375s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-06-25
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview eval check of the auto-spin loop)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 134859
+    estimated_usd: 0.89
+    session_count: 4
 ---
 
 # SPEC-017: Auto-spin toggle
@@ -246,13 +254,19 @@ totalWin 2000, balance 2990, tier 'jackpot').
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Pre-finding a real jackpot seed (407947) so the
+   stop-on-jackpot path could be tested against the genuine engine — rather than a
+   mocked outcome — was the call that made this spec trustworthy. The ref-based
+   continuation (autoRef + spinRef) is the right pattern for a timer loop that must
+   call the latest closure without re-subscribing.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. Auto-spin is a pure UI loop over the engine's spin(); DEC-001/DEC-005 cover
+   it. The brief's auto-spin rule (10 / jackpot / balance) maps 1:1 to the stops.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-018 (winning-line highlight) is the last STAGE-003 item; the
+   hook already exposes `lineWins`/`tier` for it to consume.
 
 ---
 
