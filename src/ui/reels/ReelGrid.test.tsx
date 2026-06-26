@@ -1,10 +1,11 @@
 // Behavior/structure tests for the ReelGrid component (SPEC-012).
+// SPEC-018: extended with winning-cell highlight tests.
 // Visual appearance is verified by the orchestrator's preview screenshot check.
 import { render, screen } from '@testing-library/react';
 import ReelGrid from './ReelGrid';
 import { SYMBOL_DISPLAY, INITIAL_GRID } from './symbols';
 import { SYMBOLS } from '../../engine/index';
-import type { Grid } from '../../engine/index';
+import type { Grid, LineWin } from '../../engine/index';
 
 /** A minimal known 5×3 grid used across several tests. */
 const TEST_GRID: Grid = [
@@ -61,5 +62,41 @@ describe('ReelGrid', () => {
         expect(SYMBOLS).toContain(cell);
       }
     }
+  });
+
+  // ── SPEC-018: winning-cell highlight ────────────────────────────────────────
+
+  /** L1 win of count 3: reels 0,1,2 at row 1 (middle row). */
+  const L1_WIN_3: LineWin = { line: 'L1', symbol: 'BEAR', count: 3, multiplier: 1, amount: 10 };
+
+  it('highlights the winning cells when resolved', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} />,
+    );
+    // L1 count=3 covers reels 0,1,2 at row 1 → exactly 3 cells win.
+    const winCells = container.querySelectorAll('.reel__cell--win');
+    expect(winCells).toHaveLength(3);
+
+    // Verify the three cells are at reel 0/1/2, row 1 (middle cell of each reel).
+    const reels = container.querySelectorAll('.reel');
+    for (let reelIdx = 0; reelIdx < 3; reelIdx++) {
+      const cells = reels[reelIdx].querySelectorAll('.reel__cell');
+      expect(cells[1].classList.contains('reel__cell--win')).toBe(true);
+    }
+  });
+
+  it('suppresses the highlight while spinning', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={true} />,
+    );
+    // No cell should carry .reel__cell--win while spinning.
+    expect(container.querySelectorAll('.reel__cell--win')).toHaveLength(0);
+  });
+
+  it('no highlight when there are no wins', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[]} spinning={false} />,
+    );
+    expect(container.querySelectorAll('.reel__cell--win')).toHaveLength(0);
   });
 });

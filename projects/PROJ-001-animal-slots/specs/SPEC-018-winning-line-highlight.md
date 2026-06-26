@@ -4,7 +4,7 @@
 task:
   id: SPEC-018
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: S
@@ -46,6 +46,22 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-26
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 74541
+      estimated_usd: 0.49
+      duration_minutes: 3.4
+      recorded_at: 2026-06-26
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=74541, 205s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 65872
+      estimated_usd: 0.43
+      duration_minutes: 3.1
+      recorded_at: 2026-06-26
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=65872, 185s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -191,26 +207,56 @@ check.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
+- **Branch:** `feat/spec-018-line-highlight`
 - **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (no non-trivial build decisions; all choices were specified in the spec)
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none within this stage; celebration polish (tier-scaled highlight, particles, animation) is explicitly STAGE-004
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down; the spec was unusually precise. The `winningCellKeys` pseudocode in the Notes section and the exact key format `"reel:row"` left no ambiguity.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. `DEC-010` (no raw hex) was the only CSS-relevant decision and it was correctly listed; using `box-shadow` for the highlight meant zero layout shift, which is exactly what the spec called for.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The implementation was a clean four-step threading: helper → component → CSS → App/Game. The spec's test list was complete and each test translated directly without interpretation.
+
+---
+
+## Verify
+
+Reviewer: claude-sonnet-4-6 (sub-agent, cold review). Date: 2026-06-26.
+
+**Verdict: ✅ APPROVED**
+
+Gate: `just typecheck && just lint && just test && just build` — all exit 0. 125/125 tests pass. `just decisions-audit --changed` → 0 structural errors (14 pre-existing scope warnings across non-overlapping decisions; none new; none contradictory).
+
+### Criteria checked
+
+- **ACCEPTANCE CRITERIA** ✅ All four checkboxes met. `winningCellKeys` returns correct `"reel:row"` key sets; `ReelGrid` adds `.reel__cell--win` exactly when resolved and suppresses it while spinning; highlight is token-based, additive; engine is unchanged.
+
+- **HELPER CORRECTNESS** ✅ `winningCellKeys` iterates `lineWins`, looks up the PAYLINES entry by `w.line`, then loops `reel` from `0` to `w.count-1` adding `"${reel}:${line.rows[reel]}"`. This correctly implements the left-anchored run rule (DEC-003). Empty input → empty set; multiple wins union correctly. V-line (L4 `rows [0,1,2,1,0]`) count-5 case → `{"0:0","1:1","2:2","3:1","4:0"}` is explicitly asserted by the `"a V-line uses its per-reel rows"` test and would catch a rows-mismatch bug (e.g. if a flat row was substituted).
+
+- **HIGHLIGHT BEHAVIOR** ✅ `ReelGrid` computes `winKeys = spinning ? EMPTY : winningCellKeys(lineWins)` and adds `.reel__cell--win` only when `winKeys.has(...)`. Test `"highlights the winning cells when resolved"` asserts exactly 3 cells win for L1 count=3, and verifies the correct reel+row positions — would catch both under-highlighting and over-highlighting. Test `"suppresses the highlight while spinning"` asserts 0 cells — would catch a missing suppression guard. Test `"no highlight when there are no wins"` asserts 0 cells for `lineWins=[]`. `lineWins` defaults to `[]` (verified in Props interface), so existing callers/tests are unbroken.
+
+- **STYLING** ✅ `.reel__cell--win` uses `box-shadow: 0 0 0 2px var(--color-coin), 0 0 8px 2px var(--color-coin)`. No raw hex in `reels.css` (grepped: 0 matches). Additive only — `box-shadow` causes no layout shift and does not alter the symbol or cell dimensions.
+
+- **DEC-001/DEC-003 compliance** ✅ `git diff main..HEAD -- src/engine/` is empty. `winningCells.ts` imports only from `src/engine/index` (PAYLINES, LineWin). The count→cells mapping matches the left-anchored run rule exactly.
+
+- **TESTS NOT VACUOUS** ✅ Tests would catch: wrong rows (V-line test), too many/few highlighted cells (exact `toHaveLength(3)` assertion with per-cell verification), highlight leaking during spin (explicit `spinning={true}` → `toHaveLength(0)` test).
+
+- **DECISION DRIFT** ✅ None. No non-trivial build choices requiring a new DEC. All choices (key format, suppression guard, token usage, import boundary) were specified in the spec.
+
+- **BUILD REFLECTION** ✅ Honest, non-empty. Three questions answered with specific detail. Builder notes the spec's pseudocode left no ambiguity — consistent with the clean implementation.
+
+- **COST SESSIONS** ✅ Design session present (null-with-note, main-loop — correct per AGENTS §4). Build session present (null-with-note awaiting orchestrator fill — correct for sub-agent cycles). No blocking issue; orchestrator fills at ship.
 
 ---
 

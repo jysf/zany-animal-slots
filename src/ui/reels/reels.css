@@ -49,6 +49,17 @@
   border-radius: var(--radius-sm);
 }
 
+/* ─── Winning-cell highlight (SPEC-018) ─────────────────────────────────────── */
+
+/* Token-based glow/outline — additive only, no layout shift, no raw hex.
+   A coin-gold inset ring plus a subtle outer glow makes winning cells pop
+   without altering their size or the grid layout. */
+.reel__cell--win {
+  box-shadow:
+    0 0 0 2px var(--color-coin),
+    0 0 8px 2px var(--color-coin);
+}
+
 /* ─── Keyframe definitions ───────────────────────────────────────────────────── */
 
 /* reel-spin: vertical blur-and-scroll illusion via transform + opacity cycling.
