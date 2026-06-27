@@ -4,7 +4,7 @@
 task:
   id: SPEC-020
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
