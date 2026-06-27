@@ -58,6 +58,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -257,3 +265,33 @@ Written during **design**, BEFORE build. RTL; the slide animation is a preview c
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate: `just typecheck && just lint && just test && just build` — all exit 0. 142/142 tests pass. `just decisions-audit --changed` — clean (no uncommitted file changes).
+
+### Checked items
+
+- **ACCEPTANCE CRITERIA** — All six checkboxes met:
+  - [x] `paytableRows()` returns four tiers jackpot→high→mid→low with correct emoji and multipliers from engine PAYTABLE.
+  - [x] "ℹ Paytable" trigger (≥44px via `--space-7`=48px) always rendered; closed by default (conditional `{open && ...}` — no dialog in DOM until clicked).
+  - [x] Open sheet has `role="dialog"`, `aria-modal="true"`, `aria-label="Paytable"`; all tiers with emoji + 3/4/5 payouts; "× total bet" note.
+  - [x] Three close paths present: ✕ button, backdrop onClick, Esc keydown listener.
+  - [x] Slide-up `@keyframes paytable-slide-up` with `@media (prefers-reduced-motion: reduce) { .paytable__sheet { animation: none } }`; no raw hex anywhere in paytable.css; trigger and sheet are `position: absolute` so no layout shift when closed.
+  - [x] `git diff main..HEAD -- src/engine/` is empty; all four gate commands exit 0.
+
+- **DATA CORRECTNESS** — `paytableRows()` uses `TIER_ORDER = ['jackpot','high','mid','low']`, reads `PAYTABLE[tier]` directly from engine import, filters `SYMBOLS` by `SYMBOL_TIER[s] === tier`, maps to `SYMBOL_DISPLAY[s].emoji`. Engine PAYTABLE has jackpot [8,40,200], high [3,10,40], mid [1,4,12], low [0.5,2,5] — exact DEC-011 values. No UI-side constants. The "multipliers come from engine PAYTABLE" test asserts deep-equal against `PAYTABLE[row.tier]` per row — would catch any hard-coded deviation.
+
+- **SHEET BEHAVIOR** — Dialog absent from DOM when closed (conditional render). All three close paths tested independently: ✕ button (`getByRole('button', {name:/close/i})`), backdrop (`data-testid="paytable-backdrop"` queried via querySelector), Esc (`fireEvent.keyDown(document, {key:'Escape'})`). `stopPropagation` on sheet element prevents inside-clicks from closing. Focus moved to close button ref on open via `useEffect`.
+
+- **A11Y / CONSTRAINTS** — `--space-7` = 48px ≥ 44px; both trigger and close button set `min-height` and `min-width` to `var(--space-7)`. Focus moves to close button on open (ref + useEffect). `@keyframes paytable-slide-up` + `@media (prefers-reduced-motion: reduce)` drops animation. No raw hex, no rgb/rgba/hsl — confirmed by grep. `.cabinet { position: relative }` in regions.css is a safe, additive change: the flex-column layout is not disturbed (relative does not affect normal flow of children; the overlay uses `position: absolute` which is taken out of flow).
+
+- **DEC-001** — `git diff main..HEAD -- src/engine/` empty. `paytable.ts` imports only from `../engine/index` (never engine internals). ESLint passes.
+
+- **TESTS NOT VACUOUS** — "multipliers come from the engine PAYTABLE" loops over all rows and deep-equals against live `PAYTABLE[row.tier]` — a hard-coded constant would break this test if it diverged. "is closed by default" asserts `queryByRole('dialog')` is null — would catch always-mounted dialog. Three separate close-path tests each independently open and close the sheet — any broken close path fails exactly one test.
+
+- **DECISION DRIFT** — No new non-trivial choices. DEC-001/004/006/010/011 all honored. No new DEC needed. Build reflection is substantive (3 specific answers, non-template). Cost sessions: design null-with-note (main-loop ✓), build null-with-note (sub-agent, orchestrator fills ✓) — both correctly structured; verify session appended now.
