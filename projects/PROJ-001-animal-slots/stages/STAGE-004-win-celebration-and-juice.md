@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-004                     # stable, zero-padded within the project
-  status: proposed                  # proposed | active | shipped | cancelled | on_hold
+  status: active                    # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -52,13 +52,68 @@ first-gesture audio unlock. Everything else audio-related is STAGE-005 /
 PROJ-002. When this stage ships, all five game states are reachable and
 visually (and, for wins, audibly) distinct.
 
-## Why Now / Success Criteria / Scope / Design Notes / Dependencies
+## Why Now
 
-*Framed lightly for now. Expand via Prompt 1c (Stage Frame) when this stage
-becomes active. Relevant decisions: `DEC-004` (CSS transform / keyframe
-animation for celebrations), `DEC-007` (synthesized Tone.js audio, win-jingle
-only in v1, gated behind first gesture + global mute). The win jingle is the
-backlog rider spec called out in the project plan (S).*
+STAGE-003 made the slot playable but the win feedback is intentionally flat: a
+win just makes the balance jump, with only a basic cell highlight and no sense of
+*how much* you won or *what pays*. This stage makes winning legible and felt. It's
+activated now to answer two concrete gaps first — **showing the win amount** and a
+**paytable sheet** — and it's the project's sharpest dogfood test: subjective
+"juice" is exactly the non-CRUD work the design→build→verify→ship cycle has never
+been exercised against. The engine's `tier`, `lineWins`, and `totalWin` outputs
+(plus the exported `PAYTABLE`/`SYMBOL_TIER`) are the data this stage presents — no
+new game math.
+
+## Success Criteria
+
+- On a winning spin the player sees **how much they won** — a prominent win-amount
+  indicator (a pop-up over the reels) and a persistent last-win readout — both
+  driven by the engine's `totalWin`/`lineWins`; cleared on the next spin.
+- A **paytable** is available on demand (an "ℹ Paytable" control opens a slide-up
+  sheet) listing each tier's 3/4/5-of-a-kind payouts read from the engine's
+  `PAYTABLE`/`SYMBOL_TIER` — accurate to what actually pays, closable, and
+  keyboard/`Esc` accessible.
+- The three win celebrations — small / big / jackpot — are reachable and visually
+  distinct (paw-print trail, tier-scaled particles, the wolf jackpot moment, balance
+  count-up).
+- A tier-scaled synthesized win jingle (Tone.js, DEC-007) keyed off the engine's
+  win tier, gated behind a global persisted mute + first-gesture unlock
+  (`audio-gesture-and-mute`); celebrations have a non-animated path under
+  `prefers-reduced-motion`.
+- Everything keys off symbols that **actually landed** — no engineered near-miss or
+  faked anticipation (project taste note).
+- UI consumes the engine only via `src/engine/index.ts`; no engine change; behavior
+  unit-tested (RTL) and verified in the preview.
+
+## Scope
+
+### In scope
+- **Win-amount display** (this stage's first spec): pop-up badge over the reels +
+  a persistent last-win readout, from `totalWin`.
+- **Paytable sheet** (second spec): a toggle-opened slide-up overlay listing tier
+  payouts from `PAYTABLE`/`SYMBOL_TIER`, with the symbols' emoji.
+- Win-state routing (small/big/jackpot) and the celebrations: paw-print payline
+  trail, tier-scaled particles (leaves / acorns), balance count-up, wolf jackpot
+  moment (howl + moon scene).
+- The single tier-scaled synthesized win jingle (Tone.js) + global persisted mute +
+  first-gesture audio unlock.
+- A `prefers-reduced-motion` path for the celebrations.
+
+### Explicitly out of scope
+- The full audio suite — ambient bed, complete SFX set, dynamic mixing (STAGE-005 /
+  PROJ-002).
+- Any engineered near-miss / faked anticipation.
+- The formal a11y / contrast / colorblind / perf audit (STAGE-005).
+- Any change to engine logic, the paytable values, or reel weights (those are
+  DEC-011; the UI only *displays* them).
+
+## Build order note (current slice)
+
+The user asked for win-legibility first, so the backlog leads with **SPEC-019
+(win-amount display)** then **SPEC-020 (paytable sheet)** — both pure presentation
+of existing engine outputs, independent of the heavier celebration/audio work that
+follows. This slice ships, then the stage pauses for review before the celebration
+specs.
 
 ## Spec Backlog
 
@@ -66,15 +121,19 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] (not yet written) — Win-state router: map engine win-tier (small / big / jackpot) to the celebration to fire.
-- [ ] (not yet written) — Payline paw-print trail tracing the winning line(s).
-- [ ] (not yet written) — Particle effects (leaves / acorns) scaled to win tier.
-- [ ] (not yet written) — Balance count-up animation on a win.
-- [ ] (not yet written) — Wolf jackpot moment: howl visual + moon scene on the five-Wolf hit.
+- [ ] SPEC-019 (planned) — **Win-amount display**: show `totalWin` on a win — a pop-up badge over the reels (fades, clears next spin) + a persistent last-win readout. **[M]**
+- [ ] SPEC-020 (planned) — **Paytable sheet**: an "ℹ Paytable" button opens a slide-up overlay listing each tier's 3/4/5 payouts (engine `PAYTABLE`/`SYMBOL_TIER` + emoji); ✕/backdrop/Esc close. **[M]**
+- [ ] (not yet written) — Win-state router: map engine win-tier (small / big / jackpot) to the celebration to fire. **[S]**
+- [ ] (not yet written) — Payline paw-print trail tracing the winning line(s). **[M]**
+- [ ] (not yet written) — Particle effects (leaves / acorns) scaled to win tier. **[M]**
+- [ ] (not yet written) — Balance count-up animation on a win. **[S]**
+- [ ] (not yet written) — Wolf jackpot moment: howl visual + moon scene on the five-Wolf hit. **[M]**
 - [ ] (not yet written) — Tier-scaled synthesized win jingle (Tone.js) keyed off win-tier — **backlog rider [S]**.
-- [ ] (not yet written) — Global mute toggle (persisted) + first-gesture audio unlock (constraint `audio-gesture-and-mute`).
+- [ ] (not yet written) — Global mute toggle (persisted) + first-gesture audio unlock (constraint `audio-gesture-and-mute`). **[S]**
 
-**Count:** 0 shipped / 0 active / 7 pending (estimate — refine at Stage Frame)
+**Count:** 0 shipped / 0 active / 9 pending — sized at Stage Frame. **Current slice:**
+SPEC-019 (win amount) + SPEC-020 (paytable sheet) first, then pause; the
+celebration/audio specs follow later.
 
 ## Design Notes
 
