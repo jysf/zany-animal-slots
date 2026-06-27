@@ -4,7 +4,7 @@
 task:
   id: SPEC-019
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: M
@@ -63,10 +63,18 @@ cost:
       duration_minutes: 4.0
       recorded_at: 2026-06-27
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=74935, 241s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview win-badge check via eval)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 161074
+    estimated_usd: 1.06
+    session_count: 4
 ---
 
 # SPEC-019: Win-amount display
@@ -269,10 +277,17 @@ Gate: `typecheck` ✅ · `lint` ✅ · `test` ✅ (133/133) · `build` ✅
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Surfacing the engine's existing `totalWin` (rather than
+   re-summing `lineWins` in the UI) kept the DEC-001 boundary clean, and gating the
+   badge on `!spinning && amount>0` made it self-clearing. The preview confirmed it
+   live ("WIN +5" pop + the status WIN readout), which the unit tests can't show.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. One tiny spec-writing note for future overlay specs: call out that the
+   parent needs a `position: relative` containing block (the builder had to add it
+   to `.cabinet__game`) — a one-line heads-up, not a template change.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-020 (paytable sheet) is next (the other requested item), then
+   this slice pauses for review. The richer celebration specs (count-up, particles,
+   jackpot moment, jingle) remain in the STAGE-004 backlog.

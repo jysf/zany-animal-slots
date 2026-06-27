@@ -121,7 +121,7 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] SPEC-019 (build) — **Win-amount display**: show `totalWin` on a win — a pop-up badge over the reels (fades, clears next spin) + a persistent last-win readout. **[M]**
+- [x] SPEC-019 (shipped 2026-06-27) — **Win-amount display**: show `totalWin` on a win — a pop-up badge over the reels + a persistent last-win readout. **[M]**
 - [ ] SPEC-020 (planned) — **Paytable sheet**: an "ℹ Paytable" button opens a slide-up overlay listing each tier's 3/4/5 payouts (engine `PAYTABLE`/`SYMBOL_TIER` + emoji); ✕/backdrop/Esc close. **[M]**
 - [ ] (not yet written) — Win-state router: map engine win-tier (small / big / jackpot) to the celebration to fire. **[S]**
 - [ ] (not yet written) — Payline paw-print trail tracing the winning line(s). **[M]**
@@ -131,7 +131,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [ ] (not yet written) — Tier-scaled synthesized win jingle (Tone.js) keyed off win-tier — **backlog rider [S]**.
 - [ ] (not yet written) — Global mute toggle (persisted) + first-gesture audio unlock (constraint `audio-gesture-and-mute`). **[S]**
 
-**Count:** 0 shipped / 0 active / 9 pending — sized at Stage Frame. **Current slice:**
+**Count:** 1 shipped / 0 active / 8 pending — sized at Stage Frame. **Current slice:**
 SPEC-019 (win amount) + SPEC-020 (paytable sheet) first, then pause; the
 celebration/audio specs follow later.
 
