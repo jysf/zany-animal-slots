@@ -55,6 +55,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-26
       notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "sub-agent verify cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -233,6 +241,26 @@ Written during **design**, BEFORE build. Hook flow uses fake timers (advance by
 3. **If you did this task again, what would you do differently?**
    — Read the existing CSS for `.cabinet__game` first (before touching Game.tsx) to
    spot the missing `position: relative` earlier rather than discovering it mid-edit.
+
+---
+
+## Verify
+
+Verified 2026-06-27 by claude-sonnet-4-6 (cold session, PR #19).
+
+**Verdict: ✅ APPROVED**
+
+Gate: `typecheck` ✅ · `lint` ✅ · `test` ✅ (133/133) · `build` ✅
+
+- **ACCEPTANCE CRITERIA** — All five checkboxes confirmed met. `lastWin` exposed on `UseSlotMachineResult`; Status WIN readout present; WinBadge guards `show && amount > 0`; CSS keyframe with `@media (prefers-reduced-motion: reduce)` fallback; engine directory diff against main is empty; gate exits 0.
+- **LASTWIN CORRECTNESS** — `useState(0)` initializes to 0. Reveal callback sets `setLastWin(outcome.totalWin)` at the same time as grid/balance. `reset()` calls `setLastWin(0)`. All four hook tests use fake timers and advance `SPIN_DURATION_MS` before asserting — genuinely exercise the post-reveal path. seed 276 → `lastWin === 55` ✅; seed 12345 → `lastWin === 0` ✅; reset after win → `lastWin === 0` ✅.
+- **WINBADGE** — Guard is `if (!show || amount <= 0) return null`. Both null cases covered by separate tests: `amount=0 show=true` → null; `amount=55 show=false` → null. `Game.tsx` passes `show={!spinning}` so badge is absent during spin and clears for the next spin. ✅
+- **STYLING** — win-badge.css: zero raw hex literals (grep confirms). `@keyframes win-badge-pop-in` animates `transform` (scale) and `opacity` consistent with DEC-004. `@media (prefers-reduced-motion: reduce)` block sets `animation: none` and restores the final composed `transform: translate(-50%, -50%) scale(1)` so position is not lost. Badge is `position: absolute` inside `.cabinet__game { position: relative }` — no layout shift. The `position: relative` addition to `.cabinet__game` in `regions.css` is the correct containing block for the absolute overlay and does not affect the existing `flex: 1 / align-items: center` layout (position: relative is compatible with flexbox). ✅
+- **DEC-001** — `git diff main..HEAD -- src/engine/` is empty. `lastWin` is `outcome.totalWin` directly — no UI-side computation. ✅
+- **TESTS NOT VACUOUS** — The `lastWin` tests would catch `lastWin` not updating (assert `=== 55`). WinBadge tests directly assert null for the loss and mid-spin cases; they would catch the badge rendering when it shouldn't. The Status test asserts the exact value `55` appears in the render. Tests are substantive, not vacuous. ✅
+- **DECISION DRIFT** — `just decisions-audit --changed` reports "no changed files in scope" (all changes are committed). `just decisions-audit` shows 14 pre-existing scope warnings unchanged from main — none introduced by this spec. No non-trivial build choices needing a new DEC. ✅
+- **BUILD REFLECTION** — Honest and specific: identifies the missing `position: relative` note in the spec as a concrete friction point, confirms DEC-004/DEC-010 were sufficient, proposes a concrete "read parent CSS first" process improvement. ✅
+- **COST** — Build session has `tokens_total: null` with "orchestrator to fill" note — correct per AGENTS.md §4. Verify session appended (also null-with-note, to be filled by orchestrator at ship). ✅
 
 ---
 
