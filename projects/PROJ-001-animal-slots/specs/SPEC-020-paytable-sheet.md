@@ -50,6 +50,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -214,26 +222,26 @@ Written during **design**, BEFORE build. RTL; the slide animation is a preview c
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-020-paytable-sheet`
+- **PR (if applicable):** (orchestrator to open)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none — all choices were already covered by DEC-001/004/006/010/011
 - **Deviations from spec:**
-  - [list]
+  - None. Spec pseudo-code was followed exactly: TIER_ORDER constant, paytableRows() via SYMBOLS.filter → map, PaytableSheet with own useState/useEffect/ref, backdrop data-testid for test targeting, stopPropagation on sheet.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None new; remaining STAGE-004 specs (win-state router, celebrations, audio) are already in the backlog.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The spec noted "focus the close button on open (a ref + useEffect)" but didn't say what to do if the user tabs away and re-opens — left it as-is (re-focus on every open) which is the natural behavior. Also, the backdrop's `data-testid` attribute needed to be inferred from the test code (`document.querySelector('[data-testid=...]')`) since the test file was not provided pre-written; easy to infer.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps. DEC-004 (CSS keyframes), DEC-010 (tokens, no raw hex), DEC-001 (engine via index only) and the three constraints (touch-targets-44, respect-reduced-motion, portrait-first) all had clear implementations. The spec's Notes section was unusually complete.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec pseudo-code in `## Notes for the Implementer` was precise enough that the implementation was a straight translation. I would still verify with `just typecheck` before `just test` to catch type issues early (as done here).
 
 ---
 

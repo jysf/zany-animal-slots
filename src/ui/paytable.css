@@ -1,0 +1,188 @@
+/*
+ * Paytable sheet — trigger + overlay + slide-up sheet (SPEC-020).
+ *
+ * DEC-010: global CSS, token colors only, no raw hex, prefixed classes.
+ * DEC-004: CSS keyframe animation with prefers-reduced-motion fallback.
+ * constraint: touch-targets-44 — trigger and close button are ≥44px.
+ * constraint: portrait-first — sheet anchored to bottom, covers cabinet.
+ *
+ * Class structure:
+ *   .paytable__trigger   — "ℹ Paytable" button in the header.
+ *   .paytable__backdrop  — dimmed overlay that covers the whole cabinet.
+ *   .paytable__sheet     — the slide-up dialog panel.
+ *   .paytable__close     — ✕ close button inside the sheet.
+ *   .paytable__row       — one tier row inside the sheet.
+ */
+
+/* ─── Trigger button ─────────────────────────────────────────────────────────── */
+
+.paytable__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* ≥44px hit area (constraint: touch-targets-44). */
+  min-height: var(--space-7);   /* 3rem = 48px */
+  min-width: var(--space-7);
+  padding: var(--space-1) var(--space-3);
+
+  background: transparent;
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+
+  /* No layout shift when closed — the trigger is always in the header. */
+  flex-shrink: 0;
+}
+
+.paytable__trigger:hover,
+.paytable__trigger:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-text);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ─── Backdrop ───────────────────────────────────────────────────────────────── */
+
+/*
+ * Covers the .cabinet (which has position: relative via regions.css)
+ * so the overlay scopes to the phone-shaped frame, not the whole desktop.
+ */
+.paytable__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg);
+  opacity: 0.7;
+  z-index: 10;
+}
+
+/* ─── Slide-up keyframe ──────────────────────────────────────────────────────── */
+
+@keyframes paytable-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ─── Sheet ──────────────────────────────────────────────────────────────────── */
+
+.paytable__sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 11;
+
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-5) var(--space-4) var(--space-6);
+
+  /* Slide up from the bottom — DEC-004 CSS keyframe approach. */
+  animation: paytable-slide-up 0.25s ease-out both;
+}
+
+/* ─── Reduced-motion fallback ────────────────────────────────────────────────── */
+
+/*
+ * Constraint: respect-reduced-motion.
+ * Drop the translateY animation; the sheet still appears, just without motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .paytable__sheet {
+    animation: none;
+  }
+}
+
+/* ─── Sheet header row (title + close) ──────────────────────────────────────── */
+
+.paytable__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.paytable__title {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* ─── Close button ───────────────────────────────────────────────────────────── */
+
+.paytable__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* ≥44px hit area (constraint: touch-targets-44). */
+  min-height: var(--space-7);
+  min-width: var(--space-7);
+
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+
+.paytable__close:hover,
+.paytable__close:focus-visible {
+  color: var(--color-text);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ─── Tier rows ──────────────────────────────────────────────────────────────── */
+
+.paytable__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.paytable__row {
+  display: grid;
+  /* emoji | label | 3× | 4× | 5× */
+  grid-template-columns: auto 1fr repeat(3, auto);
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.paytable__row-emoji {
+  font-size: var(--font-size-base);
+  letter-spacing: 0.1em;
+}
+
+.paytable__row-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.paytable__row-mult {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-coin);
+  text-align: right;
+  min-width: 2.5rem;
+}
+
+/* ─── "× total bet" note ─────────────────────────────────────────────────────── */
+
+.paytable__note {
+  margin-top: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+}

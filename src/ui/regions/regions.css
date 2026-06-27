@@ -22,6 +22,9 @@
   min-height: 100vh;
   min-height: 100dvh;
 
+  /* Positioning context for the paytable sheet overlay (SPEC-020). */
+  position: relative;
+
   display: flex;
   flex-direction: column;
 
