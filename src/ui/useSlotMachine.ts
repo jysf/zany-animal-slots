@@ -1,5 +1,5 @@
-// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017).
-// Holds grid/balance/bet/lineWins/tier/status state and wires the Spin action to
+// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017, SPEC-019).
+// Holds grid/balance/bet/lineWins/tier/status/lastWin state and wires the Spin action to
 // the engine's spin(). All randomness in the UI (the seed generator) is injectable
 // so tests can pin outcomes deterministically (DEC-002). The engine owns outcomes;
 // the hook only passes args and applies the result (DEC-001). An unaffordable spin
@@ -17,6 +17,8 @@
 // back-to-back timed spins. Each spin-resolve callback schedules the next spin
 // after AUTO_SPIN_DELAY_MS using a ref-based continuation so stale-closure bugs
 // are avoided. Auto-spin stops on jackpot, count exhaustion, or !canAfford.
+// SPEC-019: lastWin exposes the resolved spin's totalWin (0 on a loss; reset() sets
+// it to 0). Presentation uses it for the WinBadge and Status WIN readout (DEC-001).
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   spin as engineSpin,
@@ -66,6 +68,8 @@ export interface UseSlotMachineResult {
   autoSpinning: boolean;
   autoRemaining: number;
   toggleAutoSpin: () => void;
+  /** The resolved spin's totalWin (0 on a loss; reset() sets it to 0). SPEC-019. */
+  lastWin: number;
 }
 
 export interface UseSlotMachineOpts {
@@ -85,6 +89,8 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const [lineWins, setLineWins] = useState<LineWin[]>([]);
   const [tier, setTier] = useState<WinTier>('none');
   const [status, setStatus] = useState<'idle' | 'spinning' | 'resolved'>('idle');
+  // SPEC-019: last resolved spin's totalWin; 0 on loss; reset() clears it.
+  const [lastWin, setLastWin] = useState(0);
 
   // Auto-spin React state (drives rendering).
   const [autoSpinning, setAutoSpinning] = useState(false);
@@ -124,6 +130,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
 
   const reset = useCallback(() => {
     setBalance(STARTING_BALANCE);
+    setLastWin(0);
   }, []);
 
   // canSpin: false while spinning (status guard) or when balance can't cover the bet.
@@ -157,6 +164,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
       setBalance(outcome.balance);
       setLineWins(outcome.lineWins);
       setTier(outcome.tier);
+      setLastWin(outcome.totalWin);
       setStatus('resolved');
       timerRef.current = null;
 
@@ -241,5 +249,6 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     autoSpinning,
     autoRemaining,
     toggleAutoSpin,
+    lastWin,
   };
 }

@@ -47,6 +47,14 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-26
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-26
+      notes: "sub-agent build cycle — orchestrator to fill tokens_total/estimated_usd/duration from Agent result"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -196,26 +204,35 @@ Written during **design**, BEFORE build. Hook flow uses fake timers (advance by
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-019-win-amount`
+- **PR (if applicable):** (orchestrator to open)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none — all decisions (DEC-001/004/010) already covered the approach
 - **Deviations from spec:**
-  - [list]
+  - Added `position: relative` to `.cabinet__game` in `regions.css` (required as
+    the containing block for `WinBadge`'s `position: absolute`). Not called out
+    in the spec but directly implied by "absolutely positioned over the grid."
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None new; SPEC-020 (paytable sheet) is already on the backlog.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The spec said "absolutely positioned over the Game region or the reel-grid
+   wrapper" but did not mention that `.cabinet__game` lacked `position: relative`.
+   A one-line note ("ensure the parent has `position: relative`") would remove a
+   small guessing step.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — Nothing was missing; DEC-004 and DEC-010 were sufficient. The reduced-motion
+   path is covered by a `@media (prefers-reduced-motion: reduce)` block that drops
+   the animation and restores the final `transform`, which aligns with DEC-004's
+   guidance.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Read the existing CSS for `.cabinet__game` first (before touching Game.tsx) to
+   spot the missing `position: relative` earlier rather than discovering it mid-edit.
 
 ---
 

@@ -63,6 +63,8 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-2);
+  /* Positioning context for WinBadge absolute overlay (SPEC-019). */
+  position: relative;
 }
 
 /* ─── Status region ─────────────────────────────────────────────────────────── */

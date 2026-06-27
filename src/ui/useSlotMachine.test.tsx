@@ -388,4 +388,44 @@ describe('useSlotMachine', () => {
     });
     // No error — test passes by not throwing.
   });
+
+  // ── SPEC-019: lastWin ───────────────────────────────────────────────────────
+
+  it('lastWin starts at 0', () => {
+    const { result } = renderHook(() => useSlotMachine());
+    expect(result.current.lastWin).toBe(0);
+  });
+
+  it('lastWin reflects a winning spin', () => {
+    // seed 276 → big win, totalWin 55 (balance 1000 − 10 + 55 = 1045).
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 276 }),
+    );
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.lastWin).toBe(55);
+  });
+
+  it('lastWin is 0 after a losing spin', () => {
+    // seed 12345 → no win.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.lastWin).toBe(0);
+  });
+
+  it('reset clears lastWin', () => {
+    // Win first, then reset.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 276 }),
+    );
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.lastWin).toBe(55);
+
+    act(() => { result.current.reset(); });
+    expect(result.current.lastWin).toBe(0);
+  });
 });

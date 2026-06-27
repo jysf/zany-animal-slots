@@ -1,0 +1,60 @@
+/*
+ * Win-badge overlay — pop-in animation over the reel grid (SPEC-019).
+ *
+ * Absolutely positioned inside the cabinet__game region (which has
+ * position: relative) so the badge floats over the grid without pushing
+ * any layout. No raw hex; tokens only (DEC-010). Animation via
+ * transform/opacity (DEC-004); reduced-motion path shows badge statically
+ * (respect-reduced-motion constraint).
+ */
+
+/* ─── Pop-in keyframe ────────────────────────────────────────────────────────── */
+
+@keyframes win-badge-pop-in {
+  0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+  60%  { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  80%  { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+}
+
+/* ─── Badge element ──────────────────────────────────────────────────────────── */
+
+.win-badge {
+  /* Overlay: centred over the parent (cabinet__game, position: relative). */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+
+  /* Visual style — token-driven (DEC-010). Coin-gold text on a dark surface. */
+  background-color: var(--color-surface);
+  color: var(--color-coin);
+  border: 2px solid var(--color-coin);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-5);
+
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-black);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+
+  /* Pop-in animation (DEC-004). */
+  animation: win-badge-pop-in 0.3s ease-out both;
+
+  /* Prevent pointer events — the badge is display-only. */
+  pointer-events: none;
+}
+
+/* ─── Reduced-motion override ────────────────────────────────────────────────── */
+
+/* Show the badge without any motion (respect-reduced-motion constraint, DEC-004). */
+@media (prefers-reduced-motion: reduce) {
+  .win-badge {
+    animation: none;
+    /* Restore the final composed transform so position stays correct. */
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
