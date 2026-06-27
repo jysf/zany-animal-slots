@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-003                     # stable, zero-padded within the project
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-06-18
-shipped_at: null
+shipped_at: 2026-06-26
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -154,4 +154,79 @@ so STAGE-005's audit isn't a rewrite.
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1d (Stage Ship) to draft.*
+*Shipped 2026-06-26. All seven specs in `specs/done/`.*
+
+### Success criteria — did we deliver?
+
+All seven met:
+- ✅ **Spin** calls the engine `spin({ seed, balance, bet })` once and renders the
+  returned grid + new balance; the UI recomputes nothing (DEC-001 — verified by a
+  zero-diff `src/engine/**` across the whole stage).
+- ✅ The flow runs **idle → spinning → resolved** with a staggered reel-stop bounce;
+  controls disable mid-spin (SPEC-016).
+- ✅ **Bet** +/− cycles 10/25/50, blocked at the affordable cap/floor; **Spin** is
+  disabled when `balance < bet` (SPEC-013/014).
+- ✅ **Auto-spin** repeats and stops on jackpot, count exhaustion (10), or
+  `balance < bet` (SPEC-017) — the jackpot stop is tested against a real five-Wolf
+  seed (407947).
+- ✅ **Balance persists** to localStorage across reloads; **Reset** restores 1000
+  (SPEC-015).
+- ✅ Winning lines from `lineWins` get a basic highlight — the winning cells glow,
+  suppressed mid-spin (SPEC-018).
+- ✅ Behavior is RTL-unit-tested (125 tests) and visually verified in the preview at
+  375px and desktop; `prefers-reduced-motion` is respected from the start.
+
+### value_contribution — delivered as claimed?
+
+Yes. The stage's claim — an animation-heavy UI sitting on a DOM-free engine without
+leaking logic back — is now demonstrated, not asserted: a fully playable slot whose
+every game outcome comes from `src/engine/index.ts` and whose engine code never
+changed once during the stage. All four `delivers` items landed (playable framed
+grid, spin/bet/auto controls, idle→spinning→stopped with bounce, persisted balance +
+Reset). The `explicitly_does_not` items held: no particles, jackpot moment,
+count-up, or audio — only the basic line highlight, with the richer celebration
+correctly reserved for STAGE-004.
+
+### 3-sentence summary
+
+Built the seven specs in dependency order — render → spin flow → bet → persistence →
+animation → auto-spin → highlight — each its own branch/PR, no scope added or
+dropped. It went smoothly: the spine (grid + synchronous flow) landed first so
+animation, auto-spin, and the highlight could layer onto a working, testable base,
+and a mid-stage pause for a "first playable spin" review confirmed the feel before
+the rest. The qualitative shift from STAGE-002 was the testing mode — RTL
+behavior/state + fake timers for the timed flows, plus a per-spec preview check —
+which held up well (the project's "juice resists TDD" risk was largely sidestepped
+by testing *state* and previewing *feel*).
+
+### Stage-Level Reflection answers
+
+- **Did we deliver the outcome in "What This Stage Is"?** Yes — a player can spin,
+  bet, auto-spin, watch the balance move and wins glow, and the balance persists; the
+  celebratory payoff is intentionally still flat (STAGE-004).
+- **How many specs did it actually take?** Seven, exactly as framed (4×S, 3×M, no L;
+  no splits, no additions).
+- **What changed between starting and shipping?** Nothing in scope. Two internal
+  refinements: SPEC-013 shipped a *synchronous* spin and SPEC-016 retrofitted the
+  timing (a deliberate, clean sequencing — spine first, feel second), and the spin
+  state vocabulary settled on `idle → spinning → resolved`.
+- **Lessons that should update AGENTS.md, templates, or constraints?** No mandatory
+  change. Worth a weekly-review note: `preview_click` targets by coordinates and was
+  unreliable on small (~44px) controls — verifying via DOM `.click()`/eval was the
+  dependable path; and `perf-60fps` could be enumerated in animation specs'
+  `references.constraints` (it was honored — transform/opacity only).
+- **Should any spec-level reflections be promoted to stage-level lessons?** Yes —
+  two: (a) "spine first, feel second" (ship a synchronous, testable flow, then layer
+  timing/animation/auto-spin onto it) is the reusable shape for UI stages; and (b)
+  pre-finding real fixtures (the jackpot seed) lets even rare paths be tested against
+  the genuine engine instead of mocks.
+
+### Follow-up flags
+
+- **Next:** STAGE-004 (win celebration & juice) — hooks onto the `tier` and
+  `lineWins` the hook already exposes; the basic highlight is its foundation.
+- **Feel polish (small, deferrable):** the board leaves a lot of empty vertical
+  space on tall screens — centering/growing the grid in the game region is a nice
+  early-STAGE-004 (or quick) tweak. Tier-scaled highlight color (`--color-win-small`
+  / `--color-win-big` / `--color-jackpot`) is STAGE-004's job.
+- No engine work deferred; nothing punted to a future project from STAGE-003.
