@@ -1,4 +1,4 @@
-// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017).
+// Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017, SPEC-021).
 // Uses renderHook + act. Outcomes are pinned via injected nextSeed (DEC-002).
 // Fixtures from SPEC-011: seed 276 → big win, balance 1045, 3 line wins;
 //                          seed 12345 → no win, balance 990 at bet 10;
@@ -12,6 +12,10 @@
 //           407947 → jackpot (five Wolves on L5; at bet 10: totalWin 2000,
 //           balance 2990, tier 'jackpot').
 //           One auto iteration = SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS.
+//
+// SPEC-021: celebration tests. celebration starts null; set on a win; null after a loss;
+//           jackpot seed 407947 → tier 'jackpot'; id strictly increases across wins;
+//           reset() clears it.
 import { renderHook, act } from '@testing-library/react';
 import { useSlotMachine, SPIN_DURATION_MS, AUTO_SPIN_COUNT, AUTO_SPIN_DELAY_MS } from './useSlotMachine';
 import { INITIAL_GRID } from './reels/symbols';
@@ -427,5 +431,78 @@ describe('useSlotMachine', () => {
 
     act(() => { result.current.reset(); });
     expect(result.current.lastWin).toBe(0);
+  });
+
+  // ── SPEC-021: celebration ───────────────────────────────────────────────────
+
+  it('celebration starts null', () => {
+    const { result } = renderHook(() => useSlotMachine());
+    expect(result.current.celebration).toBeNull();
+  });
+
+  it('celebration is set on a winning spin', () => {
+    // seed 276 → big win, totalWin 55, 3 line wins.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 276 }),
+    );
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.celebration).not.toBeNull();
+    expect(result.current.celebration?.tier).toBe('big');
+    expect(result.current.celebration?.totalWin).toBe(55);
+    expect(result.current.celebration?.lineWins).toHaveLength(3);
+  });
+
+  it('celebration is null after a losing spin', () => {
+    // seed 12345 → no win.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 12345 }),
+    );
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.celebration).toBeNull();
+  });
+
+  it('celebration carries the jackpot tier', () => {
+    // seed 407947 → jackpot; at bet 10: totalWin 2000.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 407947 }),
+    );
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.celebration?.tier).toBe('jackpot');
+    expect(result.current.celebration?.totalWin).toBe(2000);
+  });
+
+  it('celebration id strictly increases across wins', () => {
+    // Two seed-276 wins; second id must be greater than first.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 276 }),
+    );
+    // First win.
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    const id1 = result.current.celebration?.id;
+    expect(id1).toBeDefined();
+
+    // Second win (status is 'resolved' so we need to advance to allow next spin).
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    const id2 = result.current.celebration?.id;
+    expect(id2).toBeDefined();
+    expect(id2!).toBeGreaterThan(id1!);
+  });
+
+  it('reset clears celebration', () => {
+    // Win first, then reset.
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 276 }),
+    );
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.celebration).not.toBeNull();
+
+    act(() => { result.current.reset(); });
+    expect(result.current.celebration).toBeNull();
   });
 });

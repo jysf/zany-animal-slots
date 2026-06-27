@@ -49,6 +49,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -238,26 +246,26 @@ Written during **design**, BEFORE build. Hook flow uses fake timers (advance by
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-021-win-state-router
+- **PR (if applicable):** n/a (local only per instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned celebration consumer specs (SPEC-022–SPEC-027)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down. The spec was unusually precise: it gave the exact interface shape, the exact setTimeout body snippet, the exact reset() change, and the exact test seeds with expected outcomes. The hook's existing structure (SPEC-016's timed-resolve flow, SPEC-019's lastWin placement) made the integration spot obvious.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. DEC-001 and DEC-005 both directly applied and were correctly cited. One subtlety worth noting: the spec correctly specifies that `celebrationIdRef` must NOT be reset in `reset()` — this keeps ids monotonically increasing across resets — and this was called out explicitly in the Notes, so it was not missed.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec's "Notes for the Implementer" section was a verbatim drop-in guide; following it exactly was the right call. The only minor efficiency gain would be to run `just typecheck` first (fastest feedback on the interface changes) before writing tests, but the parallel read of all files up-front made the implementation essentially a single-pass write.
 
 ---
 

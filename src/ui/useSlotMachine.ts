@@ -1,5 +1,5 @@
-// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017, SPEC-019).
-// Holds grid/balance/bet/lineWins/tier/status/lastWin state and wires the Spin action to
+// useSlotMachine — spin-flow hook (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017, SPEC-019, SPEC-021).
+// Holds grid/balance/bet/lineWins/tier/status/lastWin/celebration state and wires the Spin action to
 // the engine's spin(). All randomness in the UI (the seed generator) is injectable
 // so tests can pin outcomes deterministically (DEC-002). The engine owns outcomes;
 // the hook only passes args and applies the result (DEC-001). An unaffordable spin
@@ -19,6 +19,9 @@
 // are avoided. Auto-spin stops on jackpot, count exhaustion, or !canAfford.
 // SPEC-019: lastWin exposes the resolved spin's totalWin (0 on a loss; reset() sets
 // it to 0). Presentation uses it for the WinBadge and Status WIN readout (DEC-001).
+// SPEC-021: celebration is a one-shot signal — an object { id, tier, totalWin, lineWins }
+// with a monotonically incrementing id set at spin resolve on a win; null on no-win or
+// after reset(). Consumers key useEffect on celebration?.id to fire exactly once per win.
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   spin as engineSpin,
@@ -50,6 +53,16 @@ const _defaultNextSeed = (): number => {
   return _s;
 };
 
+/** One-shot win signal set at spin resolve. id strictly increases per win;
+ *  null on no-win or after reset(). Consumers key useEffect on celebration?.id
+ *  to fire exactly once per resolved win (SPEC-021). */
+export interface Celebration {
+  id: number;
+  tier: WinTier;       // 'small' | 'big' | 'jackpot' — never 'none', only set on a win
+  totalWin: number;    // > 0
+  lineWins: LineWin[];
+}
+
 export interface UseSlotMachineResult {
   grid: Grid;
   balance: number;
@@ -70,6 +83,9 @@ export interface UseSlotMachineResult {
   toggleAutoSpin: () => void;
   /** The resolved spin's totalWin (0 on a loss; reset() sets it to 0). SPEC-019. */
   lastWin: number;
+  /** One-shot win signal (see Celebration). null until a win resolves; id
+   *  strictly increases so useEffect([celebration?.id]) fires exactly once per win. SPEC-021. */
+  celebration: Celebration | null;
 }
 
 export interface UseSlotMachineOpts {
@@ -91,6 +107,10 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const [status, setStatus] = useState<'idle' | 'spinning' | 'resolved'>('idle');
   // SPEC-019: last resolved spin's totalWin; 0 on loss; reset() clears it.
   const [lastWin, setLastWin] = useState(0);
+
+  // SPEC-021: one-shot win signal; id is monotonically increasing (never reset).
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  const celebrationIdRef = useRef(0);
 
   // Auto-spin React state (drives rendering).
   const [autoSpinning, setAutoSpinning] = useState(false);
@@ -131,6 +151,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const reset = useCallback(() => {
     setBalance(STARTING_BALANCE);
     setLastWin(0);
+    setCelebration(null); // SPEC-021: clear the win signal on reset (id ref stays monotonic).
   }, []);
 
   // canSpin: false while spinning (status guard) or when balance can't cover the bet.
@@ -165,6 +186,18 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
       setLineWins(outcome.lineWins);
       setTier(outcome.tier);
       setLastWin(outcome.totalWin);
+      // SPEC-021: set the one-shot celebration signal on a win; null on a loss.
+      if (outcome.totalWin > 0) {
+        celebrationIdRef.current += 1;
+        setCelebration({
+          id: celebrationIdRef.current,
+          tier: outcome.tier,
+          totalWin: outcome.totalWin,
+          lineWins: outcome.lineWins,
+        });
+      } else {
+        setCelebration(null);
+      }
       setStatus('resolved');
       timerRef.current = null;
 
@@ -250,5 +283,6 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     autoRemaining,
     toggleAutoSpin,
     lastWin,
+    celebration,
   };
 }
