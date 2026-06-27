@@ -123,7 +123,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
 - [x] SPEC-019 (shipped 2026-06-27) — **Win-amount display**: show `totalWin` on a win — a pop-up badge over the reels + a persistent last-win readout. **[M]**
 - [x] SPEC-020 (shipped 2026-06-27) — **Paytable sheet**: an "ℹ Paytable" button opens a slide-up overlay listing each tier's 3/4/5 payouts (engine `PAYTABLE`/`SYMBOL_TIER` + emoji); ✕/backdrop/Esc close. **[M]**
-- [ ] (not yet written) — Win-state router: map engine win-tier (small / big / jackpot) to the celebration to fire. **[S]**
+- [~] SPEC-021 (build) — **Win-state router**: a one-shot `celebration` signal from `useSlotMachine` (monotonic `id` per resolved win, carrying tier/totalWin/lineWins; `null` on a no-win) so celebrations fire once per win. **[S]**
 - [ ] (not yet written) — Payline paw-print trail tracing the winning line(s). **[M]**
 - [ ] (not yet written) — Particle effects (leaves / acorns) scaled to win tier. **[M]**
 - [ ] (not yet written) — Balance count-up animation on a win. **[S]**
