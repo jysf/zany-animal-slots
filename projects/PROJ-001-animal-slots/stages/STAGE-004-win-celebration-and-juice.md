@@ -121,7 +121,7 @@ One-liners only at this stage; expand each via Prompt 2b in its own session.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary`
 
-- [ ] SPEC-019 (planned) — **Win-amount display**: show `totalWin` on a win — a pop-up badge over the reels (fades, clears next spin) + a persistent last-win readout. **[M]**
+- [ ] SPEC-019 (build) — **Win-amount display**: show `totalWin` on a win — a pop-up badge over the reels (fades, clears next spin) + a persistent last-win readout. **[M]**
 - [ ] SPEC-020 (planned) — **Paytable sheet**: an "ℹ Paytable" button opens a slide-up overlay listing each tier's 3/4/5 payouts (engine `PAYTABLE`/`SYMBOL_TIER` + emoji); ✕/backdrop/Esc close. **[M]**
 - [ ] (not yet written) — Win-state router: map engine win-tier (small / big / jackpot) to the celebration to fire. **[S]**
 - [ ] (not yet written) — Payline paw-print trail tracing the winning line(s). **[M]**
