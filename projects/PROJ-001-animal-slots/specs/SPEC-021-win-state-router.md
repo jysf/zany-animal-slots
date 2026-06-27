@@ -57,6 +57,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -266,6 +274,51 @@ Written during **design**, BEFORE build. Hook flow uses fake timers (advance by
 
 3. **If you did this task again, what would you do differently?**
    — Nothing material. The spec's "Notes for the Implementer" section was a verbatim drop-in guide; following it exactly was the right call. The only minor efficiency gain would be to run `just typecheck` first (fastest feedback on the interface changes) before writing tests, but the parallel read of all files up-front made the implementation essentially a single-pass write.
+
+---
+
+## Verify
+
+*Cold review by claude-sonnet-4-6, 2026-06-27. Branch: feat/spec-021-win-state-router, PR #21.*
+
+### Gate results
+
+```
+just typecheck  — exit 0 (tsc --noEmit clean)
+just lint       — exit 0 (ESLint clean)
+just test       — exit 0 (148/148 tests passed, 23 test files; useSlotMachine.test.tsx: 32 tests including 6 new celebration tests)
+just build      — exit 0 (vite build 261ms, 56 modules)
+```
+
+### Checklist
+
+- **ACCEPTANCE CRITERIA** — confirmed met on every checkbox:
+  - `Celebration` interface exported with exact shape `{ id: number; tier: WinTier; totalWin: number; lineWins: LineWin[] }` — confirmed in diff line ~55 of useSlotMachine.ts.
+  - `celebration` starts `null` — `useState<Celebration | null>(null)` at line 112 confirmed; test "celebration starts null" passes.
+  - Winning spin (seed 276) → `tier: 'big'`, `totalWin: 55`, `lineWins.length === 3` — test "celebration is set on a winning spin" asserts all three; advances `SPIN_DURATION_MS` via fake timers. Confirmed.
+  - Losing spin (seed 12345) → `celebration === null` — test "celebration is null after a losing spin" asserts null. Confirmed.
+  - `id` strictly increases across wins — test "celebration id strictly increases across wins" captures `id1` then `id2` and asserts `id2 > id1`. Confirmed.
+  - Jackpot seed 407947 → `tier: 'jackpot'`, `totalWin: 2000` — test "celebration carries the jackpot tier" asserts both. Confirmed.
+  - `reset()` clears `celebration` to `null` — test "reset clears celebration" asserts null after `reset()`. Confirmed.
+  - Engine unchanged; gate exits 0 — `git diff main..HEAD -- src/engine/` is empty; all gate steps exit 0.
+
+- **ENGINE UNCHANGED** — `git diff main..HEAD -- src/engine/` produced no output. The UI imports via `src/engine/index` only (no engine internals directly referenced). Confirmed.
+
+- **NO SCOPE CREEP** — Changed files are exactly `src/ui/useSlotMachine.ts` and `src/ui/useSlotMachine.test.tsx` (plus spec/timeline docs). `git diff main..HEAD -- src/ui/App.tsx src/ui/regions/ src/styles/` is empty. `git diff main..HEAD -- package.json` is empty. No new dependencies introduced. Confirmed.
+
+- **TESTS NOT VACUOUS** — All 6 celebration tests advance fake timers by `SPIN_DURATION_MS` and assert real values from seeded outcomes. The id-increment test would catch a non-monotonic id (it checks `id2 > id1`, not just `id2 !== id1`). The loss test would catch a non-null celebration. The jackpot test asserts both `tier` and `totalWin`. These tests are structurally honest and would fail if celebration weren't wired.
+
+- **MONOTONIC ID** — `celebrationIdRef = useRef(0)` at line 113. `reset()` only calls `setCelebration(null)` — `celebrationIdRef.current` is NOT touched in `reset()`. The ref is incremented before `setCelebration(...)` in the setTimeout resolve callback. Not derived from `celebration?.id`. Confirmed.
+
+- **DECISION DRIFT** — `just decisions-audit --changed main` surfaced DEC-004 (animation via CSS transforms) and DEC-010 (global CSS styling) as advisory — both govern `src/ui/**`. This spec adds no CSS or animation; it is pure hook state derived from the engine outcome. No contradiction. No new non-trivial build decision needs a DEC record.
+
+- **BUILD REFLECTION** — Honest and specific: the implementer notes the spec was unusually precise (verbatim snippet drop-in), correctly calls out the `celebrationIdRef` no-reset subtlety, and gives a concrete efficiency suggestion (run `just typecheck` first). Not boilerplate.
+
+- **COST** — Build cost session has `tokens_total: null` with note "orchestrator to fill tokens_total from subagent_tokens at ship". Correct per AGENTS §4 for metered sub-agent cycles.
+
+### Verdict
+
+✅ APPROVED — all acceptance criteria met, gate green (148/148), engine untouched, no scope creep, tests are substantive, monotonic id correctly implemented via useRef, decisions consistent, reflection honest.
 
 ---
 
