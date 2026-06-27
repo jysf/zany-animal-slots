@@ -52,23 +52,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 66361
+      estimated_usd: 0.44
+      duration_minutes: 3.2
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=66361, 191s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 65177
+      estimated_usd: 0.43
+      duration_minutes: 3.4
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=65177, 202s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 131538
+    estimated_usd: 0.87
+    session_count: 4
 ---
 
 # SPEC-021: Win-state router
@@ -328,10 +336,21 @@ just build      — exit 0 (vite build 261ms, 56 modules)
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Modelling the celebration as a one-shot signal with a
+   monotonic `useRef` id (rather than reusing `lastWin` or a derived counter) is
+   the right shape: it gives consumers a clean `useEffect([celebration?.id])`
+   fire-once edge that survives two equal back-to-back wins and a `null` no-win
+   sitting between two wins. Carrying `tier`/`totalWin`/`lineWins` on the object
+   means the five consumer specs (022–025, 027) read everything they need from
+   one field without re-querying the hook.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-001 and DEC-005 covered the approach exactly; the signal is derived
+   purely from the engine `SpinOutcome` and fires only on an actual win. No new
+   DEC needed — it is plain UI state, not a game-logic or architectural choice.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The consumers are already on the STAGE-004 backlog (SPEC-022
+   count-up next, then 023 paw-prints, 024 particles, 025 jackpot moment, 026
+   mute/unlock, 027 jingle). This spec deliberately ships no rendering — it is the
+   foundation those specs build on.
