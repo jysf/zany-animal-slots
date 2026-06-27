@@ -6,6 +6,7 @@
 // freeze and the reel animation plays during the spin phase.
 // SPEC-017: threads autoSpinning / toggleAutoSpin into Action for the Auto toggle.
 // SPEC-018: threads lineWins from the hook into Game so winning cells are highlighted.
+// SPEC-019: threads lastWin into Status (WIN readout) and Game (WinBadge overlay).
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -20,6 +21,7 @@ export default function App() {
     balance,
     bet,
     lineWins,
+    lastWin,
     spin,
     canSpin,
     isSpinning,
@@ -36,8 +38,8 @@ export default function App() {
     <div className="device-stage" data-testid="device-stage">
       <div className="cabinet">
         <Header />
-        <Game grid={grid} spinning={isSpinning} lineWins={lineWins} />
-        <Status balance={balance} bet={bet} />
+        <Game grid={grid} spinning={isSpinning} lineWins={lineWins} lastWin={lastWin} />
+        <Status balance={balance} bet={bet} lastWin={lastWin} />
         <Action
           onSpin={spin}
           canSpin={canSpin}
