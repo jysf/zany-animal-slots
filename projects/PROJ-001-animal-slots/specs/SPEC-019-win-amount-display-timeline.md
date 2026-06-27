@@ -10,4 +10,4 @@ Cycle prompts live in `prompts/SPEC-019-<cycle>.md`.
 - [x] **design** — completed 2026-06-26 (Opus)
 - [x] **build** — gate green (133/133) + preview check (WIN +5 badge + WIN readout on a live win); pushed, PR #19 (Sonnet sub-agent)
 - [x] **verify** — APPROVED 2026-06-27 (Sonnet sub-agent); gate 133/133; all criteria met; ship prompt written
-- [ ] **ship** — prompt: pending (waiting on verify)
+- [~] **ship** — prompt: `prompts/SPEC-019-ship.md`; merging PR #19 (squash) 2026-06-27
