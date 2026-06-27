@@ -4,7 +4,7 @@
 task:
   id: SPEC-020
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: M
@@ -66,10 +66,18 @@ cost:
       duration_minutes: 10.4
       recorded_at: 2026-06-27
       notes: "Sonnet sub-agent verify (Agent subagent_tokens=72201, 624s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (incl. preview sheet-open/Esc check via eval)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 148381
+    estimated_usd: 0.98
+    session_count: 4
 ---
 
 # SPEC-020: Paytable sheet
@@ -258,13 +266,22 @@ Written during **design**, BEFORE build. RTL; the slide animation is a preview c
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. Reading the paytable rows from the engine's `PAYTABLE` (rather than
+   re-stating the numbers in the UI) means the sheet can never drift from what the
+   evaluator actually pays — the deep-equal test enforces it. Keeping the sheet
+   self-contained (trigger + dialog + own state) made it a one-line drop into the
+   Header with no prop threading.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-011/006/001/004/010 covered it. (A formal focus-trap is deferred to
+   the STAGE-005 a11y audit, as scoped — basic dialog semantics + Esc + focus-on-open
+   are in place.)
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. This completes the requested win-legibility slice (win amount +
+   paytable). The remaining STAGE-004 celebration/audio specs (count-up, particles,
+   jackpot moment, paw-print trail, jingle, mute) stay in the backlog for when the
+   user wants the juice.
 
 ---
 
