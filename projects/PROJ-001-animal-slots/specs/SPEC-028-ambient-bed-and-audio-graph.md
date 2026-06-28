@@ -1,0 +1,304 @@
+---
+# Maps to ContextCore task.* semantic conventions.
+
+task:
+  id: SPEC-028
+  type: story
+  cycle: build
+  blocked: false
+  priority: high
+  complexity: M
+
+project:
+  id: PROJ-001
+  stage: STAGE-005
+repo:
+  id: animal-slots
+
+agents:
+  architect: claude-opus-4-8
+  implementer: claude-sonnet-4-6
+  created_at: 2026-06-27
+
+references:
+  decisions:
+    - DEC-007
+    - DEC-013
+    - DEC-001
+  constraints:
+    - audio-gesture-and-mute
+    - perf-60fps
+    - test-before-implementation
+    - one-spec-per-pr
+  related_specs:
+    - SPEC-026
+    - SPEC-027
+
+value_link: "Lays STAGE-005's audio foundation — a shared Tone.js graph (master bus + bed/sfx/jingle channels) — and the first new sound on it: a generative ambient music bed that loops during play, gated by mute + unlock."
+
+cost:
+  sessions:
+    - cycle: design
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 35
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. DEC-013)"
+  totals:
+    tokens_total: 0
+    estimated_usd: 0
+    session_count: 0
+---
+
+# SPEC-028: Ambient bed & audio graph
+
+## Context
+
+First STAGE-005 spec and the **foundation of the audio suite**. SPEC-027 shipped
+the win jingle as fire-and-forget (`new Synth().toDestination()`); the suite
+(ambient bed, SFX, dynamic mixing) needs **channels to mix on**. This spec builds
+the shared audio graph from **DEC-013** — a lazily-created master `Gain` with named
+channel gains (`bed`/`sfx`/`jingle`) feeding it — and adds the first sound on it: a
+**generative ambient music bed** (a slow Tone.Transport loop) that plays during
+play. The bed (and the re-routed jingle) go through the graph; SPEC-029 (SFX) and
+SPEC-030 (mixing) plug into the same channels.
+
+Everything stays gated by SPEC-026's `useAudio` (`muted` + `unlocked`) — the bed
+only loops after the first gesture and while unmuted, and stops when muted — and
+fully synthesized (no asset files, DEC-007). Pure UI (DEC-001).
+
+See `STAGE-005-…md`, `DEC-013` (the audio-graph architecture — authoritative here),
+`DEC-007`, SPEC-026 (`useAudio`), SPEC-027 (the jingle re-routed onto a channel).
+
+## Goal
+
+Add `src/ui/audio/audioEngine.ts` (the DEC-013 graph: `ensureAudio()`, a master
+bus, and `getChannel('bed'|'sfx'|'jingle')`), `src/ui/audio/ambientBed.ts`
+(`startBed()`/`stopBed()` — a generative Transport loop on the `bed` channel), and
+`useAmbientBed({ muted, unlocked })` (starts the bed when unlocked & unmuted, stops
+it otherwise and on unmount); re-route `playJingle` through the `jingle` channel;
+wire `useAmbientBed` into `App`.
+
+## Inputs
+
+- **Files to read:** `src/ui/audio/useAudio.ts` (`muted`/`unlocked`),
+  `src/ui/audio/jingle.ts` (the fire-and-forget pattern to re-route) + its test,
+  `src/ui/App.tsx`, `decisions/DEC-013`, `decisions/DEC-007`. Tone.js docs:
+  `Gain`, `Transport` (`getTransport`), `Loop`, `start`, `now`.
+- **Related code paths:** `src/ui/audio/`.
+
+## Outputs
+
+- **Files created:**
+  - `src/ui/audio/audioEngine.ts` (+ `audioEngine.test.ts`) — `ensureAudio()`,
+    `getMaster()`, `getChannel(name)`, `CHANNEL_GAINS`.
+  - `src/ui/audio/ambientBed.ts` (+ `ambientBed.test.ts`) — `startBed()`,
+    `stopBed()`.
+  - `src/ui/audio/useAmbientBed.ts` (+ `useAmbientBed.test.ts`) — the gating hook.
+- **Files modified:**
+  - `src/ui/audio/jingle.ts` — route the synth through `getChannel('jingle')`
+    instead of `.toDestination()` (same notes, same gating); update `jingle.test.ts`
+    mock accordingly.
+  - `src/ui/App.tsx` — call `useAmbientBed({ muted, unlocked })`.
+- **New exports:** `ensureAudio`, `getMaster`, `getChannel`, `CHANNEL_GAINS`;
+  `startBed`, `stopBed`; `useAmbientBed`.
+- **Database changes:** none.
+
+## Acceptance Criteria
+
+- [ ] `getChannel(name)` returns a Tone `Gain` connected to the master bus, and is
+      **idempotent** (same instance per name across calls); `getMaster()` is a
+      single shared node. `CHANNEL_GAINS` defines a level per channel
+      (`bed`/`sfx`/`jingle`). (Verified against a mocked `tone`.)
+- [ ] `startBed()` starts the Transport and a looping generative pad on the `bed`
+      channel; `stopBed()` stops/cleans it. Calling `startBed()` twice does not stack
+      duplicate loops. (Verified against a mocked `tone`.)
+- [ ] `useAmbientBed({ muted, unlocked })` calls `startBed` when `unlocked && !muted`,
+      and `stopBed` when `muted` or `!unlocked`, and `stopBed` on unmount —
+      verified with **injected** `start`/`stop` spies (no real Tone in the hook test).
+- [ ] `playJingle` routes through `getChannel('jingle')` (no `.toDestination()`);
+      the jingle's note counts per tier are unchanged (existing jingle tests still
+      pass, mock updated).
+- [ ] All audio stays gated (no bed before unlock / when muted) and synthesized (no
+      asset files); engine unchanged; gate (`typecheck`/`lint`/`test`/`build`) exits 0.
+
+## Failing Tests
+
+Written during **design**, BEFORE build.
+
+- **`src/ui/audio/useAmbientBed.test.ts`** (renderHook; inject `{ start, stop }` spies)
+  - `"starts the bed when unlocked and unmuted"` — `{muted:false, unlocked:true}` →
+    `start` called once, `stop` not called.
+  - `"does not start while locked"` — `{muted:false, unlocked:false}` → `start` not
+    called.
+  - `"does not start while muted"` — `{muted:true, unlocked:true}` → `start` not
+    called.
+  - `"stops when muted after starting"` — start unmuted+unlocked, rerender
+    `{muted:true}` → `stop` called.
+  - `"stops on unmount"` — after starting, unmount → `stop` called.
+
+- **`src/ui/audio/audioEngine.test.ts`** (`vi.mock('tone', …)`)
+  - `"getChannel is idempotent and connects to master"` — two `getChannel('bed')`
+    calls return the same node; the channel `.connect(...)` target is the master.
+  - `"CHANNEL_GAINS has bed/sfx/jingle levels"` — all three keys present, numeric,
+    in (0, 1].
+
+- **`src/ui/audio/ambientBed.test.ts`** (`vi.mock('tone', …)`)
+  - `"startBed starts the transport and a loop"` — `startBed()` calls `start()` and
+    starts a Transport/Loop on the bed channel.
+  - `"startBed twice does not create two loops"` — second call is a no-op (one loop).
+  - `"stopBed stops the loop/transport"` — after `startBed()`, `stopBed()` stops it.
+
+- **`src/ui/audio/jingle.test.ts`** (updated) — keep the existing tier note-count
+  assertions; update the `tone` mock so the synth routes via `connect(getChannel
+  ('jingle'))` (or the engine) instead of `toDestination`, and assert the jingle
+  still triggers `JINGLE_NOTES[tier].length` notes.
+
+## Implementation Context
+
+### Decisions that apply
+
+- `DEC-013` — the audio-graph architecture (master + named channels + Transport);
+  implement exactly this shape. The bed is the `bed` channel's first source; the
+  jingle moves onto the `jingle` channel.
+- `DEC-007` — synthesized only, no asset files; gated.
+- `DEC-001` — pure UI; engine untouched.
+
+### Constraints that apply
+
+- `audio-gesture-and-mute` — the bed never sounds before unlock or while muted
+  (the hook enforces it); creation is gated/guarded.
+- `perf-60fps` — keep the bed light (one synth/loop, slow tempo); the perf pass
+  (SPEC-034) will measure it.
+- `test-before-implementation`, `one-spec-per-pr`.
+
+### Prior related work
+
+- `SPEC-026` (shipped) — `useAudio` → `muted`/`unlocked`; the bed hook consumes both
+  (same gate as the jingle).
+- `SPEC-027` (shipped) — `playJingle`; re-routed here onto the `jingle` channel
+  (notes/gating identical). Mirror its `try/catch` best-effort + mocked-`tone` test
+  style.
+
+### Out of scope (for this spec specifically)
+
+- SFX (SPEC-029) and dynamic mixing / ducking-swell (SPEC-030) — this spec only
+  builds the graph + the bed + re-routes the jingle; the `sfx` channel is created
+  but unused until SPEC-029.
+- A11y/perf specs (SPEC-031…034). Any audio asset files (DEC-007). A bed
+  volume/settings UI.
+
+## Notes for the Implementer
+
+- `audioEngine.ts` — lazy singleton, guarded so jsdom/no-AudioContext never throws:
+  ```ts
+  import { start, Gain } from 'tone';
+  export const CHANNEL_GAINS: Record<'bed' | 'sfx' | 'jingle', number> = {
+    bed: 0.25, sfx: 0.6, jingle: 0.8,
+  };
+  let master: Gain | null = null;
+  const channels = new Map<string, Gain>();
+  export function ensureAudio(): void { try { void start(); } catch { /* best-effort */ } }
+  export function getMaster(): Gain { if (!master) master = new Gain(1).toDestination(); return master; }
+  export function getChannel(name: keyof typeof CHANNEL_GAINS): Gain {
+    let ch = channels.get(name);
+    if (!ch) { ch = new Gain(CHANNEL_GAINS[name]).connect(getMaster()); channels.set(name, ch); }
+    return ch;
+  }
+  ```
+  (For SPEC-030, expose a way to reach a channel's gain param — `getChannel(name).gain`.)
+- `ambientBed.ts` — a slow generative loop; module-level refs so `startBed` is
+  idempotent and `stopBed` can clean up:
+  ```ts
+  import { getTransport, Loop, PolySynth, Synth } from 'tone';
+  import { ensureAudio, getChannel } from './audioEngine';
+  let loop: Loop | null = null; let pad: PolySynth | null = null;
+  const CHORD = ['C3', 'G3', 'C4', 'E4'];
+  export function startBed(): void {
+    if (loop) return;                       // already running — no double loop
+    try {
+      ensureAudio();
+      pad = new PolySynth(Synth).connect(getChannel('bed'));
+      loop = new Loop((time) => pad?.triggerAttackRelease(CHORD, '2n', time), '2m').start(0);
+      getTransport().start();
+    } catch { /* best-effort */ }
+  }
+  export function stopBed(): void {
+    try { loop?.stop().dispose(); pad?.dispose(); } catch { /* ignore */ }
+    loop = null; pad = null;
+  }
+  ```
+  (Exact synth/voicing is a feel choice — keep it quiet and slow; tune in preview.)
+- `useAmbientBed.ts` — gate + lifecycle, injectable for tests:
+  ```ts
+  import { useEffect } from 'react';
+  import { startBed as defaultStart, stopBed as defaultStop } from './ambientBed';
+  export function useAmbientBed(
+    opts: { muted: boolean; unlocked: boolean },
+    ctl: { start?: () => void; stop?: () => void } = {},
+  ): void {
+    const { muted, unlocked } = opts;
+    const start = ctl.start ?? defaultStart;
+    const stop = ctl.stop ?? defaultStop;
+    useEffect(() => {
+      if (unlocked && !muted) start(); else stop();
+      return () => stop();
+    }, [muted, unlocked]);
+  }
+  ```
+- `jingle.ts` — change `new Synth().toDestination()` to
+  `new Synth().connect(getChannel('jingle'))` (import `getChannel`); keep everything
+  else. Update the `tone` mock in `jingle.test.ts` so `Synth` returns an object with
+  a `connect` (chainable) — assert the same per-tier note counts.
+- `App.tsx` — add `useAmbientBed({ muted, unlocked })` next to `useWinJingle(...)`.
+- This repo's ESLint has **no `react-hooks` plugin** — do NOT add an exhaustive-deps
+  disable. **No new dependency** (`tone` already installed). No new DEC (DEC-013
+  authored at design).
+- After build, the orchestrator previews: after the first click, a quiet ambient
+  bed loops; muting stops it, unmuting resumes; spinning to a win still plays the
+  jingle (now via the channel). Audio is best-effort in preview — confirm no console
+  errors and that the bed start/stop tracks the mute toggle.
+
+---
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:**
+- **PR (if applicable):**
+- **All acceptance criteria met?** yes/no
+- **New decisions emitted:**
+  - none expected — DEC-013 authored at design
+- **Deviations from spec:**
+  - [list]
+- **Follow-up work identified:**
+  - [any new specs for the stage's backlog]
+
+### Build-phase reflection (3 questions, short answers)
+
+1. **What was unclear in the spec that slowed you down?**
+   — <answer>
+
+2. **Was there a constraint or decision that should have been listed but wasn't?**
+   — <answer>
+
+3. **If you did this task again, what would you do differently?**
+   — <answer>
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle.*
+
+1. **What would I do differently next time?**
+   — <answer>
+
+2. **Does any template, constraint, or decision need updating?**
+   — <answer>
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — <answer>

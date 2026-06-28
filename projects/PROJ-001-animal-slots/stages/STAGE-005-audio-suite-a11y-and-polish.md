@@ -5,8 +5,8 @@
 
 stage:
   id: STAGE-005                     # stable, zero-padded within the project
-  status: proposed                  # proposed | active | shipped | cancelled | on_hold
-  priority: medium                  # critical | high | medium | low  (stretch)
+  status: active                    # proposed | active | shipped | cancelled | on_hold
+  priority: high                    # critical | high | medium | low  (activated 2026-06-27)
   target_complete: null             # optional: YYYY-MM-DD
 
 project:
@@ -122,7 +122,7 @@ celebration+audio load).
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
-- [ ] (not yet written) — **Ambient music bed + audio-graph foundation**: a generative Tone.js loop on `Tone.Transport`, gated by mute+unlock; sets up the shared master bus / channels the SFX and mixing build on. **[M]**
+- [~] SPEC-028 (build) — **Ambient music bed + audio-graph foundation**: a generative Tone.js loop on `Tone.Transport`, gated by mute+unlock; sets up the shared master bus / channels the SFX and mixing build on (DEC-013). **[M]**
 - [ ] (not yet written) — **SFX set**: synthesized spin whoosh, per-reel stop clunk, and win tings, fired off the spin flow / `celebration` signal; routed through the audio bus, gated. **[M]**
 - [ ] (not yet written) — **Dynamic mixing**: bus-level swell on a big win and duck under the jackpot moment; balance bed/SFX/jingle levels. **[M]** *(most uncertain — depends on the bed + SFX landing first)*
 - [ ] (not yet written) — **Reduced-motion audit**: confirm/complete a non-animated feedback path for spin + every celebration; CSS-contract sweep + behavior tests; audio still plays under reduced motion. **[S–M]**
