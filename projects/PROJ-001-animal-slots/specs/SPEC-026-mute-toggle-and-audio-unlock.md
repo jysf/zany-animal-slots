@@ -55,6 +55,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -314,3 +322,61 @@ Written during **design**, BEFORE build. `localStorage.clear()` in `beforeEach`.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Reviewer:** claude-sonnet-4-6 (cold, separate session) — 2026-06-27
+
+### Gate results
+
+| Check | Result |
+|---|---|
+| `just typecheck` | ✅ exit 0 |
+| `just lint` | ✅ exit 0 |
+| `just test` | ✅ 193 tests pass, 30 files (+12 new tests: 4 muteStorage + 5 useAudio + 3 MuteToggle) |
+| `just build` | ✅ exit 0 (155.29 kB / 50.22 kB gzip) |
+| `just decisions-audit --changed main` | ✅ advisory only — DEC-004/DEC-007/DEC-010 flagged as expected; 0 structural errors, no contradiction |
+
+### Verdict: ✅ APPROVED
+
+**Checklist (evidence cited)**
+
+- **AC: readMute default false / 'true'→true / never throws** — `muteStorage.ts`: `try { return localStorage.getItem(MUTE_KEY) === 'true'; } catch { return false; }`. Tests: "defaults to false when absent", "round-trips true", "treats any non-'true' value as false" — all pass.
+
+- **AC: writeMute persists 'true'/'false' / never throws** — `muteStorage.ts`: `try { localStorage.setItem(MUTE_KEY, muted ? 'true' : 'false'); } catch { /* ignore */ }`. Test "round-trips true" asserts `localStorage.getItem(MUTE_KEY) === 'true'`; round-trip false test confirms.
+
+- **AC: useAudio starts muted=false, rehydrates, toggleMute flips+persists** — `useState<boolean>(() => readMute())` (lazy init). Tests "starts unmuted by default", "rehydrates muted from storage" (pre-sets `mute='true'`), "toggleMute flips and persists" (calls `readMute()` after toggle to verify persistence) — all pass.
+
+- **AC: unlocked starts false, flips on first gesture, stays true** — `useState(false)` + `useEffect` with `{ once: true }` on both `pointerdown` and `keydown`. Test "starts locked" + "unlocks on the first gesture" (dispatches `pointerdown`, then a second one to confirm stays true) — both pass. The `if (unlocked) return` early-exit prevents re-registration after unlock. Cleanup `removeEventListener` in the return function covers the not-yet-fired case; `{ once: true }` covers the post-fire case. No listener leak, no state update after unmount.
+
+- **AC: MuteToggle aria-pressed / emojis / accessible name / calls onToggle** — `<button aria-pressed={muted} aria-label={muted ? 'Unmute sound' : 'Mute sound'} onClick={onToggle}>`. Tests "reflects muted state via aria-pressed" (checks both true and false states + emoji text), "calls onToggle when clicked" (mock verifies called once) — pass.
+
+- **AC: mute button ≥44px, audio.css no raw hex** — `min-height: var(--space-7)` (3rem = 48px) and `min-width: var(--space-7)` confirmed in `audio.css`. No `#[0-9a-fA-F]{3,8}` literal in file. Test "defines a ≥44px touch target with no raw hex" reads the file and asserts all three — passes.
+
+- **AC: No Tone.js / audio dep / no sound / engine unchanged** — `git diff main..HEAD -- src/engine/` empty. `git diff main..HEAD -- package.json` empty. `grep` for `tone|Tone|AudioContext` in src/ returns nothing. Confirmed.
+
+- **AUDIO-GESTURE-AND-MUTE constraint** — key is `'mute'` (`MUTE_KEY = 'mute'`). First-gesture unlock via `pointerdown`/`keydown` with `{ once: true }` — auto-removes after firing. Cleanup function removes the not-yet-fired listener. No leak, no state-update-after-unmount.
+
+- **ENGINE UNCHANGED** — `git diff main..HEAD -- src/engine/` produces no output. Confirmed empty.
+
+- **NO NEW DEPENDENCY** — `git diff main..HEAD -- package.json` produces no output. No Tone.js or audio import anywhere in the diff.
+
+- **NO SCOPE CREEP** — Only `src/ui/audio/` (new), `src/ui/regions/Header.tsx`, `src/ui/regions/regions.css`, `src/ui/App.tsx`, and spec/timeline docs changed. The flex layout change to `.cabinet__header` and new `.cabinet__header-controls` wrapper is the expected "simple flex row" called out in the spec's implementer notes; disclosed honestly in build reflection.
+
+- **TESTS NOT VACUOUS** — muteStorage: real round-trip assertions + localStorage key check. useAudio: `renderHook` + real `document.dispatchEvent(new Event('pointerdown'))` gesture to test unlock; toggle test calls `readMute()` to verify persistence side-effect. MuteToggle: aria-pressed in both states, emoji content, `fireEvent.click` verifies callback. Tests would fail if behavior were wrong.
+
+- **NO BAD ESLINT-DISABLE** — zero `eslint-disable` comments in any `src/ui/audio/` file. Confirmed.
+
+- **fireEvent vs userEvent** — build used `fireEvent` (RTL built-in) after noting `@testing-library/user-event` is not installed. This is correct and the deviation is honestly disclosed in the build reflection. Tests pass.
+
+- **CSS CONTRACT** — `.mute-toggle` present, `min-height: var(--space-7)` (48px) and `min-width: var(--space-7)`, all tokens (`var(--color-text-muted)`, `var(--color-text)`, `var(--color-accent)`, `var(--radius-md)`, `var(--font-family-body)`, `var(--font-size-base)`, spacing vars), no raw hex. Confirmed.
+
+- **DECISION DRIFT** — `just decisions-audit --changed main` flags DEC-004, DEC-007, DEC-010 as advisory (expected). No contradiction: DEC-007 is the spec's own purpose; DEC-010 is honored (global CSS, tokens, prefixed classes); DEC-004 (CSS animation) is irrelevant to this change. No new DEC needed.
+
+- **BUILD REFLECTION** — Honest and specific: identifies the `userEvent` assumption in the spec's drop-in code and the implicit layout decision for the flex header. Both are real observations, not boilerplate.
+
+- **COST** — build session present with `tokens_total: null` and "orchestrator to fill" note. Correct per AGENTS §4.
+
+**No punch list items.** All acceptance criteria met, all constraints honored, gate clean.
