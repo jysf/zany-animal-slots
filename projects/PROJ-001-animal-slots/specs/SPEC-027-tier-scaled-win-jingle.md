@@ -50,23 +50,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 73131
+      estimated_usd: 0.48
+      duration_minutes: 5.0
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=73131). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4). duration_minutes ~5 (active work; the raw Agent duration_ms included a long idle gap, not compute)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 70511
+      estimated_usd: 0.47
+      duration_minutes: 4.4
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=70511, 266s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview jingle-path check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 143642
+    estimated_usd: 0.95
+    session_count: 5
 ---
 
 # SPEC-027: Tier-scaled win jingle
@@ -344,10 +352,25 @@ they need no Tone. The jingle test mocks the `tone` module.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Splitting the audio into the gate (SPEC-026) then the jingle
+   (this spec) paid off: `useWinJingle` is a tiny gated effect that reuses
+   `celebration` (SPEC-021), `muted`/`unlocked` (SPEC-026), and the engine `tier` —
+   no new plumbing. Making `playJingle` injectable into the hook let the gating tests
+   run with a spy (zero Tone), while a separate `tone`-mocked test proves the
+   tier-scaling reaches the synth. The one fix worth carrying forward: import
+   `WinTier` from the public `src/engine/index`, not the hook (DEC-001) — I'll write
+   that exact path into future audio/spec Notes.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No decision/constraint change. DEC-007 cleanly pre-authorized the `tone` dep,
+   so the build added it without a stop-and-ask — exactly the pattern dogfood
+   finding #10 wanted (a dep DEC written *before* the build needs it). The bundle
+   roughly doubled (~385 KB JS / ~109 KB gz) — expected and DEC-007-authorized;
+   STAGE-005's perf pass can revisit if it matters.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. This completes STAGE-004's 9-item backlog (win-amount, paytable,
+   win-state router, count-up, paw trail, particles, jackpot moment, mute/unlock,
+   jingle). Next is the **STAGE-004 Stage Ship** (Prompt 1d) — offered to the user,
+   not auto-run. The full audio suite (ambient bed, SFX, mixing) remains STAGE-005 /
+   PROJ-002 per DEC-007.
