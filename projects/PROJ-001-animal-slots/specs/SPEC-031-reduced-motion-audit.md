@@ -53,6 +53,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-28
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-28
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -269,3 +277,54 @@ Written during **design**, BEFORE build.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+**Gate results** (all exit 0, branch `feat/spec-031-reduced-motion-audit`):
+
+| Gate | Result |
+|---|---|
+| `just typecheck` | ✅ 0 errors |
+| `just lint` | ✅ 0 errors |
+| `just test` | ✅ 241/241 tests (40 suites), 4 new tests in reduced-motion.contract.test.tsx |
+| `just build` | ✅ built in 688ms |
+| `just decisions-audit --changed` | ✅ no files in scope (no uncommitted changes) |
+| `just decisions-audit` | ✅ 0 structural errors, 19 scope warnings (all pre-existing) |
+
+**Checklist:**
+
+- ✅ **ACCEPTANCE CRITERIA — CSS file + import order.** `src/styles/reduced-motion.css` contains `@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms; animation-iteration-count: 1; transition-duration: 0.01ms; scroll-behavior: auto } }`. Imported in `src/main.tsx` on line 4, directly after `tokens.css` on line 3. Confirmed by file read.
+
+- ✅ **ACCEPTANCE CRITERIA — Sweep test is real.** `walkCss()` recursively discovers all `*.css` files under `src/` using `readdirSync`/`statSync` (not a hardcoded list). For each file matching `/@keyframes/`, the test asserts `/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/` is present — and the test would fail immediately if a keyframes file lacked the block (the assertion is inside the loop). The `>=5` guard ensures the walk found real files.
+
+- ✅ **SWEEP IS REAL — independent grep.** `grep -rl "@keyframes" src --include="*.css"` returns exactly 5 files: `reels.css`, `win-badge.css`, `particles.css`, `jackpot.css`, `paytable.css`. `grep -L "prefers-reduced-motion" $(...)` returns empty — every @keyframes file has the block. The build audit claim is accurate.
+
+- ✅ **AUDIO-NOT-GATED IS TRUE.** `grep -rn "prefers-reduced-motion\|prefersReducedMotion" src/ui/audio/` returns empty. Confirmed independently.
+
+- ✅ **ACCEPTANCE CRITERIA — Global net test.** `"a global reduced-motion safety net exists"` reads the file via absolute path, asserts the media-query regex, `/animation-duration/`, and `/transition-duration/`. All three assertions backed by the actual file content.
+
+- ✅ **ACCEPTANCE CRITERIA — App renders under reduced motion.** The `"renders and shows the Spin button when matchMedia reports reduced motion"` test stubs `window.matchMedia` to `{ matches: true }`, calls `render(<App />)`, and asserts the Spin button is present. `afterEach` restores the original. Pattern mirrors existing App.test.tsx setup. Test passes (4th of 4 new tests, all green).
+
+- ✅ **GLOBAL NET COEXISTS WITH EXISTING TESTS.** The `@media (prefers-reduced-motion: reduce)` block is inert under normal rendering (no reduced-motion user preference). All 237 pre-existing tests still pass (241 total - 4 new = 237 prior). No change to normal rendering paths.
+
+- ✅ **ENGINE UNCHANGED.** `git diff main..HEAD -- src/engine/` is empty. Confirmed.
+
+- ✅ **NO NEW DEPENDENCY.** `git diff main..HEAD -- package.json` is empty. Confirmed.
+
+- ✅ **DECISION DRIFT — none.** Changed files (`src/styles/reduced-motion.css`, `src/ui/reduced-motion.contract.test.tsx`, `src/main.tsx`) fall under DEC-004 (`src/ui/**`) and DEC-010 (`src/styles/**`) territory. No new DEC expected or required. No drift from declared decisions.
+
+- ✅ **BUILD REFLECTION — honest and specific.** Three questions answered with concrete, accurate details (`.ts` → `.tsx` type error, `fs` fallback rationale, nothing-substantive conclusion). Not boilerplate.
+
+- ✅ **AUDIT RESULT — specific and verifiable.** 5 files named with their SPEC provenance, all confirmed passing by independent grep. Audio module list complete.
+
+- ✅ **COST — build session correct.** Build session has `tokens_total: null` with "orchestrator to fill tokens_total from subagent_tokens at ship" note. Matches AGENTS §4 protocol for metered subagent cycles. Verify session to be appended below.
+
+- ✅ **ONE SPEC PER PR.** PR #31 contains only SPEC-031 changes. Confirmed via diff.
+
+- ✅ **DEVIATION NOTED.** `.ts` → `.tsx` rename is correctly documented in Build Completion Deviations. Justified and consistent with AGENTS §12 (UI test files are `.test.tsx`).
+
+**Reviewer:** claude-sonnet-4-6 · **Date:** 2026-06-28
