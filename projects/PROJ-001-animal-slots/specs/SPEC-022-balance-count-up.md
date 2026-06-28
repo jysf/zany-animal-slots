@@ -4,7 +4,7 @@
 task:
   id: SPEC-022
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M                    # S | M | L  (count-up hook + helper + DEC + wiring)
