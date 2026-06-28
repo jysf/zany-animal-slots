@@ -166,6 +166,18 @@ appended at the bottom. Scaffold more entries with `just new-feedback "<slug>"`.
       the `react-hooks` plugin so the intent is machine-checked rather than
       commented.) `status: open` — surfaced across SPEC-022 / SPEC-024.
 
+13. **Build sub-agents reach for `@testing-library/user-event`, which this repo
+    does not install.** On SPEC-026 the agent wrote `userEvent.click(...)` in the
+    MuteToggle test, hit a typecheck/resolve failure, and fell back to `fireEvent`
+    (which IS available) in one extra loop. Same shape as finding #12 (a strong
+    React-testing prior that doesn't match this repo's actual toolset). Always
+    self-corrected, never reached `main`.
+    - **Suggested fix (process/spec):** add a one-line "this repo uses `fireEvent`
+      from @testing-library/react — `@testing-library/user-event` is NOT installed"
+      to UI build prompts (the orchestrator now includes such notes), or install
+      `user-event` as a dev dep if richer interaction tests are wanted. `status:
+      open` — surfaced on SPEC-026.
+
 ## What worked (keep)
 
 - The `value:` (project) and `value_contribution:` (stage) blocks forced

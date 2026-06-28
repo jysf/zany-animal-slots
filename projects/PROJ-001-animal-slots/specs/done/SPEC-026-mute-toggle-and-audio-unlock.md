@@ -4,7 +4,7 @@
 task:
   id: SPEC-026
   type: story
-  cycle: verify
+  cycle: ship
   blocked: false
   priority: high
   complexity: S
