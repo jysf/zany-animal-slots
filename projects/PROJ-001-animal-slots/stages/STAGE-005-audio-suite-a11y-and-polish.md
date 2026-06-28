@@ -122,7 +122,7 @@ celebration+audio load).
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
-- [~] SPEC-028 (verify) — **Ambient music bed + audio-graph foundation**: a generative Tone.js loop on `Tone.Transport`, gated by mute+unlock; sets up the shared master bus / channels the SFX and mixing build on (DEC-013). **[M]**
+- [x] SPEC-028 (shipped 2026-06-27) — **Ambient music bed + audio-graph foundation**: a generative Tone.js loop on `Tone.Transport`, gated by mute+unlock; sets up the shared master bus / channels the SFX and mixing build on (DEC-013); jingle re-routed onto its channel. **[M]**
 - [ ] (not yet written) — **SFX set**: synthesized spin whoosh, per-reel stop clunk, and win tings, fired off the spin flow / `celebration` signal; routed through the audio bus, gated. **[M]**
 - [ ] (not yet written) — **Dynamic mixing**: bus-level swell on a big win and duck under the jackpot moment; balance bed/SFX/jingle levels. **[M]** *(most uncertain — depends on the bed + SFX landing first)*
 - [ ] (not yet written) — **Reduced-motion audit**: confirm/complete a non-animated feedback path for spin + every celebration; CSS-contract sweep + behavior tests; audio still plays under reduced motion. **[S–M]**
@@ -130,7 +130,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [ ] (not yet written) — **Colorblind-safe state cues**: ensure win-tier feedback isn't color-only (tier label/icon as needed); symbols stay shape-distinct. **[S]**
 - [ ] (not yet written) — **Performance pass**: measure + hold ~60fps spin/celebration on a throttled mid-tier profile; fix long tasks; document; revisit DEC-004 only if it fails. **[M]** *(could grow to L if profiling surfaces deep work — split then)*
 
-**Count:** 0 shipped / 0 active / 7 pending — 5×M, 1×(S–M), 1×S; **no L**. Sized at
+**Count:** 1 shipped / 0 active / 6 pending — 5×M, 1×(S–M), 1×S; **no L**. Sized at
 Stage Frame; within the 3–8 range (no rescoping needed). Two carry the most
 uncertainty — dynamic mixing (#3) and the perf pass (#7); split #7 if profiling
 reveals deep work.
