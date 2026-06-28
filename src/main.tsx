@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/tokens.css';
+import './styles/reduced-motion.css';
 import App from './ui/App';
 
 const rootElement = document.getElementById('root');

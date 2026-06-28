@@ -1,0 +1,11 @@
+/* Global reduced-motion safety net (SPEC-031, respect-reduced-motion).
+   Per-component @media blocks still handle their own end-states; this catches
+   any animation/transition that isn't individually handled (incl. future ones). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

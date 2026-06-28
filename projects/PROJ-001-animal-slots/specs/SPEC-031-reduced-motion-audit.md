@@ -45,6 +45,14 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-28
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. the audit survey)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-28
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -216,28 +224,36 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-031-reduced-motion-audit
+- **PR (if applicable):** n/a (local only per spec)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none
 - **Deviations from spec:**
-  - [list]
+  - Test file is `reduced-motion.contract.test.tsx` (not `.ts`) because it uses JSX (`<App />`). The spec named it `.ts`; `.tsx` is required and consistent with the project's UI testing convention (AGENTS.md §12).
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned SPEC-032/033/034
 - **Audit result:**
-  - [which @keyframes CSS files were checked; confirm all have a reduced-motion block]
+  - Files with `@keyframes` checked by the sweep test (5 total, all passed):
+    1. `src/ui/reels/reels.css` — has `@media (prefers-reduced-motion: reduce)` block (SPEC-016/SPEC-023)
+    2. `src/ui/reels/win-badge.css` — has `@media (prefers-reduced-motion: reduce)` block (SPEC-019)
+    3. `src/ui/reels/particles.css` — has `@media (prefers-reduced-motion: reduce)` block (SPEC-024)
+    4. `src/ui/jackpot.css` — has `@media (prefers-reduced-motion: reduce)` block (SPEC-025)
+    5. `src/ui/paytable.css` — has `@media (prefers-reduced-motion: reduce)` block (SPEC-020)
+  - All 5 passed. No gaps found; no per-component edits needed.
+  - Global safety net added: `src/styles/reduced-motion.css`, imported in `src/main.tsx`.
+  - Audio modules (`ambientBed.ts`, `audioEngine.ts`, `jingle.ts`, `mixer.ts`, `muteStorage.ts`, `sfx.ts`, `useAmbientBed.ts`, `useAudio.ts`, `useDynamicMixing.ts`, `useGameSfx.ts`, `useWinJingle.ts`) confirmed: none reference `prefers-reduced-motion` or `prefersReducedMotion`.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The spec named the test file `.ts` but the file uses JSX (`render(<App />)`), which requires `.tsx` in this project's TypeScript config. The typecheck error made the fix obvious immediately, but the spec could note "use `.tsx` since the App-renders test needs JSX."
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The decision to use `fs` for the CSS sweep (matching the existing `reels.animation.test.ts` pattern) over `import.meta.glob` was already anticipated in the Notes; the fs fallback was the right call given jsdom/Vitest's raw-glob handling.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing substantive. The spec's drop-in CSS and test approach were clear and correct. The only change: name the test file `.tsx` from the start to skip the typecheck iteration.
 
 ---
 
