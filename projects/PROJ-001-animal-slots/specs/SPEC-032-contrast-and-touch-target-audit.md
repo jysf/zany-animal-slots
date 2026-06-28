@@ -53,6 +53,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-28
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-28
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -276,3 +284,50 @@ Written during **design**, BEFORE build. Implement a small WCAG helper inline
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Reviewer:** claude-sonnet-4-6 (cold session, 2026-06-28)
+**Verdict: APPROVED**
+
+### Gate results
+
+```
+typecheck  ✅  (exit 0)
+lint       ✅  (exit 0)
+test       ✅  245/245 passed (42 test files; +4 tests vs main)
+build      ✅  (exit 0; 688ms, 1038 modules)
+decisions-audit --changed  ✅  "No changed files in scope" — correct, no new DEC expected
+```
+
+### Checklist
+
+- **ACCEPTANCE CRITERIA — token change:** `git diff main..HEAD -- src/styles/tokens.css` shows exactly one line changed: `--_raw-muted: #b89a6e` → `--_raw-muted: #ccb084`. No other token touched. ✅
+
+- **ACCEPTANCE CRITERIA — contrast.test.ts structure:** The test file (110 lines) parses `tokens.css` via `fs.readFileSync`, builds a `raw['--_raw-*'] = '#hex'` map from `/--(_raw-[a-z]+):\s*(#[0-9a-fA-F]{6})/g`, and a `semantic['--color-*'] = hex` map from `/--(color-[a-z-]+):\s*var\(--(_raw-[a-z]+)\)/g`. All pairs (text/bg, text/surface, muted/frame, muted/surface, muted/bg, coin/surface, accent/surface @3.0, accent/bg, jackpot/jackpot-sky) are asserted against their correct thresholds. Includes the `"resolves semantic colors"` spot-check asserting `--color-text-muted === '#ccb084'`. ✅
+
+- **ACCEPTANCE CRITERIA — controls.touch-target.test.ts structure:** Reads `controls.css`, `audio.css`, `paytable.css` via `fs`. `extractRuleBlock()` uses regex `selector\s*\{([^}]*)\}` to slice the first rule block. `has44pxValue()` pattern-matches `min-height`/`min-width` against `2.75rem|44px|var(--space-7)`. All 6 selectors tested. Independently confirmed in the CSS source: `.spin-btn`, `.bet-btn`, `.auto-btn`, `.reset-btn` each declare `min-height: 2.75rem` and `min-width: 2.75rem`; `.mute-toggle` and `.paytable__trigger` each declare `min-height: var(--space-7)` and `min-width: var(--space-7)`. ✅
+
+- **LOAD-BEARING GUARD — test (line 102–109):** `it('the muted fix is load-bearing…')` uses `semantic['--color-frame']` (resolves through the token map, not hardcoded) and hardcodes `'#b89a6e'` for the old value, then asserts `contrast(oldMuted, frameHex) < 4.5`. If `--_raw-muted` were reverted to `#b89a6e`, the `"resolves semantic colors"` test would fail (`--color-text-muted !== '#ccb084'`) AND the `muted/frame ≥4.5` assertion in the main pairs loop would also fail. The load-bearing test itself would pass on revert — but that's correct: it asserts the OLD value is below threshold (proving the guard isn't vacuous), not that the new value is above. ✅
+
+- **LOAD-BEARING GUARD — independent recomputation (WCAG formula: sRGB linearize → 0.2126R+0.7152G+0.0722B, (L1+0.05)/(L2+0.05)):**
+  - `#ccb084` on `#5c3317`: L(#ccb084) = 0.4555, L(#5c3317) = 0.0470 → contrast = **(0.4555+0.05)/(0.0470+0.05) = 5.21:1** — ABOVE 4.5 AA ✅
+  - `#b89a6e` on `#5c3317`: L(#b89a6e) = 0.3443, L(#5c3317) = 0.0470 → contrast = **(0.3443+0.05)/(0.0470+0.05) = 4.06:1** — BELOW 4.5 AA ✅ (guard is real)
+
+- **WCAG HELPER CORRECT:** The inline `luminance()` function uses the correct sRGB linearization (`v <= 0.03928 ? v/12.92 : ((v+0.055)/1.055)^2.4`) and the correct coefficient weights (0.2126/0.7152/0.0722). `contrast()` sorts and applies `(L1+0.05)/(L2+0.05)`. Formula matches the W3C standard. ✅
+
+- **ENGINE UNCHANGED:** `git diff main..HEAD -- src/engine/` produces no output. ✅
+
+- **NO NEW DEPENDENCY:** `git diff main..HEAD -- package.json` produces no output. ✅
+
+- **NO OTHER COLOR CHANGED:** Only the single `--_raw-muted` line differs in `tokens.css`. No component CSS files were modified (only two new test files added). ✅
+
+- **TESTS NOT VACUOUS:** The contrast pairs resolve through the parsed token maps (not hardcoded), so a future token regression is caught automatically. The touch-target test slices real rule blocks by regex and checks both `min-height` and `min-width` independently. ✅
+
+- **DECISION DRIFT:** `just decisions-audit --changed` reports nothing out of scope. DEC-010 (tokens are the styling seam) and DEC-001 (engine untouched) were the applicable decisions; both are correctly listed in the spec's front-matter. No new DEC warranted. ✅
+
+- **BUILD REFLECTION + AUDIT RESULT:** Present and specific. Minor inaccuracy: the Build Completion text says "text/surface ~8.6:1" but my independent calculation gives 11.88:1 (the 8.6:1 figure belongs to coin/surface). This is a copy-paste labelling error in the *prose report only* — the test code uses the correct colors and both pass. Does not affect correctness. Noted for record. ✅ (minor)
+
+- **COST — build session:** Present with `tokens_total: null` and `"orchestrator to fill tokens_total from subagent_tokens at ship"`. ✅
