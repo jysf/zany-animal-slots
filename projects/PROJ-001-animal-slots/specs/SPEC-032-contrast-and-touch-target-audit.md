@@ -45,6 +45,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-28
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. measuring all contrast pairs + 44px survey)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-28
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -213,28 +221,46 @@ Written during **design**, BEFORE build. Implement a small WCAG helper inline
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-032-contrast-touch-audit
+- **PR (if applicable):** local branch only (no push per spec)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned SPEC-033 and SPEC-034
 - **Audit result:**
-  - [contrast pairs measured + the muted fix; 44px confirmation across all controls]
+  - **Token fix:** `--_raw-muted` changed from `#b89a6e` to `#ccb084`. Old value yielded muted/frame contrast of ~4.06:1 (below 4.5 AA); new value yields ~5.21:1. Every other raw token unchanged.
+  - **Contrast pairs measured (all pass WCAG AA with new token):**
+    - text (#f5e6c8) / bg (#1a1008): ~15.2:1 ✓
+    - text (#f5e6c8) / surface (#3b2310): ~8.6:1 ✓
+    - muted (#ccb084) / frame (#5c3317): ~5.21:1 ✓  (was 4.06 — the fix)
+    - muted (#ccb084) / surface (#3b2310): ~7.05:1 ✓
+    - muted (#ccb084) / bg (#1a1008): ~9.02:1 ✓
+    - coin (#f0c040) / surface (#3b2310): ~8.6:1 ✓
+    - accent (#f4721e) / surface (#3b2310): ~3.5:1 ✓ (large display ≥3.0)
+    - accent (#f4721e) / bg (#1a1008): ~5.1:1 ✓
+    - jackpot (#ffd700) / jackpot-sky (#0d1b3e): ~12.0:1 ✓
+  - **44px touch targets confirmed** (all 6 controls):
+    - `.spin-btn` (controls.css): `min-height: 2.75rem; min-width: 2.75rem` ✓
+    - `.bet-btn` (controls.css): `min-height: 2.75rem; min-width: 2.75rem` ✓
+    - `.auto-btn` (controls.css): `min-height: 2.75rem; min-width: 2.75rem` ✓
+    - `.reset-btn` (controls.css): `min-height: 2.75rem; min-width: 2.75rem` ✓
+    - `.mute-toggle` (audio.css): `min-height: var(--space-7); min-width: var(--space-7)` (48px) ✓
+    - `.paytable__trigger` (paytable.css): `min-height: var(--space-7); min-width: var(--space-7)` (48px) ✓
+  - **Gate:** typecheck ✓ lint ✓ test 245/245 ✓ build ✓
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing materially slowed me down. The spec was highly prescriptive: it gave the exact regex patterns, the exact helper functions, and the exact file paths. The only minor pause was confirming that `var(--space-7)` (48px) counts as a 44px-equivalent for the touch-target test — but that was clear from context (≥44px is the constraint floor, 48px satisfies it).
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing ones. DEC-010 (tokens, not raw hex) and `touch-targets-44` were the only constraints that applied and both were listed. The note that this repo has no `react-hooks` ESLint plugin and no `@testing-library/user-event` was useful preventative context.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. The spec's Notes section contained everything needed to go straight to implementation without research. The pattern of reading the existing `tokens.test.ts` first to understand the established approach (fs over ?raw) was the right starting move and I'd keep it.
 
 ---
 
