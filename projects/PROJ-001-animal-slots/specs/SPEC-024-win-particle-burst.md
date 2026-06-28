@@ -49,6 +49,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -287,26 +295,26 @@ component (don't hard-code the numbers). For reduced motion, override
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-024-particle-burst
+- **PR (if applicable):** local only (no push per instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none (DEC-004/006/010 cover everything as expected)
 - **Deviations from spec:**
-  - [list]
+  - None. Drop-in code from "Notes for the Implementer" was used verbatim; the only change was removing an `// eslint-disable-line react-hooks/exhaustive-deps` comment that the project's ESLint config flagged as an unknown rule.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None beyond what's already in the stage backlog (SPEC-025 wolf jackpot, SPEC-026/027 audio).
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing materially slowed me down. The "Notes for the Implementer" provided drop-in code for all three new files. The one friction point was the `// eslint-disable-line react-hooks/exhaustive-deps` comment in the sample code: the project's ESLint config doesn't have the `react-hooks` plugin configured, so the rule reference was invalid and caused a lint error. I caught it on the first lint run and removed the comment.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing decisions. The ESLint note above is a build-time "gotcha" worth documenting in the spec template: sample ESLint-disable comments should be checked against the project's actual ESLint plugin set before being dropped in.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — I'd lint-check the "Notes for the Implementer" code snippets mentally before copy-pasting, specifically to catch eslint-disable comments that reference rules not in the project. Everything else — file layout, useMemo-before-early-return discipline, CSS-contract test reading the real file — was clean.
 
 ---
 

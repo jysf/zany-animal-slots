@@ -6,10 +6,12 @@
 // SPEC-018: threads lineWins to ReelGrid so winning cells are highlighted.
 // SPEC-019: renders WinBadge overlay — visible when spinning is false and lastWin > 0.
 // SPEC-023: accepts celebration and passes trailKey to ReelGrid for paw-print trail.
+// SPEC-024: renders ParticleBurst overlay — leaves/acorns erupt on a win, count scaled by tier.
 import type { Grid, LineWin } from '../../engine/index';
 import type { Celebration } from '../useSlotMachine';
 import ReelGrid from '../reels/ReelGrid';
 import WinBadge from '../reels/WinBadge';
+import ParticleBurst from '../reels/ParticleBurst';
 
 interface Props {
   grid: Grid;
@@ -25,6 +27,7 @@ export default function Game({ grid, spinning = false, lineWins = [], lastWin = 
     <main className="cabinet__game">
       <ReelGrid grid={grid} spinning={spinning} lineWins={lineWins} trailKey={celebration?.id ?? null} />
       <WinBadge amount={lastWin} show={!spinning} />
+      <ParticleBurst celebration={celebration} />
     </main>
   );
 }

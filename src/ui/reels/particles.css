@@ -1,0 +1,48 @@
+/*
+ * Particle burst overlay — leaves 🍂 / acorns 🌰 that erupt from the reel centre
+ * on a win (SPEC-024). Absolutely positioned inside .cabinet__game (position: relative)
+ * so it floats over the grid without layout shift. Token-only CSS, no raw hex (DEC-010).
+ * Transform/opacity animation only (DEC-004, perf-60fps). Reduced-motion path kills the
+ * animation belt-and-suspenders; the component also renders nothing under reduced motion
+ * (respect-reduced-motion constraint).
+ */
+
+/* ─── Burst container ──────────────────────────────────────────────────────────── */
+
+.particle-burst {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 8;            /* above paws (5), below the win badge (10) */
+}
+
+/* ─── Individual particle ──────────────────────────────────────────────────────── */
+
+.particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: var(--font-size-lg);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: particle-fly 1s ease-out var(--p-delay, 0ms) forwards;
+}
+
+/* ─── Fly keyframe ─────────────────────────────────────────────────────────────── */
+
+@keyframes particle-fly {
+  0%   { transform: translate(-50%, -50%) scale(0.4);                                                             opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--p-dx, 0px)), calc(-50% + var(--p-dy, 0px))) rotate(var(--p-rot, 0deg)); opacity: 0; }
+}
+
+/* ─── Reduced-motion override ───────────────────────────────────────────────────── */
+
+/* Belt-and-suspenders: component renders nothing under reduced motion, but this
+   CSS block ensures no particle animation fires even if CSS is loaded independently. */
+@media (prefers-reduced-motion: reduce) {
+  .particle {
+    animation: none;
+  }
+}
