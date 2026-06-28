@@ -128,9 +128,9 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [x] SPEC-031 (shipped 2026-06-28) — **Reduced-motion audit**: a global motion safety net + a regression-guard sweep (every `@keyframes` CSS has a reduced-motion block) + audio-not-motion-gated + App-renders-under-reduced-motion; confirmed all 5 keyframes CSS already compliant. **[S]**
 - [x] SPEC-032 (shipped 2026-06-28) — **Contrast + 44px audit & fixes**: WCAG AA contrast audit (1 fix — lightened `--_raw-muted` #b89a6e→#ccb084 so muted-on-frame button text clears 4.5:1 at 5.21) + ≥44px confirmed; both locked by guard tests. **[M]**
 - [x] SPEC-033 (shipped 2026-06-28) — **Colorblind-safe state cues**: win badge gains a tier WORD (WIN / BIG WIN / JACKPOT) + `data-tier` — a text cue backed by a redundant tier border color (win-tier tokens); symbols already shape-distinct (DEC-006). **[S]**
-- [~] SPEC-034 (verify) — **Performance pass**: a compositor-only keyframe guard (every `@keyframes` animates transform/opacity only) + a `will-change` hint on the spin + a documented measurement — validates DEC-004 holds at ~60fps. **[M]**
+- [x] SPEC-034 (shipped 2026-06-28) — **Performance pass**: a compositor-only keyframe guard (every `@keyframes` animates transform/opacity only) + a `will-change` hint on the spin + a documented measurement (median 8.3ms, 0 long frames) — validates DEC-004 holds at ~60fps. **[M]**
 
-**Count:** 6 shipped / 0 active / 1 pending — 5×M, 1×(S–M), 1×S; **no L** (audio suite + all 3 a11y audits done; only the perf pass remains). Sized at
+**Count:** 7 shipped / 0 active / 0 pending — **backlog COMPLETE** (audio suite + all 3 a11y audits + perf pass; run Prompt 1d Stage Ship). Sized at
 Stage Frame; within the 3–8 range (no rescoping needed). Two carry the most
 uncertainty — dynamic mixing (#3) and the perf pass (#7); split #7 if profiling
 reveals deep work.
