@@ -46,6 +46,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -245,26 +253,26 @@ real Tone); `sfx.test.ts` mocks `tone`.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-029-sfx-set
+- **PR (if applicable):** local only — no push per instructions
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
   - none expected
 - **Deviations from spec:**
-  - [list]
+  - none; drop-in code from "Notes for the Implementer" used exactly as provided
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned SPEC-030 (dynamic mixing)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The `sfx.test.ts` mock wiring for `MembraneSynth` required care: the reelStop path calls `triggerAttackRelease` directly on the drum instance (not on a chained return from `connect`), so the mock needed `triggerAttackRelease` on the synth object itself as well as `connect` returning `drumMock` self-referentially. The spec's test outline didn't spell this out, requiring a quick read of the implementation to reason about the mock shape.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. The note about "no exhaustive-deps disable comment" is slightly inconsistent with normal practice (the comments are typically no-ops without the plugin), but the spec calls it out clearly enough to follow without slowdown.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Write the `sfx.test.ts` mock for `MembraneSynth` last, after confirming the implementation path (direct call on drum vs. chained return), rather than trying to infer the mock shape from the implementation outline alone.
 
 ---
 

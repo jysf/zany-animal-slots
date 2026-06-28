@@ -23,6 +23,7 @@ import { useSlotMachine } from './useSlotMachine';
 import { useAudio } from './audio/useAudio';
 import { useWinJingle } from './audio/useWinJingle';
 import { useAmbientBed } from './audio/useAmbientBed';
+import { useGameSfx } from './audio/useGameSfx';
 
 export default function App() {
   const { muted, toggleMute, unlocked } = useAudio();
@@ -47,6 +48,7 @@ export default function App() {
 
   useWinJingle(celebration, { muted, unlocked });
   useAmbientBed({ muted, unlocked });
+  useGameSfx(isSpinning, celebration, { muted, unlocked });
 
   return (
     <div className="device-stage" data-testid="device-stage">
