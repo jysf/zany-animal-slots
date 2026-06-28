@@ -54,6 +54,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -295,6 +303,42 @@ Written during **design**, BEFORE build.
 
 3. **If you did this task again, what would you do differently?**
    — Write the `vi.mock` factory signatures with no named parameters at all (just `vi.fn(() => …)`) from the start, since the callback signature inside a mock factory is irrelevant to the test assertions. This avoids the lint trip-up entirely.
+
+---
+
+## Verify
+
+Verified 2026-06-27 by claude-sonnet-4-6 (cold reviewer, separate session).
+
+**Verdict: ✅ APPROVED**
+
+Gate results:
+- `just typecheck` — exit 0 (no type errors)
+- `just lint` — exit 0 (no lint errors)
+- `just test` — exit 0 (35 test files, 214 tests, all passing; +11 new tests: 3 audioEngine + 3 ambientBed + 5 useAmbientBed)
+- `just build` — exit 0 (vite production build, 394.64 kB bundle)
+
+Checklist (evidence-based):
+
+- ✅ **getChannel idempotent + connects to master** — `getChannel` uses a Map singleton; `audioEngine.ts:32-35` stores and retrieves from `channels`. Test in `audioEngine.test.ts:49-56` confirms same instance on two calls. `connect(getMaster())` call visible in implementation. Note: test asserts `connectMock.toHaveBeenCalled()` but does not assert the specific argument was the master — weak but implementation is correct.
+- ✅ **getMaster single shared node** — module-level `let master: Gain | null = null` with lazy init (`audioEngine.ts:22-26`).
+- ✅ **CHANNEL_GAINS bed/sfx/jingle in (0,1]** — values 0.25/0.6/0.8; test iterates all three and asserts numeric + `>0` + `<=1` (`audioEngine.test.ts:37-46`).
+- ✅ **startBed starts transport+loop, idempotent** — `if (loop) return` guard on line 13 of `ambientBed.ts`; test "is idempotent" asserts `Loop` constructor called only once on double-call (`ambientBed.test.ts:60-67`); transport started via `getTransport().start()`.
+- ✅ **stopBed cleans up** — stops and disposes loop, disposes pad, nulls refs (`ambientBed.ts:23-31`); test asserts `loopStopMock` and `loopDisposeMock` called.
+- ✅ **useAmbientBed starts when unlocked&&!muted, stops when muted/!unlocked, stops on unmount** — 5 injected-spy tests in `useAmbientBed.test.ts` cover all paths; no real Tone used; `renderHook` from `@testing-library/react`.
+- ✅ **playJingle routes via getChannel('jingle') (no toDestination)** — `jingle.ts:21`: `new Synth().connect(getChannel('jingle'))`; `toDestination` is absent from jingle routing; `./audioEngine` mock added to `jingle.test.ts`.
+- ✅ **Jingle per-tier note counts unchanged** — `jingle.test.ts:46-58` asserts `JINGLE_NOTES.small.length`, `jackpot.length`; test passes (4 tests).
+- ✅ **Engine unchanged** — `git diff main..HEAD -- src/engine/` is empty.
+- ✅ **No new deps** — `git diff main..HEAD -- package.json package-lock.json` is empty.
+- ✅ **Audio gating correct** — hook enforces `unlocked && !muted` before calling start; try/catch in engine + bed guards against missing AudioContext.
+- ✅ **DEC-013 honored** — master bus + named channels (`bed`/`sfx`/`jingle`) + Transport; jingle re-routed; lazy/idempotent creation guarded; lazy creation in jsdom safe (both `ensureAudio` and `startBed` are wrapped in try/catch).
+- ✅ **Tests not vacuous** — hook tests use injected spies and assert call counts precisely; engine/bed tests mock `tone` and assert real wiring (idempotency via Map, single loop via `if (loop) return`).
+- ✅ **No bad eslint-disable or user-event** — grepped: zero matches.
+- ✅ **Decision drift** — `just decisions-audit --changed` output: "No changed files in scope" (tool looks at uncommitted diff; branch diff is clean). `just decisions-audit` shows 19 pre-existing scope-overlap warnings across older DECs — none new, none from this spec. DEC-013 governs `src/ui/audio/**` and is fully honored. DEC-007 and DEC-001 also honored (synthesized only, engine untouched).
+- ✅ **Build reflection honest** — notes the lint trip on mock param names (`_cb`, `_interval`) and the one fix iteration; specific and accurate (confirmed final code uses parameterless lambdas in the Loop mock factory).
+- ✅ **Cost session** — build session present with `tokens_total: null` and "orchestrator to fill" note; correct per AGENTS §4 (subagent, filled at ship).
+
+Minor observation (no punch-list item): the `audioEngine.test.ts` "connects each channel to the master" test does not assert `connectMock.toHaveBeenCalledWith(master)` — it only checks the mock was called and that `ch !== master`. Implementation is correct; future test improvement only.
 
 ---
 
