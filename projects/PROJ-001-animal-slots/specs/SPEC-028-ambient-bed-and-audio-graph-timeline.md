@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-028-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-27 (Opus): spec + DEC-013 (audio-graph architecture) + failing tests (5 useAmbientBed hook + 2 audioEngine + 3 ambientBed + jingle re-route) + build prompt; shared master bus + bed/sfx/jingle channels + generative Transport bed, gated.
-- [~] **build** — Sonnet sub-agent; make the audio-graph + bed tests pass; gate green; local branch only.
+- [x] **build** — gate green (214/214, +11 tests); engine untouched, no new deps; jingle re-routed onto its channel; preview-verified (graph runs through gesture+mute+spins, no console errors); pushed, PR #28 (Sonnet sub-agent).
 - [ ] **verify** — Sonnet sub-agent; cold review against ACs + constraints + DEC-013.
 - [ ] **ship** — orchestrator (Opus): squash-merge, cost totals, archive.
