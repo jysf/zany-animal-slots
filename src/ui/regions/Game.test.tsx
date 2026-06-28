@@ -2,11 +2,13 @@
 // the main region with the expected 15 symbol cells.
 // SPEC-013: Game now takes a `grid` prop; pass INITIAL_GRID in the test.
 // SPEC-023: threads celebration into paw trail via ReelGrid.
+// SPEC-024: ParticleBurst is rendered inside .cabinet__game on a win.
 import { render, screen } from '@testing-library/react';
 import Game from './Game';
 import { INITIAL_GRID } from '../reels/symbols';
 import type { Grid, LineWin } from '../../engine/index';
 import type { Celebration } from '../useSlotMachine';
+import { PARTICLE_COUNTS } from '../reels/ParticleBurst';
 
 /** A minimal known 5×3 grid used across several tests. */
 const TEST_GRID: Grid = [
@@ -47,5 +49,21 @@ describe('Game', () => {
     // Without celebration: no paws.
     rerender(<Game grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} />);
     expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
+  });
+
+  // ── SPEC-024: particle burst threading ──────────────────────────────────────
+
+  it('renders a particle burst on a win', () => {
+    const celebration: Celebration = { id: 1, tier: 'small', totalWin: 10, lineWins: [] };
+
+    // With celebration: PARTICLE_COUNTS.small particles.
+    const { container, rerender } = render(
+      <Game grid={INITIAL_GRID} celebration={celebration} />,
+    );
+    expect(container.querySelectorAll('.particle')).toHaveLength(PARTICLE_COUNTS.small);
+
+    // Without celebration: no particles.
+    rerender(<Game grid={INITIAL_GRID} />);
+    expect(container.querySelectorAll('.particle')).toHaveLength(0);
   });
 });
