@@ -54,6 +54,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-28
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-28
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -265,3 +273,56 @@ Written during **design**, BEFORE build.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+**Gate results (all exit 0):**
+- `just typecheck` — PASSED (tsc --noEmit, 0 errors)
+- `just lint` — PASSED (eslint, 0 errors)
+- `just test` — PASSED (43 test files, 252 tests, 0 failures; 3 new perf contract tests in `src/ui/perf.contract.test.ts`)
+- `just build` — PASSED (vite build 689ms, 1038 modules transformed, 0 errors)
+
+**Decisions audit:** `just decisions-audit --changed main` identified DEC-004, DEC-006, DEC-010 governing changed files — all consistent with this spec's intent. DEC-006 (emoji symbols) is an advisory overlap for `reels.css`; it is not in conflict. Zero structural errors. No new DEC emitted (correct — spec validates DEC-004, not creates a new one). Pre-existing 19 scope-overlap warnings across the repo are unchanged.
+
+**Independent grep result:** `grep -rl "@keyframes" src --include="*.css"` returned exactly 5 files:
+1. `src/ui/reels/reels.css`
+2. `src/ui/reels/win-badge.css`
+3. `src/ui/reels/particles.css`
+4. `src/ui/jackpot.css`
+5. `src/ui/paytable.css`
+
+This matches the spec's claimed sweep exactly.
+
+**Checklist:**
+
+- ✅ **ACCEPTANCE CRITERIA — compositor sweep** — `perf.contract.test.ts` walks all `src/**/*.css` files, for each `@keyframes` block uses brace-counting to extract the block body, then extracts step bodies and property names. Asserts every property is in `ALLOWED = new Set(['transform','opacity','filter'])`. Asserts `keyframeFiles.length >= 5` (currently finds exactly 5). Test "every keyframe animates only compositor-friendly properties" passes.
+
+- ✅ **ACCEPTANCE CRITERIA — load-bearing guard** — Test "the guard is load-bearing" calls `extractKeyframeViolations` on the inline string `'@keyframes bad { from { height: 0 } to { height: 100px } }'` and asserts `violations.length > 0` and `violations.some(v => v.prop === 'height')`. This proves the extractor is real, not vacuous. The production test would fail if any `@keyframes` in the 5 swept files ever animated `height` (or `width`, `top`, `left`, etc.).
+
+- ✅ **ACCEPTANCE CRITERIA — will-change hint** — `reels.css` line 126: `.reel--spinning` block contains `will-change: transform;`. Independently confirmed by reading the file. No raw hex in `reels.css` (grep confirmed 0 matches).
+
+- ✅ **ACCEPTANCE CRITERIA — perf-notes.md** — `docs/perf-notes.md` documents: (1) target (~60fps mid-tier phone), (2) approach referencing DEC-004, (3) static guarantee (the 5-file sweep table + test citation), (4) in-preview measurement (693 samples, median 8.3ms, p95 9.2ms, 0 frames >20ms, 0 long frames >50ms), (5) explicit caveat that no CPU throttle was applied and a real mid-tier phone pass needs DevTools 4–6× throttle or a device, (6) conclusion that DEC-004 holds and no revisit is warranted. Honest and specific.
+
+- ✅ **THE GUARD IS REAL** — `extractKeyframeViolations` in the test uses a Node fs walk (`walkCss`), `readFileSync` on each path, regex-based `@keyframes` detection, brace-counting to find block extent, and `/([a-z-]+)\s*:/g` to extract property names. This is real file parsing, not hardcoded. Spot-check of all 5 files confirms: every keyframe step body uses only `transform` and `opacity` (jackpot.css also uses `opacity`-only for `jackpot-sky-in`; paytable.css uses `transform`-only). The guard would fail if a future `@keyframes` step contained `width:`, `height:`, `top:`, `left:`, `margin:`, etc.
+
+- ✅ **ENGINE UNCHANGED** — `git diff main..HEAD -- src/engine/` is empty. No engine files touched.
+
+- ✅ **NO BEHAVIOR CHANGE** — Only 3 lines added to `reels.css`: a comment plus `will-change: transform;` in `.reel--spinning`. This is a compositor hint, not a visual change. The reduced-motion `@media` block is untouched. No `will-change: auto` under reduced motion (spec says optional, not required — correct to omit).
+
+- ✅ **NO NEW DEPENDENCY** — `git diff main..HEAD -- package.json package-lock.json` is empty.
+
+- ✅ **TESTS NOT VACUOUS** — Three tests: (1) real CSS sweep asserts ≥5 files and 0 violations across all actual CSS files; (2) load-bearing proof on inline bad string; (3) will-change test reads the real `reels.css` via `readFileSync`. Not vacuous.
+
+- ✅ **DECISION DRIFT** — `just decisions-audit --changed main` shows DEC-004 and DEC-010 govern changed files; both are cited in spec front-matter and respected. DEC-001 (engine unchanged). No drift.
+
+- ✅ **PERF-NOTES HONESTY** — The document is explicit: "CPU throttle applied: none (dev machine)." It calls out the limitation, names what the durable guarantee is (the property guard + DEC-004), and does not overclaim a throttled-device result. The measurement is clearly labeled "orchestrator preview sample."
+
+- ✅ **BUILD REFLECTION** — Three questions answered honestly and specifically. No vague filler. One genuine insight (brace-counting for nested braces).
+
+- ✅ **COST — build session** — `tokens_total: null` with note "orchestrator to fill tokens_total from subagent_tokens at ship". Correct per AGENTS §4 and the cycle model for metered subagents.
+
+**Verified by:** claude-sonnet-4-6, 2026-06-28
