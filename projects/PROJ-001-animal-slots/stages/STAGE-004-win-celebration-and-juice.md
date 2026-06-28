@@ -125,7 +125,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-020 (shipped 2026-06-27) — **Paytable sheet**: an "ℹ Paytable" button opens a slide-up overlay listing each tier's 3/4/5 payouts (engine `PAYTABLE`/`SYMBOL_TIER` + emoji); ✕/backdrop/Esc close. **[M]**
 - [x] SPEC-021 (shipped 2026-06-27) — **Win-state router**: a one-shot `celebration` signal from `useSlotMachine` (monotonic `id` per resolved win, carrying tier/totalWin/lineWins; `null` on a no-win) so celebrations fire once per win. **[S]**
 - [x] SPEC-023 (shipped 2026-06-27) — **Payline paw-print trail**: a 🐾 pops onto each winning cell, staggered reel 0→N (CSS keyframe via `--reel-index`, reduced-motion static), keyed off SPEC-021's `celebration` so it replays each win. **[M]**
-- [ ] (not yet written) — Particle effects (leaves / acorns) scaled to win tier. **[M]**
+- [~] SPEC-024 (build) — **Win particle burst**: leaves 🍂 / acorns 🌰 erupt over the reels on a win, count scaled by tier (small<big<jackpot); CSS `particle-fly` keyframe, renders nothing under reduced motion, keyed off `celebration`. **[M]**
 - [x] SPEC-022 (shipped 2026-06-27) — **Balance count-up**: the displayed balance ticks old→new on a win (JS interval tween via `useCountUp`, keyed off SPEC-021's `celebration`; snaps under reduced motion — DEC-012). **[M]**
 - [ ] (not yet written) — Wolf jackpot moment: howl visual + moon scene on the five-Wolf hit. **[M]**
 - [ ] (not yet written) — Tier-scaled synthesized win jingle (Tone.js) keyed off win-tier — **backlog rider [S]**.
