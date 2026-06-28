@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-005                     # stable, zero-padded within the project
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low  (activated 2026-06-27)
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-06-18
-shipped_at: null
+shipped_at: 2026-06-28
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -172,4 +172,114 @@ reveals deep work.
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1d (Stage Ship) to draft.*
+*Shipped 2026-06-28. All seven specs (SPEC-028 … SPEC-034) in `specs/done/`.*
+
+### Success criteria — did we deliver?
+
+All five met:
+- ✅ **Audio suite complete & synthesized, gated.** A shared Tone.js graph
+  (master bus + `bed`/`sfx`/`jingle` channels + `Tone.Transport`, **DEC-013**)
+  hosts a generative ambient bed (SPEC-028), a full SFX set — spin whoosh,
+  per-reel stop clunks ×5, win ting — fired off real game events (SPEC-029), and
+  bus-level dynamic mixing that swells the bed on a big win and ducks it under the
+  jackpot (SPEC-030). All gated by `useAudio` (mute + first-gesture unlock,
+  SPEC-026), no asset files (DEC-007); the SPEC-027 jingle was re-routed onto its
+  channel.
+- ✅ **Reduced motion complete & audited.** All 5 `@keyframes` CSS files already
+  carried a reduced-motion block; SPEC-031 added a global motion safety net + a
+  regression-guard sweep + confirmed audio is not motion-gated + App renders under
+  emulated reduced motion.
+- ✅ **Contrast + 44px pass.** SPEC-032 measured every text/bg pair: all AA except
+  one (muted-on-frame 4.06) → fixed with a single token lighten
+  (`--_raw-muted` `#b89a6e→#ccb084`, now 5.21); all 6 controls confirmed ≥44px;
+  both locked by guard tests (with a load-bearing regression proof).
+- ✅ **State distinguishable without color.** SPEC-033 gave the win badge a tier
+  **word** (WIN / BIG WIN / JACKPOT) + `data-tier` — a text cue — backed by a
+  redundant tier border color; symbols were already shape-distinct emoji (DEC-006).
+- ✅ **~60fps holds.** SPEC-034 found every keyframe animates only
+  transform/opacity (GPU-composited) and locked it with a compositor-only sweep
+  guard + a `will-change` hint; the preview rAF sample was median 8.3ms / 0 long
+  frames. DEC-004 validated, not revisited.
+
+### value_contribution — delivered as claimed?
+
+Yes. The stage *hardened* the thesis rather than extending it, exactly as framed:
+the demo became "something you can put in front of anyone." All four `delivers`
+landed (full audio suite; reduced-motion support; contrast/44px + colorblind cues;
+a documented perf pass). The `explicitly_does_not` held: no new mechanics/themes/
+symbols, no audio asset pipeline (still fully synthesized — the CC0 howl stays
+parked for PROJ-002), no accounts/backend. And the frame's prediction proved
+right — **this is where `verify` earned its keep**: perf, contrast, reduced-motion,
+and compositor-safety all have objective, checkable targets, so each audit shipped
+as a *guard test*, not just a manual sign-off.
+
+### 3-sentence summary
+
+Built seven specs in the framed order — audio graph + bed → SFX → mixing, then the
+three a11y audits, then the perf pass last so it measured the final
+celebration+audio load — with the shared audio graph (DEC-013) laid first so SFX
+and mixing were small plug-ins rather than rewrites. It ran smoothly and was the
+most *test-shaped* stage of the project: the audio was gated/tier logic unit-tested
+via injected spies + mocked `tone` (no sound needed to prove correctness), and the
+four audits each became a sweep/guard test (reduced-motion coverage, WCAG-AA
+contrast, colorblind text cue, compositor-only keyframes). The audits mostly
+*confirmed* prior-stage discipline (only one real fix surfaced — the muted-contrast
+token), which is itself the payoff of building the reduced-motion/44px paths open
+from the start.
+
+### Stage-Level Reflection answers
+
+- **Did we deliver the outcome in "What This Stage Is"?** Yes — the game is now
+  not just playable and juicy but **accessible and performant with a full
+  synthesized audio bed/SFX/mixing layer**, all gated and measured.
+- **How many specs did it actually take?** Seven, exactly as framed (5×M + 1×S–M
+  + 1×S; no L, no splits, no additions). The two flagged-uncertain specs (dynamic
+  mixing, perf pass) both came in clean — mixing because DEC-013 made it a one-node
+  gain ramp, perf because DEC-004's transform/opacity discipline already held.
+- **What changed between starting and shipping?** Nothing in scope. One new
+  decision (DEC-013, the audio-graph architecture) emitted at design; the audits
+  surfaced a single real fix (the muted-contrast token) and otherwise confirmed
+  compliance, codifying it as guard tests.
+- **Lessons that should update AGENTS.md, templates, or constraints?** The
+  recurring build-agent frictions logged in STAGE-004 (no `react-hooks` ESLint
+  plugin; no `@testing-library/user-event`; write `vi.fn()` mock factories with no
+  named params) showed up again in the audio specs and were pre-empted by one-line
+  notes in the build prompts — worth folding into the UI build-prompt boilerplate.
+  Three a11y/perf invariants are now test-enforced (reduced-motion, WCAG-AA
+  contrast, compositor-only animation); a weekly review could promote them to named
+  constraints (`contrast-aa`, `state-not-color-only`, `compositor-only-keyframes`),
+  but the guard tests already enforce them so it's optional.
+- **Should any spec-level reflections be promoted to stage-level lessons?** Two:
+  (a) **lay the shared infrastructure first** — the DEC-013 audio graph turned
+  three audio specs into small channel plug-ins and made dynamic mixing a single
+  `gain.rampTo`; (b) **ship audits as guard tests, not sign-offs** — a sweep that
+  fails on a future regression (reduced-motion blocks, compositor-only keyframes,
+  AA contrast, ≥44px) is durable where a one-time manual audit rots.
+
+### Follow-up flags
+
+- **Next stage:** STAGE-006 (release & deploy) is the natural successor and the
+  last stage of PROJ-001 — it ships the polished, accessible, performant build this
+  stage produced (Cloudflare Pages, CI deploy on merge, security headers, the
+  dependency/license gate, SECURITY.md, a prod smoke check; DEC-008).
+- **Carry-forward (for STAGE-006 / PROJ-002):** `tone` roughly **doubled the
+  bundle** (~407 KB JS / ~114 KB gz) — a bundle-size concern for the deploy stage
+  (code-split the audio / lazy-load Tone behind the first gesture?), not a
+  frame-rate one. A true **mid-tier-device perf confirmation** (DevTools 4–6× CPU
+  throttle or a real phone) is documented in `docs/perf-notes.md` as a manual step
+  — worth doing once in STAGE-006's prod smoke check. The CC0 wolf-howl sample and
+  the richer "audio settings" UI remain PROJ-002.
+- No engine work deferred; nothing punted that isn't already on a future stage/
+  project.
+
+### Proposed template / guidance updates (for review — not yet applied)
+
+- Fold the standing UI build-prompt notes into boilerplate: "this repo uses
+  `fireEvent` (no `@testing-library/user-event`) and has no `react-hooks` ESLint
+  plugin — don't add `exhaustive-deps` disables; write `vi.fn()` mock factories
+  with no named callback params." (Dogfood findings #12/#13.)
+- Consider promoting the three test-enforced a11y/perf invariants to named
+  constraints at the next weekly review (optional — guard tests already enforce
+  them).
+- No DEC changes required; DEC-013 (audio-graph architecture) is the only new
+  decision this stage emitted.

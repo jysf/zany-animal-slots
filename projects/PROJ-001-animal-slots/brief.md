@@ -227,10 +227,10 @@ fires nothing):
 - [x] STAGE-002 (shipped 2026-06-23) — Slot engine: pure logic, zero DOM (RNG, reels, spin resolution, paylines/paytable, bet/balance, win-tier classification; fully unit-tested).
 - [x] STAGE-003 (shipped 2026-06-26) — Reels UI & spin flow (wire engine to UI; grid, spin button, bet controls, auto-spin; idle → spinning → stopped with reel-stop bounce).
 - [x] STAGE-004 (shipped 2026-06-27) — Win celebration & juice (small/big/jackpot states, payline trail, particles, wolf jackpot moment, balance count-up, tier-scaled win jingle + mute).
-- [ ] STAGE-005 (active) — Audio suite, a11y, polish (full audio suite, prefers-reduced-motion, contrast/44px audit, colorblind-safe shapes, perf pass).
+- [x] STAGE-005 (shipped 2026-06-28) — Audio suite, a11y, polish (full audio suite, prefers-reduced-motion, contrast/44px audit, colorblind-safe shapes, perf pass).
 - [ ] STAGE-006 (pending) — Release & deploy (Cloudflare Pages deploy via CI on merge, security headers/CSP, dependency+license audit gate, SECURITY.md, prod smoke check).
 
-**Count:** 4 shipped / 1 active / 1 pending
+**Count:** 5 shipped / 0 active / 1 pending
 
 ## Dependencies
 
