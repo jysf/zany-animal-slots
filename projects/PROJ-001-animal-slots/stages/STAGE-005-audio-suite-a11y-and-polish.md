@@ -127,7 +127,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [x] SPEC-030 (shipped 2026-06-27) — **Dynamic mixing**: bus-level bed automation — swell on a big win, duck under the jackpot moment, restore to baseline — keyed off the engine win tier (`celebration`), gated. **[M]**
 - [x] SPEC-031 (shipped 2026-06-28) — **Reduced-motion audit**: a global motion safety net + a regression-guard sweep (every `@keyframes` CSS has a reduced-motion block) + audio-not-motion-gated + App-renders-under-reduced-motion; confirmed all 5 keyframes CSS already compliant. **[S]**
 - [x] SPEC-032 (shipped 2026-06-28) — **Contrast + 44px audit & fixes**: WCAG AA contrast audit (1 fix — lightened `--_raw-muted` #b89a6e→#ccb084 so muted-on-frame button text clears 4.5:1 at 5.21) + ≥44px confirmed; both locked by guard tests. **[M]**
-- [ ] (not yet written) — **Colorblind-safe state cues**: ensure win-tier feedback isn't color-only (tier label/icon as needed); symbols stay shape-distinct. **[S]**
+- [~] SPEC-033 (build) — **Colorblind-safe state cues**: win badge gains a tier WORD (WIN / BIG WIN / JACKPOT) + `data-tier` — a text cue backed by a redundant tier border color (win-tier tokens); symbols already shape-distinct (DEC-006). **[S]**
 - [ ] (not yet written) — **Performance pass**: measure + hold ~60fps spin/celebration on a throttled mid-tier profile; fix long tasks; document; revisit DEC-004 only if it fails. **[M]** *(could grow to L if profiling surfaces deep work — split then)*
 
 **Count:** 5 shipped / 0 active / 2 pending — 5×M, 1×(S–M), 1×S; **no L** (audio suite + reduced-motion + contrast/44px done; colorblind + perf remain). Sized at
