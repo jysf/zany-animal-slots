@@ -4,7 +4,7 @@
 task:
   id: SPEC-034
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -46,10 +46,34 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-28
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. the compositor-property survey)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 65661
+      estimated_usd: 0.43
+      duration_minutes: 4.2
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=65661, 254s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 79326
+      estimated_usd: 0.52
+      duration_minutes: 4.2
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=79326, 253s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-28
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. the preview rAF frame-interval measurement)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 144987
+    estimated_usd: 0.95
+    session_count: 5
 ---
 
 # SPEC-034: Performance pass (~60fps)
@@ -213,28 +237,35 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-034-perf-pass
+- **PR (if applicable):** local only — no push per spec instructions
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — validates DEC-004
+  - none — this spec validates DEC-004, no new decision warranted
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none — the in-preview measurement numbers in perf-notes.md are a placeholder for the orchestrator to fill at verify/ship via DevTools rAF sampling
 - **Perf result:**
-  - [which keyframe files swept; confirm all compositor-only; will-change added]
+  - Keyframe files swept (all compositor-only, confirmed by `perf.contract.test.ts`):
+    1. `src/ui/reels/reels.css` — `reel-spin`, `reel-stop-bounce`, `paw-trail-pop` (transform + opacity only)
+    2. `src/ui/reels/win-badge.css` — `win-badge-pop-in` (transform + opacity only)
+    3. `src/ui/reels/particles.css` — `particle-fly` (transform + opacity only)
+    4. `src/ui/jackpot.css` — `jackpot-sky-in`, `jackpot-moon-rise`, `jackpot-wolf-howl`, `jackpot-banner-in` (transform + opacity only)
+    5. `src/ui/paytable.css` — `paytable-slide-up` (transform only)
+  - `will-change: transform` added to `.reel--spinning` in `reels.css` (particles already carried `will-change: transform, opacity` from SPEC-024)
+  - All 3 perf contract tests pass; all 252 tests pass; gate exits 0.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down; the spec was unusually clear. The one micro-ambiguity was whether the `@keyframes` brace-counting in the extractor needed to handle nested braces — it does (step bodies are one level of nesting inside the outer block). The spec mentioned "balance braces" as an option, which pointed me in the right direction immediately.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. All relevant ones (DEC-004, DEC-010, DEC-001, perf-60fps, respect-reduced-motion) were listed and applied. The note that `will-change: auto` under reduced motion is optional but not required was helpful — I left it out as the spec suggested.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural. The spec's suggestion to mirror the `reduced-motion.contract.test.tsx` pattern (Node fs walk + ≥5 assertion + load-bearing proof) mapped directly to a clean test. If anything, I'd pre-read the existing test more carefully before writing to avoid any duplication — though in this case the new test is complementary, not overlapping.
 
 ---
 
@@ -243,10 +274,76 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Closing the perf pass as a *structural guarantee* (the
+   compositor-only sweep) rather than a one-time benchmark is the durable win — the
+   ~60fps target now can't silently regress because a future keyframe is mechanically
+   forbidden from animating a layout property. The preview rAF sample (median 8.3ms, 0
+   long frames) confirmed the dev profile, and the doc is honest that a throttled-device
+   pass is the manual confirmation. DEC-004 is validated, not revisited.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-004 holds. STAGE-005 leaves three new test-enforced invariants worth a
+   weekly-review mention (they could become explicit constraints, but the guard tests
+   already enforce them): reduced-motion coverage (SPEC-031), WCAG-AA contrast
+   (SPEC-032), and compositor-only animation (this spec). The one carry-forward note:
+   `tone` roughly doubled the bundle (~407KB JS) — a STAGE-006/PROJ-002 bundle-size
+   concern, not a frame-rate one.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. This completes STAGE-005's 7-item backlog (audio suite +
+   reduced-motion + contrast/44px + colorblind + perf). Next is the **STAGE-005 Stage
+   Ship** (Prompt 1d, offered not auto-run), then STAGE-006 (release & deploy) is the
+   last stage of PROJ-001.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+**Gate results (all exit 0):**
+- `just typecheck` — PASSED (tsc --noEmit, 0 errors)
+- `just lint` — PASSED (eslint, 0 errors)
+- `just test` — PASSED (43 test files, 252 tests, 0 failures; 3 new perf contract tests in `src/ui/perf.contract.test.ts`)
+- `just build` — PASSED (vite build 689ms, 1038 modules transformed, 0 errors)
+
+**Decisions audit:** `just decisions-audit --changed main` identified DEC-004, DEC-006, DEC-010 governing changed files — all consistent with this spec's intent. DEC-006 (emoji symbols) is an advisory overlap for `reels.css`; it is not in conflict. Zero structural errors. No new DEC emitted (correct — spec validates DEC-004, not creates a new one). Pre-existing 19 scope-overlap warnings across the repo are unchanged.
+
+**Independent grep result:** `grep -rl "@keyframes" src --include="*.css"` returned exactly 5 files:
+1. `src/ui/reels/reels.css`
+2. `src/ui/reels/win-badge.css`
+3. `src/ui/reels/particles.css`
+4. `src/ui/jackpot.css`
+5. `src/ui/paytable.css`
+
+This matches the spec's claimed sweep exactly.
+
+**Checklist:**
+
+- ✅ **ACCEPTANCE CRITERIA — compositor sweep** — `perf.contract.test.ts` walks all `src/**/*.css` files, for each `@keyframes` block uses brace-counting to extract the block body, then extracts step bodies and property names. Asserts every property is in `ALLOWED = new Set(['transform','opacity','filter'])`. Asserts `keyframeFiles.length >= 5` (currently finds exactly 5). Test "every keyframe animates only compositor-friendly properties" passes.
+
+- ✅ **ACCEPTANCE CRITERIA — load-bearing guard** — Test "the guard is load-bearing" calls `extractKeyframeViolations` on the inline string `'@keyframes bad { from { height: 0 } to { height: 100px } }'` and asserts `violations.length > 0` and `violations.some(v => v.prop === 'height')`. This proves the extractor is real, not vacuous. The production test would fail if any `@keyframes` in the 5 swept files ever animated `height` (or `width`, `top`, `left`, etc.).
+
+- ✅ **ACCEPTANCE CRITERIA — will-change hint** — `reels.css` line 126: `.reel--spinning` block contains `will-change: transform;`. Independently confirmed by reading the file. No raw hex in `reels.css` (grep confirmed 0 matches).
+
+- ✅ **ACCEPTANCE CRITERIA — perf-notes.md** — `docs/perf-notes.md` documents: (1) target (~60fps mid-tier phone), (2) approach referencing DEC-004, (3) static guarantee (the 5-file sweep table + test citation), (4) in-preview measurement (693 samples, median 8.3ms, p95 9.2ms, 0 frames >20ms, 0 long frames >50ms), (5) explicit caveat that no CPU throttle was applied and a real mid-tier phone pass needs DevTools 4–6× throttle or a device, (6) conclusion that DEC-004 holds and no revisit is warranted. Honest and specific.
+
+- ✅ **THE GUARD IS REAL** — `extractKeyframeViolations` in the test uses a Node fs walk (`walkCss`), `readFileSync` on each path, regex-based `@keyframes` detection, brace-counting to find block extent, and `/([a-z-]+)\s*:/g` to extract property names. This is real file parsing, not hardcoded. Spot-check of all 5 files confirms: every keyframe step body uses only `transform` and `opacity` (jackpot.css also uses `opacity`-only for `jackpot-sky-in`; paytable.css uses `transform`-only). The guard would fail if a future `@keyframes` step contained `width:`, `height:`, `top:`, `left:`, `margin:`, etc.
+
+- ✅ **ENGINE UNCHANGED** — `git diff main..HEAD -- src/engine/` is empty. No engine files touched.
+
+- ✅ **NO BEHAVIOR CHANGE** — Only 3 lines added to `reels.css`: a comment plus `will-change: transform;` in `.reel--spinning`. This is a compositor hint, not a visual change. The reduced-motion `@media` block is untouched. No `will-change: auto` under reduced motion (spec says optional, not required — correct to omit).
+
+- ✅ **NO NEW DEPENDENCY** — `git diff main..HEAD -- package.json package-lock.json` is empty.
+
+- ✅ **TESTS NOT VACUOUS** — Three tests: (1) real CSS sweep asserts ≥5 files and 0 violations across all actual CSS files; (2) load-bearing proof on inline bad string; (3) will-change test reads the real `reels.css` via `readFileSync`. Not vacuous.
+
+- ✅ **DECISION DRIFT** — `just decisions-audit --changed main` shows DEC-004 and DEC-010 govern changed files; both are cited in spec front-matter and respected. DEC-001 (engine unchanged). No drift.
+
+- ✅ **PERF-NOTES HONESTY** — The document is explicit: "CPU throttle applied: none (dev machine)." It calls out the limitation, names what the durable guarantee is (the property guard + DEC-004), and does not overclaim a throttled-device result. The measurement is clearly labeled "orchestrator preview sample."
+
+- ✅ **BUILD REFLECTION** — Three questions answered honestly and specifically. No vague filler. One genuine insight (brace-counting for nested braces).
+
+- ✅ **COST — build session** — `tokens_total: null` with note "orchestrator to fill tokens_total from subagent_tokens at ship". Correct per AGENTS §4 and the cycle model for metered subagents.
+
+**Verified by:** claude-sonnet-4-6, 2026-06-28
