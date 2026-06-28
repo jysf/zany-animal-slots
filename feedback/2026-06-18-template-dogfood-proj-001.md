@@ -149,6 +149,23 @@ appended at the bottom. Scaffold more entries with `just new-feedback "<slug>"`.
       mechanical remainder on main-loop, attributed cost to the sub-agent's metered
       portion). Surfaced by SPEC-004.
 
+12. **Build sub-agents reflexively add `// eslint-disable-line
+    react-hooks/exhaustive-deps` for intentional partial hook deps, but this
+    project's ESLint config has no `react-hooks` plugin.** Seen on both SPEC-022
+    (`useCountUp`) and SPEC-024 (`ParticleBurst`'s `useMemo`): the agent wrote a
+    hook with deliberately narrow deps, added the disable directive out of habit,
+    and the lint step flagged it (unused/undefined directive) — caught and removed
+    by the agent in one extra lint cycle each time. Low-severity, always
+    self-corrected, never reached `main`. Pattern: agents carry a strong "React +
+    intentional deps ⇒ add exhaustive-deps disable" prior that doesn't match a repo
+    without the plugin.
+    - **Suggested fix (process/spec):** when a spec's Notes hand the implementer a
+      hook with intentional partial deps, add a one-line "this repo's ESLint has no
+      `react-hooks` plugin — do NOT add an `exhaustive-deps` disable; document the
+      intent in a code comment instead." (Or, separately, decide whether to adopt
+      the `react-hooks` plugin so the intent is machine-checked rather than
+      commented.) `status: open` — surfaced across SPEC-022 / SPEC-024.
+
 ## What worked (keep)
 
 - The `value:` (project) and `value_contribution:` (stage) blocks forced
