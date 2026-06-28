@@ -121,6 +121,9 @@
   /* spin runs first; bounce fires simultaneously so it's visible at stop.
      The overall reveal is controlled by JS (SPIN_DURATION_MS); here we simply
      animate the reel for visual feedback while status === 'spinning'. */
+  /* Compositor hint: promote this element to its own GPU layer for the
+     duration of the spin animation — the most-frequent animation in the app. */
+  will-change: transform;
 }
 
 /* ─── Reduced-motion override ────────────────────────────────────────────────── */

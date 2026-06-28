@@ -46,6 +46,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-28
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. the compositor-property survey)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-28
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -213,28 +221,35 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-034-perf-pass
+- **PR (if applicable):** local only — no push per spec instructions
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — validates DEC-004
+  - none — this spec validates DEC-004, no new decision warranted
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none — the in-preview measurement numbers in perf-notes.md are a placeholder for the orchestrator to fill at verify/ship via DevTools rAF sampling
 - **Perf result:**
-  - [which keyframe files swept; confirm all compositor-only; will-change added]
+  - Keyframe files swept (all compositor-only, confirmed by `perf.contract.test.ts`):
+    1. `src/ui/reels/reels.css` — `reel-spin`, `reel-stop-bounce`, `paw-trail-pop` (transform + opacity only)
+    2. `src/ui/reels/win-badge.css` — `win-badge-pop-in` (transform + opacity only)
+    3. `src/ui/reels/particles.css` — `particle-fly` (transform + opacity only)
+    4. `src/ui/jackpot.css` — `jackpot-sky-in`, `jackpot-moon-rise`, `jackpot-wolf-howl`, `jackpot-banner-in` (transform + opacity only)
+    5. `src/ui/paytable.css` — `paytable-slide-up` (transform only)
+  - `will-change: transform` added to `.reel--spinning` in `reels.css` (particles already carried `will-change: transform, opacity` from SPEC-024)
+  - All 3 perf contract tests pass; all 252 tests pass; gate exits 0.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down; the spec was unusually clear. The one micro-ambiguity was whether the `@keyframes` brace-counting in the extractor needed to handle nested braces — it does (step bodies are one level of nesting inside the outer block). The spec mentioned "balance braces" as an option, which pointed me in the right direction immediately.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. All relevant ones (DEC-004, DEC-010, DEC-001, perf-60fps, respect-reduced-motion) were listed and applied. The note that `will-change: auto` under reduced motion is optional but not required was helpful — I left it out as the spec suggested.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural. The spec's suggestion to mirror the `reduced-motion.contract.test.tsx` pattern (Node fs walk + ≥5 assertion + load-bearing proof) mapped directly to a clean test. If anything, I'd pre-read the existing test more carefully before writing to avoid any duplication — though in this case the new test is complementary, not overlapping.
 
 ---
 
