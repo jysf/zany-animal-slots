@@ -124,14 +124,14 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-019 (shipped 2026-06-27) — **Win-amount display**: show `totalWin` on a win — a pop-up badge over the reels + a persistent last-win readout. **[M]**
 - [x] SPEC-020 (shipped 2026-06-27) — **Paytable sheet**: an "ℹ Paytable" button opens a slide-up overlay listing each tier's 3/4/5 payouts (engine `PAYTABLE`/`SYMBOL_TIER` + emoji); ✕/backdrop/Esc close. **[M]**
 - [x] SPEC-021 (shipped 2026-06-27) — **Win-state router**: a one-shot `celebration` signal from `useSlotMachine` (monotonic `id` per resolved win, carrying tier/totalWin/lineWins; `null` on a no-win) so celebrations fire once per win. **[S]**
-- [~] SPEC-023 (verify) — **Payline paw-print trail**: a 🐾 pops onto each winning cell, staggered reel 0→N (CSS keyframe via `--reel-index`, reduced-motion static), keyed off SPEC-021's `celebration` so it replays each win. **[M]**
+- [x] SPEC-023 (shipped 2026-06-27) — **Payline paw-print trail**: a 🐾 pops onto each winning cell, staggered reel 0→N (CSS keyframe via `--reel-index`, reduced-motion static), keyed off SPEC-021's `celebration` so it replays each win. **[M]**
 - [ ] (not yet written) — Particle effects (leaves / acorns) scaled to win tier. **[M]**
 - [x] SPEC-022 (shipped 2026-06-27) — **Balance count-up**: the displayed balance ticks old→new on a win (JS interval tween via `useCountUp`, keyed off SPEC-021's `celebration`; snaps under reduced motion — DEC-012). **[M]**
 - [ ] (not yet written) — Wolf jackpot moment: howl visual + moon scene on the five-Wolf hit. **[M]**
 - [ ] (not yet written) — Tier-scaled synthesized win jingle (Tone.js) keyed off win-tier — **backlog rider [S]**.
 - [ ] (not yet written) — Global mute toggle (persisted) + first-gesture audio unlock (constraint `audio-gesture-and-mute`). **[S]**
 
-**Count:** 4 shipped / 0 active / 5 pending — sized at Stage Frame. **Current slice (DONE):**
+**Count:** 5 shipped / 0 active / 4 pending — sized at Stage Frame. **Current slice (DONE):**
 SPEC-019 (win amount) + SPEC-020 (paytable sheet) first, then pause; the
 celebration/audio specs follow later.
 
