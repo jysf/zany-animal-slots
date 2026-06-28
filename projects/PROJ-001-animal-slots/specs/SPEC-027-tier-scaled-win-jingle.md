@@ -55,6 +55,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -285,6 +293,49 @@ they need no Tone. The jingle test mocks the `tone` module.
 
 3. **If you did this task again, what would you do differently?**
    — Verify that every type referenced in drop-in import paths is actually exported before writing the files, rather than discovering the mismatch at typecheck. A one-line grep (`grep "export.*WinTier" src/ui/useSlotMachine.ts`) would have caught it before the first typecheck run.
+
+---
+
+## Verify
+
+**Reviewer:** claude-sonnet-4-6 (cold — did not build this)
+**Date:** 2026-06-27
+**Verdict:** ✅ APPROVED
+
+### Gate results
+
+| Gate | Result |
+|---|---|
+| `just typecheck` | exit 0 |
+| `just lint` | exit 0 |
+| `just test` | exit 0 — 32 test files, **203 tests** passed (0 failed) |
+| `just build` | exit 0 — 1030 modules transformed, 384.93 kB bundle |
+| `just decisions-audit --changed main` | advisory only — DEC-007 correctly flagged as governing `src/ui/audio/**`; all changes consistent |
+
+### Checklist
+
+- ✅ **JINGLE_NOTES strictly increasing** — `small=3, big=5, jackpot=7` (3 < 5 < 7). Evidence: `jingle.ts` lines 7–11; test asserts `small.length < big.length < jackpot.length`.
+- ✅ **playJingle('none') is a no-op** — `jingle.ts` line 14 returns early before any Tone call. Test `jingle.test.ts` line 33–37 asserts `start` and `triggerAttackRelease` NOT called.
+- ✅ **playJingle(tier) calls Tone.start() once + triggers JINGLE_NOTES[tier].length notes** — confirmed in `jingle.ts` lines 17–21; tests assert `start` called once and `triggerAttackRelease` called `JINGLE_NOTES.small.length` (3) / `JINGLE_NOTES.jackpot.length` (7) times.
+- ✅ **Tone mock is non-vacuous** — `vi.mock('tone', …)` defines a shared `triggerAttackRelease` spy before the factory; each tier test runs independently (beforeEach clears mocks). Would fail if `playJingle` didn't scale or didn't call Tone.
+- ✅ **useWinJingle plays once on new win when !muted && unlocked** — `useWinJingle.test.ts` line 13–28; `play` spy called once with `'small'`.
+- ✅ **Does not play when muted** — test line 30–40; `play` not called.
+- ✅ **Does not play when locked** — test line 42–51; `play` not called.
+- ✅ **Does not play without celebration** — test line 53–62; `play` not called.
+- ✅ **Re-plays on new celebration.id** — test line 64–81; `play` called twice total after `id:1` then `id:2`.
+- ✅ **Does not re-play when only mute toggles (same id)** — test line 83–102; after win `id:1`, toggle muted true, then false — `play` stays at 1 call.
+- ✅ **useEffect keyed on [celebration?.id] only** — `useWinJingle.ts` line 23: `}, [celebration?.id])`. Muted/unlocked read at fire time inside the effect. Correct: mute toggle alone never changes `celebration?.id` so no re-fire.
+- ✅ **play param is injectable** — third param defaults to `playJingle` but tests pass `vi.fn()`. No real Tone runs in hook tests.
+- ✅ **tone in package.json dependencies** — confirmed: `"tone": "^15.1.22"` in `dependencies` (not devDependencies).
+- ✅ **DEP AUTHORIZED** — DEC-007 explicitly authorizes `tone` / Tone.js. No new DEC was added or is required. Confirmed no new `DEC-*` files in `git diff main..HEAD`.
+- ✅ **MIT license** — `node_modules/tone/package.json`: `"license": "MIT"`. Satisfies `license-policy` constraint.
+- ✅ **Engine unchanged** — `git diff main..HEAD -- src/engine/` is empty.
+- ✅ **No eslint-disable in audio/** — `grep -rn "eslint-disable" src/ui/audio/` returned no matches.
+- ✅ **No @testing-library/user-event** — hook tests use `renderHook` + `rerender` only; no `fireEvent`, no `userEvent`.
+- ✅ **Scope** — only `src/ui/audio/jingle.ts`, `jingle.test.ts`, `useWinJingle.ts`, `useWinJingle.test.ts`, `src/ui/App.tsx`, `package.json`, `package-lock.json`, plus spec/timeline/stage docs. No engine, no unrelated UI.
+- ✅ **decisions-audit** — `just decisions-audit --changed main` advisory only; DEC-007 governs `src/ui/audio/**` and implementation is fully consistent. 16 pre-existing scope-overlap warnings from `just decisions-audit` (no flag); all pre-date this PR, none contradictory.
+- ✅ **Build reflection honest and specific** — correctly identifies the `WinTier` import-path fix: `useSlotMachine.ts` imports `WinTier` from `engine/index` but does not re-export it. Both `jingle.ts` and `useWinJingle.ts` import from `../../engine/index` (the public interface, DEC-001 compliant). Confirmed via `grep "export.*WinTier" src/engine/index.ts` → line 18: `export type { WinTier } from './tiers'`.
+- ✅ **Cost build session** — present with `tokens_total: null` + "orchestrator to fill" note. Correct per AGENTS §4 (metered subagent cycle; orchestrator fills at ship).
 
 ---
 
