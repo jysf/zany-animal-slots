@@ -48,23 +48,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 71242
+      estimated_usd: 0.47
+      duration_minutes: 6.2
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=71242, 370s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 66732
+      estimated_usd: 0.44
+      duration_minutes: 4.0
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=66732, 238s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 6
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview tier-badge check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 137974
+    estimated_usd: 0.91
+    session_count: 5
 ---
 
 # SPEC-033: Colorblind-safe state cues
@@ -262,13 +270,23 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Framing the colorblind fix as a *redundant text cue* (the tier
+   word) backed by color — rather than fiddling with hues — is the right WCAG pattern
+   and also just makes the badge clearer for everyone. It also gave the so-far-unused
+   `--color-win-*` tokens their first real job (as the backup border), so the palette
+   is now fully exercised. Backward-compatible default (`tier` omitted → `WIN`) meant
+   the existing badge tests kept passing.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-006/010 covered it. The three a11y audits (reduced-motion, contrast,
+   colorblind) are all now test-enforced; if the weekly review wants to formalize them
+   as constraints (`contrast-aa`, `state-not-color-only`) that's a docs nicety, not a
+   functional gap — the guard tests already enforce them.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-034 (the performance pass) is the last STAGE-005 spec; it will
+   measure the spin + celebrations + the now-complete audio graph against the ~60fps
+   target. After it ships, STAGE-005's backlog is complete (7/7).
 
 ---
 
