@@ -123,14 +123,14 @@ celebration+audio load).
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
 - [x] SPEC-028 (shipped 2026-06-27) — **Ambient music bed + audio-graph foundation**: a generative Tone.js loop on `Tone.Transport`, gated by mute+unlock; sets up the shared master bus / channels the SFX and mixing build on (DEC-013); jingle re-routed onto its channel. **[M]**
-- [~] SPEC-029 (verify) — **SFX set**: synthesized spin whoosh, per-reel stop clunk (×5), and win ting, fired off the spin flow (`isSpinning` edges) / `celebration` signal; routed through the `sfx` channel, gated. **[M]**
+- [x] SPEC-029 (shipped 2026-06-27) — **SFX set**: synthesized spin whoosh, per-reel stop clunk (×5), and win ting, fired off the spin flow (`isSpinning` edges) / `celebration` signal; routed through the `sfx` channel, gated. **[M]**
 - [ ] (not yet written) — **Dynamic mixing**: bus-level swell on a big win and duck under the jackpot moment; balance bed/SFX/jingle levels. **[M]** *(most uncertain — depends on the bed + SFX landing first)*
 - [ ] (not yet written) — **Reduced-motion audit**: confirm/complete a non-animated feedback path for spin + every celebration; CSS-contract sweep + behavior tests; audio still plays under reduced motion. **[S–M]**
 - [ ] (not yet written) — **Contrast + 44px audit & fixes**: WCAG AA contrast on text/controls + ≥44px hit areas; token/markup fixes; documented. **[M]**
 - [ ] (not yet written) — **Colorblind-safe state cues**: ensure win-tier feedback isn't color-only (tier label/icon as needed); symbols stay shape-distinct. **[S]**
 - [ ] (not yet written) — **Performance pass**: measure + hold ~60fps spin/celebration on a throttled mid-tier profile; fix long tasks; document; revisit DEC-004 only if it fails. **[M]** *(could grow to L if profiling surfaces deep work — split then)*
 
-**Count:** 1 shipped / 0 active / 6 pending — 5×M, 1×(S–M), 1×S; **no L**. Sized at
+**Count:** 2 shipped / 0 active / 5 pending — 5×M, 1×(S–M), 1×S; **no L**. Sized at
 Stage Frame; within the 3–8 range (no rescoping needed). Two carry the most
 uncertainty — dynamic mixing (#3) and the perf pass (#7); split #7 if profiling
 reveals deep work.
