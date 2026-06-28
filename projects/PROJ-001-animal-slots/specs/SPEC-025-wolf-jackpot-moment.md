@@ -48,6 +48,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -275,26 +283,26 @@ Import `JACKPOT_MOMENT_MS` from the component.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-025-jackpot-moment
+- **PR (if applicable):** none (local only)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none; drop-in code from spec Notes used verbatim
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond already-planned SPEC-026/027
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing meaningfully slowed the build. The "Notes for the Implementer" provided complete drop-in code for every file; the only ambiguity was whether `tier: 'none'` was a valid value for the `Celebration` interface in tests (the comment says "never 'none', only set on a win" but the TypeScript type allows it). It compiled fine without adjustment.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The spec's note about the ESLint react-hooks plugin absence (and the resulting ban on `// eslint-disable-line react-hooks/exhaustive-deps`) was a helpful heads-up that saved a lint failure. All relevant decisions (DEC-004/006/010/001) were explicitly cited and sufficient.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant; the spec was self-contained enough that implementation was essentially transcription + gate verification. One micro-improvement: running `just test` before `just typecheck` would surface test logic errors faster than a type error, since the component code and test code interact closely.
 
 ---
 

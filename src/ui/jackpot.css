@@ -1,0 +1,89 @@
+/*
+ * Jackpot moment overlay — full-cabinet night-sky scene (SPEC-025).
+ *
+ * Absolutely fills the .cabinet (which has position: relative).
+ * z-index 20 sits above the paytable sheet (z-index 10/11) and
+ * particle effects (z-index 8).
+ *
+ * Tokens only — no raw hex (DEC-010). Raw rem/px for one-off
+ * decorative sizes is fine (see spec notes).
+ * Keyframe animations only; reduced-motion block shows the scene
+ * statically (DEC-004).
+ */
+
+.jackpot-moment {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.jackpot-moment__sky {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-jackpot-sky);
+  opacity: 0.92;
+  animation: jackpot-sky-in 0.5s ease-out both;
+}
+
+.jackpot-moment__moon {
+  position: relative;
+  font-size: 5rem;
+  line-height: 1;
+  animation: jackpot-moon-rise 0.9s ease-out both;
+}
+
+.jackpot-moment__wolf {
+  position: relative;
+  font-size: 4rem;
+  line-height: 1;
+  animation: jackpot-wolf-howl 1s ease-out 0.2s both;
+}
+
+.jackpot-moment__banner {
+  position: relative;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-black);
+  color: var(--color-jackpot);
+  animation: jackpot-banner-in 0.6s ease-out 0.3s both;
+}
+
+@keyframes jackpot-sky-in {
+  from { opacity: 0; }
+  to   { opacity: 0.92; }
+}
+
+@keyframes jackpot-moon-rise {
+  0%   { transform: translateY(40px) scale(0.6); opacity: 0; }
+  100% { transform: translateY(0) scale(1);      opacity: 1; }
+}
+
+@keyframes jackpot-wolf-howl {
+  0%   { transform: scale(0.6) rotate(0deg);   opacity: 0; }
+  60%  { transform: scale(1.2) rotate(-8deg);  opacity: 1; }
+  100% { transform: scale(1)   rotate(0deg);   opacity: 1; }
+}
+
+@keyframes jackpot-banner-in {
+  0%   { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jackpot-moment__sky,
+  .jackpot-moment__moon,
+  .jackpot-moment__wolf,
+  .jackpot-moment__banner {
+    animation: none;
+  }
+  /* Keep the sky tint visible (the scene still shows, just without motion). */
+  .jackpot-moment__sky {
+    opacity: 0.92;
+  }
+}
