@@ -47,6 +47,14 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -270,26 +278,27 @@ Written during **design**, BEFORE build. `localStorage.clear()` in `beforeEach`.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-026-mute-audio-unlock
+- **PR (if applicable):** n/a (local only per instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none (DEC-007 already governs audio gate; DEC-010 covers the CSS approach)
 - **Deviations from spec:**
-  - [list]
+  - Used `fireEvent` from `@testing-library/react` instead of `userEvent` for the click test in `MuteToggle.test.tsx` because `@testing-library/user-event` is not installed in this project. The test behaviour is equivalent for a simple click assertion.
+  - Added `.cabinet__header-controls` flex wrapper in `regions.css` (and converted `.cabinet__header` from `text-align: center` to flex row) to house MuteToggle + PaytableSheet side-by-side. The spec said "a simple flex row for the controls is fine"; this is that.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond what's already in the backlog (SPEC-027 consumes `muted` + `unlocked`)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The spec's MuteToggle test used `userEvent.click` but the project doesn't have `@testing-library/user-event` installed. The spec could note which click utility to use; I switched to `fireEvent` which is already available.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. One implicit layout decision: converting `.cabinet__header` from `text-align: center` to a flex row to accommodate the two-control group. This is cosmetic and consistent with how `.paytable__trigger` already sits in the header, but it would have been helpful if the spec had mentioned it explicitly rather than just "a simple flex row for the controls is fine."
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Check the project's installed testing utilities before writing test imports. The spec's drop-in code assumed `userEvent`; a quick `ls node_modules/@testing-library/` before writing would have saved one typecheck-fail-and-fix loop.
 
 ---
 

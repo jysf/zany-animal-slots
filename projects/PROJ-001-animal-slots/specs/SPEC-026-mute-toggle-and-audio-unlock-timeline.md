@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-026-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-27 (Opus): spec + failing tests (4 muteStorage + 5 useAudio + 3 MuteToggle incl. CSS-contract) + build prompt; audio foundation (mute key 'mute', first-gesture unlock), no sound.
-- [ ] **build** — Sonnet sub-agent; make the audio-foundation tests pass; gate green; local branch only.
+- [~] **build** — Sonnet sub-agent; make the audio-foundation tests pass; gate green; local branch only.
 - [ ] **verify** — Sonnet sub-agent; cold review against ACs + constraints.
 - [ ] **ship** — orchestrator (Opus): squash-merge, cost totals, archive.

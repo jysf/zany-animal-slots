@@ -44,8 +44,11 @@
 .cabinet__header {
   background-color: var(--color-surface);
   padding: var(--space-3) var(--space-4);
-  text-align: center;
-  /* Content-sized: no flex-grow, no flex-shrink override needed. */
+  /* Flex row: title centred, controls cluster on the right (SPEC-026). */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .cabinet__title {
@@ -55,6 +58,15 @@
   line-height: var(--line-height-tight);
   color: var(--color-accent);
   margin: var(--space-0);
+}
+
+/* ─── Header controls group (mute + paytable) ────────────────────────────────── */
+
+.cabinet__header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 /* ─── Game region ───────────────────────────────────────────────────────────── */
