@@ -54,6 +54,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -273,6 +281,35 @@ real Tone); `sfx.test.ts` mocks `tone`.
 
 3. **If you did this task again, what would you do differently?**
    — Write the `sfx.test.ts` mock for `MembraneSynth` last, after confirming the implementation path (direct call on drum vs. chained return), rather than trying to infer the mock shape from the implementation outline alone.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate results (all exit 0):
+- `just typecheck` — 0 errors
+- `just lint` — 0 errors
+- `just test` — 225/225 passed (37 test files; +11 new: 4 sfx + 7 useGameSfx)
+- `just build` — clean production build (406 kB JS, 677 ms)
+- `just decisions-audit --changed` — 0 new warnings (19 scope warnings are pre-existing on main; confirmed identical output)
+
+Checklist:
+
+- **AC: playSfx routes through getChannel('sfx'), never toDestination; REEL_STOP_CLUNKS===5; 5 staggered hits; never throws** — PASS. `sfx.ts`: every branch calls `getChannel('sfx')` then `.connect(ch)` on the synth (lines 16, 22). No `.toDestination()` call anywhere in the file (grep confirmed — the only match is a comment). `REEL_STOP_CLUNKS = 5` (line 11). reelStop loop runs `for (let i = 0; i < REEL_STOP_CLUNKS; i++)` with `t0 + i * 0.09` stagger (lines 23–25). Entire function body wrapped in `try { } catch { }` (lines 14/31–33).
+- **AC: useGameSfx spin/reelStop on correct edges; no fire on mount; no fire on unrelated re-renders** — PASS. `useGameSfx.ts`: `prev = useRef<boolean | null>(null)` (line 17); effect reads `was = prev.current`, sets `prev.current = isSpinning`, returns early if `was === null` (mount guard, line 25); edge-detects `!was && isSpinning` → `play('spin')`, `was && !isSpinning` → `play('reelStop')` (lines 27–28). Effect keyed on `[isSpinning]` only (line 29) — unrelated re-renders don't trigger it.
+- **AC: win once per new winning celebration.id (tier !== 'none'); not on no-win** — PASS. Second effect (lines 32–36): guards `!celebration || celebration.tier === 'none'` before playing 'win'. Keyed on `[celebration?.id]` (line 36) — fires once per id change.
+- **AC: gating (muted or !unlocked)** — PASS. Both effects check `if (muted || !unlocked) return` before any `play()` call (lines 26, 34). Gating variables destructured from `opts` at function top (line 16) and read at fire time.
+- **ENGINE UNCHANGED** — PASS. `git diff main..HEAD -- src/engine/` is empty.
+- **NO NEW DEP** — PASS. `git diff main..HEAD -- package.json` is empty.
+- **NO toDestination in sfx.ts** — PASS. Only occurrence is in a comment (`// …never toDestination()`); no actual `.toDestination()` call.
+- **EDGE DETECTION** — PASS. `prev` initialized to `null`; mount guard `if (was === null) return` present; `[isSpinning]` and `[celebration?.id]` dep arrays are minimal and correct; `muted`/`unlocked` read at fire time from outer closure.
+- **TESTS NOT VACUOUS** — PASS. `useGameSfx.test.ts` injects a `play` spy and asserts exact call counts per edge scenario; gating tests drive a spin edge AND a win and assert zero calls. `sfx.test.ts` mocks `tone` and `./audioEngine`, asserts `getChannel` called with `'sfx'`, asserts `connect(mockChannel)` (not toDestination), asserts 5 trigger calls for reelStop, and asserts the never-throws guard. Tests would fail if routing, gating, count, or try/catch were removed.
+- **NO BAD ESLINT-DISABLE / NO user-event** — PASS. No `eslint-disable` in any of the four new files. No `user-event` import.
+- **DECISION DRIFT** — PASS. `just decisions-audit --changed` reports 0 new issues (the tool found no uncommitted changes to audit; the committed diff was reviewed manually — DEC-013 and DEC-007 are honored: sfx channel only, synthesized only, gated). No new DEC needed (DEC-013 already covers this channel).
+- **BUILD REFLECTION** — PASS. Three questions answered honestly and specifically; the MembraneSynth mock-shape observation is credible detail. Minor note: Q2 observation about exhaustive-deps comment is correct (no effect without the plugin), and worth tracking for later.
+- **COST** — PASS. Build session has `tokens_total: null` with "orchestrator to fill" note, as required.
 
 ---
 
