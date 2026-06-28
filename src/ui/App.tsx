@@ -9,12 +9,14 @@
 // SPEC-019: threads lastWin into Status (WIN readout) and Game (WinBadge overlay).
 // SPEC-022: destructures celebration from useSlotMachine and passes it to Status
 // so the balance count-up fires on a win (driven by useCountUp inside Status).
+// SPEC-025: renders JackpotMoment overlay inside .cabinet for the jackpot tier.
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
 import Game from './regions/Game';
 import Status from './regions/Status';
 import Action from './regions/Action';
+import JackpotMoment from './JackpotMoment';
 import { useSlotMachine } from './useSlotMachine';
 
 export default function App() {
@@ -55,6 +57,7 @@ export default function App() {
           autoSpinning={autoSpinning}
           onToggleAuto={toggleAutoSpin}
         />
+        <JackpotMoment celebration={celebration} />
       </div>
     </div>
   );
