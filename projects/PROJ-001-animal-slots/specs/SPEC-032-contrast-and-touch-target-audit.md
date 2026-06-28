@@ -48,23 +48,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 56440
+      estimated_usd: 0.37
+      duration_minutes: 3.2
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=56440, 190s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 59414
+      estimated_usd: 0.39
+      duration_minutes: 4.1
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=59414, 247s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 7
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview contrast check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 115854
+    estimated_usd: 0.76
+    session_count: 5
 ---
 
 # SPEC-032: Contrast & touch-target audit
@@ -277,13 +285,25 @@ Written during **design**, BEFORE build. Implement a small WCAG helper inline
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Measuring all the pairs during *design* meant the spec carried
+   the exact fix (one token, `#ccb084`) and the build was a one-line change plus
+   guards. Resolving colors *through* the parsed token maps (rather than hardcoding
+   hex) makes the contrast test catch any future token regression, and the
+   load-bearing assertion (old `#b89a6e` → 4.06 < 4.5) proves the threshold is real.
+   (Verify flagged a harmless prose label slip in Build Completion — "text/surface
+   ~8.6" should read ~11.9; the test values are correct.)
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — Optional, not required: `respect-reduced-motion` and now contrast/44px are both
+   test-enforced; a `contrast-aa` constraint could formalize the WCAG-AA rule the way
+   `touch-targets-44` formalizes hit areas. I'd raise it at the weekly review rather
+   than add it mid-stage — the guard test already enforces it.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-033 (colorblind-safe state cues) is next, then SPEC-034 (the
+   perf pass) closes STAGE-005. The win-tier color tokens aren't used as text today,
+   so SPEC-033's job is mostly ensuring win-state distinction never relies on color
+   alone (the win amount is already numeric).
 
 ---
 
