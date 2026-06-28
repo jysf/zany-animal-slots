@@ -18,9 +18,12 @@ interface Props {
   grid: Grid;
   spinning?: boolean;
   lineWins?: LineWin[];
+  /** Key from celebration.id; when non-null, paw overlays render on winning cells.
+   *  A new id value remounts the paw spans so the pop-in animation replays (SPEC-023). */
+  trailKey?: number | null;
 }
 
-export default function ReelGrid({ grid, spinning = false, lineWins = [] }: Props) {
+export default function ReelGrid({ grid, spinning = false, lineWins = [], trailKey }: Props) {
   // Suppress the highlight while spinning so a stale win doesn't flash mid-spin.
   const winKeys = spinning ? EMPTY : winningCellKeys(lineWins);
 
@@ -44,6 +47,9 @@ export default function ReelGrid({ grid, spinning = false, lineWins = [] }: Prop
                 aria-label={label}
               >
                 {emoji}
+                {isWin && trailKey != null && (
+                  <span className="reel__paw" aria-hidden="true" key={`paw-${trailKey}`}>🐾</span>
+                )}
               </span>
             );
           })}

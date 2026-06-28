@@ -99,4 +99,48 @@ describe('ReelGrid', () => {
     );
     expect(container.querySelectorAll('.reel__cell--win')).toHaveLength(0);
   });
+
+  // ── SPEC-023: paw-print trail ────────────────────────────────────────────────
+
+  it('renders a paw on each winning cell when a trail is active', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={1} />,
+    );
+    // L1 count=3 covers reels 0/1/2 at row 1 → exactly 3 winning cells → 3 paws.
+    expect(container.querySelectorAll('.reel__paw')).toHaveLength(3);
+  });
+
+  it('renders no paws when there is no win', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[]} spinning={false} trailKey={1} />,
+    );
+    expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
+  });
+
+  it('renders no paws while spinning', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={true} trailKey={1} />,
+    );
+    expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
+  });
+
+  it('renders no paws when trailKey is null', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={null} />,
+    );
+    expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
+  });
+
+  it('paws are decorative (aria-hidden) and do not change the symbol count', () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={1} />,
+    );
+    // Paws must not add role="img" elements — symbol count stays at 15.
+    expect(screen.getAllByRole('img')).toHaveLength(15);
+    // Every paw must carry aria-hidden="true".
+    const paws = container.querySelectorAll('.reel__paw');
+    for (const paw of paws) {
+      expect(paw.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
 });

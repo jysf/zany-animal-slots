@@ -41,7 +41,7 @@ export default function App() {
     <div className="device-stage" data-testid="device-stage">
       <div className="cabinet">
         <Header />
-        <Game grid={grid} spinning={isSpinning} lineWins={lineWins} lastWin={lastWin} />
+        <Game grid={grid} spinning={isSpinning} lineWins={lineWins} lastWin={lastWin} celebration={celebration} />
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
         <Action
           onSpin={spin}
