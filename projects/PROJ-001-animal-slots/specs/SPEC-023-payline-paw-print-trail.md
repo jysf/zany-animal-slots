@@ -51,23 +51,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 59595
+      estimated_usd: 0.39
+      duration_minutes: 3.4
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=59595, 203s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 76814
+      estimated_usd: 0.51
+      duration_minutes: 4.9
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=76814, 291s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview paw-trail check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 136409
+    estimated_usd: 0.90
+    session_count: 5
 ---
 
 # SPEC-023: Payline paw-print trail
@@ -346,10 +354,20 @@ Reviewed by: claude-sonnet-4-6, 2026-06-27
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Reusing `winningCellKeys` (SPEC-018) and the reel's existing
+   `--reel-index` custom property (which inherits into the paw child) meant the
+   staggered trace needed no new geometry — the paw just rides the same left→right
+   cascade the reel-stop bounce already uses. Keying the paw on `celebration.id`
+   gives correct per-win replay for free. Preview confirmed 3 paws on the 3 winning
+   cells with the symbols still readable.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. Squarely DEC-004/006/010. One small UX observation for a later polish
+   spec (not this stage): the centered `WinBadge` (z-10) can sit over paws on
+   middle-row wins — a pre-existing overlap from SPEC-019, not introduced here.
+   Worth revisiting when the celebration layering is tuned, but out of scope now.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-024 (particles) is next, then 025 jackpot moment, 026
+   mute/unlock, 027 jingle. A connecting line/SVG path between paws was explicitly
+   deferred (v1 is per-cell paw markers) and can be a future polish spec if wanted.
