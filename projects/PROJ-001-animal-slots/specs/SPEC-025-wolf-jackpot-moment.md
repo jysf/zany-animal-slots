@@ -51,23 +51,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 54563
+      estimated_usd: 0.36
+      duration_minutes: 2.4
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=54563, 143s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 68396
+      estimated_usd: 0.45
+      duration_minutes: 13.1
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=68396, 786s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview jackpot-overlay check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 122959
+    estimated_usd: 0.81
+    session_count: 5
 ---
 
 # SPEC-025: Wolf jackpot moment
@@ -319,13 +327,24 @@ Import `JACKPOT_MOMENT_MS` from the component.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Hosting the overlay in `.cabinet` (already `position:
+   relative` from SPEC-020's paytable) meant no layout plumbing, and a JS
+   auto-dismiss timer keyed on `celebration.id` (re-arms per jackpot) plus a pure
+   CSS reduced-motion path kept the component tiny. Verifying via injected markup
+   over the live cabinet (since a natural jackpot is ~1-in-millions) confirmed the
+   z-index/layering and the moon/wolf/banner scene render exactly as intended.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-004/006/010 covered it. Worth noting the verification technique for
+   future rare-state specs: injecting the component's exact markup into the live
+   DOM (the CSS is already bundled) is a clean, non-destructive way to preview a
+   state that's impractical to trigger naturally — better than forcing a seed edit.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The visual celebrations are now complete (count-up, paw trail,
+   particles, jackpot moment). Next is the audio pair: SPEC-026 (mute toggle +
+   first-gesture unlock — audio foundation, no sound) then SPEC-027 (the
+   tier-scaled Tone.js jingle, including the jackpot howl this scene pairs with).
 
 ---
 
