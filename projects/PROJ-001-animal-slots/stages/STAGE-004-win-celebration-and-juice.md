@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-004                     # stable, zero-padded within the project
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-06-18
-shipped_at: null
+shipped_at: 2026-06-27
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -155,4 +155,113 @@ for reduced motion (`respect-reduced-motion`).
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1d (Stage Ship) to draft.*
+*Shipped 2026-06-27. All nine specs (SPEC-019 … SPEC-027) in `specs/done/`.*
+
+### Success criteria — did we deliver?
+
+All six met:
+- ✅ **Win amount is legible** — a pop-up `WIN +N` badge over the reels plus a
+  persistent Status WIN readout, both from the engine's `totalWin` (SPEC-019);
+  cleared on the next spin.
+- ✅ **Paytable on demand** — the "ℹ Paytable" slide-up sheet lists each tier's
+  3/4/5 payouts from `PAYTABLE`/`SYMBOL_TIER`, ✕/backdrop/Esc closable (SPEC-020).
+- ✅ **Three distinct win celebrations** — small/big/jackpot are reachable and
+  visually distinct: paw-print trail (SPEC-023), tier-scaled particle burst
+  (SPEC-024, 10/20/32), balance count-up (SPEC-022), and the full-cabinet wolf
+  jackpot moment (SPEC-025). All routed by the one-shot `celebration` signal
+  (SPEC-021) so each fires exactly once per win.
+- ✅ **Tier-scaled win jingle** — synthesized Tone.js (DEC-007), keyed off the
+  engine win tier, gated behind a persisted mute + first-gesture unlock
+  (SPEC-026/027); celebrations have a `prefers-reduced-motion` path (count-up snaps,
+  particles render nothing, paw/jackpot scenes go static).
+- ✅ **Only what landed** — every celebration keys off real engine output
+  (`tier`/`totalWin`/`lineWins`); no engineered near-miss or faked anticipation.
+- ✅ **Engine untouched, behavior-tested** — `git diff main -- src/engine/` empty
+  across all nine specs; 203 RTL/unit tests green; each UI spec verified in the
+  preview (count-up tick, paws, particles, the injected jackpot scene, the mute
+  toggle persisting across reload, the jingle path running error-free).
+
+### value_contribution — delivered as claimed?
+
+Yes, and this was the stage the `value_contribution` cared most about — the
+subjective "juice" + the one audio piece, the work the design→build→verify→ship
+cycle had never been exercised against. All four `delivers` items landed (the three
+celebrations as distinct reachable states; paw trail + particles; the wolf jackpot
+moment + count-up; the tier-scaled jingle with mute + unlock). The
+`explicitly_does_not` items held: no full audio suite (only the win jingle), no
+faked anticipation, and no formal a11y/contrast/perf audit (still STAGE-005). No
+spec's `value_link` over-claimed — every one traced to a visible/audible win-feel
+improvement.
+
+### 3-sentence summary
+
+Built nine specs — the two requested legibility pieces first (win amount, paytable),
+then a deliberate foundation-first celebration arc: a one-shot `celebration` signal
+(SPEC-021) that every subsequent celebration consumes via `useEffect([celebration?.id])`,
+then count-up → paw trail → particles → jackpot moment → audio gate → jingle. It ran
+smoothly and a touch faster per spec than STAGE-003 once the signal existed (each
+celebration became a small additive overlay/effect rather than new plumbing), and
+the "juice resists TDD" risk was sidestepped the same way as STAGE-003 — test
+*state* (fire-once, gating, tier-scaling, reduced-motion) and *preview the feel*. The
+one genuinely new pattern was JS-side animation where CSS can't reach (the numeric
+count-up, DEC-012) with a JS reduced-motion snap, which also seeded a reusable
+`prefersReducedMotion()` + a `matchMedia` test mock for future effects.
+
+### Stage-Level Reflection answers
+
+- **Did we deliver the outcome in "What This Stage Is"?** Yes — winning now *feels*
+  like winning: the amount is legible, the line that paid is traced, the board bursts,
+  the balance ticks up, the rarest hit takes over the cabinet with a moon-and-howl
+  scene, and (unmuted, post-gesture) a tier-scaled jingle plays. All five game states
+  are reachable and visually — and for wins, audibly — distinct.
+- **How many specs did it actually take?** Nine, exactly as framed at Stage Frame
+  (the 2-spec legibility slice + the 7 celebration/audio specs). No splits, one
+  addition that wasn't a spec: DEC-012.
+- **What changed between starting and shipping?** Nothing in scope. The build order
+  was made explicit (router signal before its consumers; audio foundation before the
+  jingle), which kept each celebration spec tiny. SPEC-022 was honestly resized S→M
+  once it pulled in a hook + helper + DEC + test-setup mock.
+- **Lessons that should update AGENTS.md, templates, or constraints?** Two recurring
+  build-agent frictions are worth a template note (logged as dogfood findings #12/#13
+  in `/feedback/`): this repo has **no `react-hooks` ESLint plugin** (agents add
+  invalid `exhaustive-deps` disables) and **no `@testing-library/user-event`** (agents
+  reach for `userEvent`, must fall back to `fireEvent`). Both always self-corrected
+  and never reached `main`, but a one-line heads-up in UI build prompts (the
+  orchestrator added these mid-stage) removes the wasted lint/typecheck loop. Also
+  worth promoting: pre-authorizing a dependency in a DEC *before* the build needs it
+  (DEC-007 → `tone`) let the build add it with no stop-and-ask — the clean answer to
+  dogfood finding #10.
+- **Should any spec-level reflections be promoted to stage-level lessons?** Yes, two:
+  (a) **"signal first, consumers second"** — a one-shot, id-keyed engine-derived
+  signal (`celebration`) turns N celebration specs into small independent effects that
+  each fire exactly once; it's the reusable shape for event-driven UI feel. (b)
+  **verify-by-injection for unreachable states** — the jackpot moment (≈1-in-millions
+  naturally) was preview-verified by injecting the component's real markup into the
+  live DOM (CSS already bundled), and the Tone jingle's gating/tier-scaling were
+  unit-tested via an injected player + a mocked `tone`; both are dependable ways to
+  prove states you can't easily trigger or hear.
+
+### Follow-up flags
+
+- **Next stage:** STAGE-005 (audio suite, a11y, polish) is the natural successor — it
+  builds on this stage's jingle + `useAudio` gate and the reduced-motion paths, and
+  owns the formal a11y/contrast/colorblind/perf audit deliberately deferred here.
+- **Small deferrable polish (note for STAGE-005, not blocking):** the centered
+  `WinBadge` (z-10) can overlap paw prints on middle-row wins — a layering tweak; and
+  tier-scaled celebration *intensity* (badge color by `--color-win-small/-big/-jackpot`,
+  count-up easing) could deepen the small/big distinction. A connecting line/SVG path
+  between paw prints was explicitly deferred (v1 is per-cell paws).
+- **Perf:** `tone` roughly doubled the bundle (~385 KB JS / ~109 KB gz) — expected and
+  DEC-007-authorized; STAGE-005's perf pass should confirm the 60fps target still
+  holds with the celebration layers + audio.
+- No engine work deferred; nothing punted to a future project from STAGE-004.
+
+### Proposed template / guidance updates (for review — not yet applied)
+
+- Add to UI build-prompt boilerplate: "this repo uses `fireEvent` (no
+  `@testing-library/user-event`) and has no `react-hooks` ESLint plugin — don't add
+  `exhaustive-deps` disables." (Findings #12/#13.)
+- Consider enumerating `perf-60fps` in animation specs' `references.constraints`
+  (carried over from STAGE-003's note; honored throughout — transform/opacity only).
+- No constraint/DEC changes required; DEC-012 (count-up JS-tween exception to DEC-004)
+  is the only new decision this stage emitted.
