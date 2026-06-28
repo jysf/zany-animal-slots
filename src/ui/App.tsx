@@ -7,6 +7,8 @@
 // SPEC-017: threads autoSpinning / toggleAutoSpin into Action for the Auto toggle.
 // SPEC-018: threads lineWins from the hook into Game so winning cells are highlighted.
 // SPEC-019: threads lastWin into Status (WIN readout) and Game (WinBadge overlay).
+// SPEC-022: destructures celebration from useSlotMachine and passes it to Status
+// so the balance count-up fires on a win (driven by useCountUp inside Status).
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -22,6 +24,7 @@ export default function App() {
     bet,
     lineWins,
     lastWin,
+    celebration,
     spin,
     canSpin,
     isSpinning,
@@ -39,7 +42,7 @@ export default function App() {
       <div className="cabinet">
         <Header />
         <Game grid={grid} spinning={isSpinning} lineWins={lineWins} lastWin={lastWin} />
-        <Status balance={balance} bet={bet} lastWin={lastWin} />
+        <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
         <Action
           onSpin={spin}
           canSpin={canSpin}

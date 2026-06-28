@@ -4,7 +4,7 @@
 task:
   id: SPEC-022
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M                    # S | M | L  (count-up hook + helper + DEC + wiring)
@@ -45,10 +45,34 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. DEC-012)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 69567
+      estimated_usd: 0.46
+      duration_minutes: 3.5
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=69567, 212s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 70803
+      estimated_usd: 0.47
+      duration_minutes: 3.5
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=70803, 211s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview count-up check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 140370
+    estimated_usd: 0.93
+    session_count: 5
 ---
 
 # SPEC-022: Balance count-up
@@ -280,26 +304,26 @@ for the reduced-motion query (restore afterward).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-022-balance-count-up
+- **PR (if applicable):** local only (no push per build instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-012 authored at design
+  - none — DEC-012 authored at design
 - **Deviations from spec:**
-  - [list]
+  - Removed the inline `// eslint-disable-line react-hooks/exhaustive-deps` comment from `useCountUp.ts` — the `react-hooks/exhaustive-deps` ESLint rule is not configured in this project so the disable comment itself caused a lint error. The deps array `[signal?.id, target]` is intentionally narrowed per the spec's Notes (the `signal.id !== lastIdRef.current` guard prevents re-firing on unrelated rerenders); no functional change.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-listed STAGE-004 backlog specs (paw-print trail, particles, jackpot moment, jingle, mute toggle)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing material. The Notes were extremely complete drop-in code; the only friction was the stray eslint-disable comment that referenced a rule not present in the project's config, which lint caught immediately and was a one-line fix.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps. DEC-012, DEC-004, DEC-001, `respect-reduced-motion`, and `test-before-implementation` all applied cleanly. The absence of `react-hooks/exhaustive-deps` in the ESLint config isn't a missing constraint — the intentional narrow deps are documented in the hook comment.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — I'd skip trying to add the eslint-disable comment in the first place (knowing the rule isn't installed), saving one lint/fix cycle. Everything else — the drop-in code from Notes, the fake-timer test structure — worked first-try.
 
 ---
 
@@ -308,10 +332,66 @@ for the reduced-motion query (restore afterward).
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Authoring DEC-012 during *design* (rather than leaving the
+   JS-vs-CSS call to the build agent) paid off: the build was a clean drop-in of
+   the Notes code, and verify had an authoritative record to check against instead
+   of having to judge whether a JS tween violated DEC-004. The `prefersReducedMotion()`
+   helper + the `src/test/setup.ts` matchMedia mock are reusable foundations the
+   later JS-touching specs can lean on. Preview confirmed the live tick (870→875 on
+   a real small win) — exactly the feel intended.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-012 captured the one genuinely new decision. One reusable artifact
+   worth remembering for future specs: the default `window.matchMedia` mock now
+   lives in `src/test/setup.ts`, so any later JS reduced-motion check is testable
+   out of the box (override to `matches:true` per-test, restore in `afterEach`).
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-023 (payline paw-print trail) is next, then 024 particles,
+   025 jackpot moment, 026 mute/unlock, 027 jingle. The count-up deliberately
+   animates only the balance; the WIN readout and other numbers stay instant.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+**Gate results (2026-06-27):**
+- `just typecheck` — exit 0 (tsc --noEmit clean)
+- `just lint` — exit 0 (no ESLint errors or warnings)
+- `just test` — exit 0 (160/160 tests passing, 25 test files)
+- `just build` — exit 0 (Vite production build, 58 modules)
+- `just decisions-audit --changed main` — advisory only; DEC-004, DEC-010, DEC-012 flagged; all expected and consistent (DEC-012 is the documented narrow exception to DEC-004)
+
+**Checklist:**
+
+- ✅ **ACCEPTANCE CRITERIA — all met.**
+  - `prefersReducedMotion()` returns `false` by default (setup.ts default mock, matches:false) and `true` when matchMedia returns matches:true; returns `false` when matchMedia is deleted (`(window as any).matchMedia = undefined`) without throwing.
+  - `useCountUp(1000, null)` returns `1000` immediately (null-signal test).
+  - New signal: starts at 1045−55=990 (confirmed in "starts at target−amount" test); after advancing `COUNT_UP_DURATION_MS` reaches exactly 1045.
+  - Mid-tween after `COUNT_UP_DURATION_MS / 2`: value is strictly `> 990` and `< 1045`.
+  - Reduced motion: matchMedia mock returns matches:true; hook returns 1045 immediately, no timers advanced.
+  - Null-signal target change: rerender (1045,null) → (990,null), value snaps to 990.
+  - New signal.id: after tween id=1 completes at 1045, rerender with (1100, {id:2, amount:55}) → starts at 1045, reaches 1100 after full duration.
+  - Status "counts up the balance on a win" test: initial render shows 990; after advanceTimersByTime shows 1045. Existing two Status tests (no celebration prop) still pass — 4 Status tests total.
+
+- ✅ **ENGINE UNCHANGED** — `git diff main..HEAD -- src/engine/` is empty. App.tsx imports `useSlotMachine` (UI hook); Status.tsx imports `Celebration` type from `../useSlotMachine`; neither imports engine internals.
+
+- ✅ **DEC-012 HONORED** — `useCountUp.ts` uses `setInterval` (not CSS, not rAF). `prefersReducedMotion()` is a JS `window.matchMedia` check. No `.css` file added in diff (confirmed `git diff --name-only | grep .css` returned empty). DEC-012 is the explicit documented exception to DEC-004.
+
+- ✅ **NO SCOPE CREEP / NO NEW DEPS** — Only the 11 files in the diff changed; `package.json` unchanged; no engine files or regions outside Status/App touched.
+
+- ✅ **TESTS NOT VACUOUS** — Count-up tests advance fake timers and assert concrete values: 990 start, 1045 end, mid-tween strictly between. The reduced-motion test would fail if the snap branch were absent (without it, the tween runs and the hook would still be at 990 initially, failing the === 1045 assertion). The matchMedia-unavailable test would throw without the defensive `typeof window.matchMedia === 'function'` guard.
+
+- ✅ **REDUCED-MOTION CORRECTNESS** — `prefersReducedMotion.test.ts` captures `originalMatchMedia` at describe-scope and restores it in `afterEach`. `useCountUp.test.tsx` also restores `window.matchMedia = originalMatchMedia` in `afterEach`. No test leakage.
+
+- ✅ **EFFECT DEPS** — Deps are `[signal?.id, target]`. Win branch is guarded by `signal.id !== lastIdRef.current` (fires once per id). `target` in deps means a no-win balance change (signal null, target shifts) re-runs the effect → falls to snap branch. In-flight interrupt: when signal goes null, effect re-runs, previous cleanup `clearInterval(iv)` fires first, then snap branch executes — correct behavior, no dangling interval.
+
+- ✅ **DECISION DRIFT** — `just decisions-audit --changed main` flags DEC-004 (expected; DEC-012 documents the exception), DEC-010 (CSS styling decision; no CSS added), DEC-012 (new, matches implementation exactly). DEC-012's `affected_scope` correctly lists `src/ui/useCountUp.ts` and `src/ui/prefersReducedMotion.ts`. No undocumented non-trivial choices.
+
+- ✅ **BUILD REFLECTION** — Honest and specific: notes the stray eslint-disable comment for a rule not installed (`react-hooks/exhaustive-deps`) caused a lint error and was removed. The final code has no dangling eslint-disable (confirmed by reading `useCountUp.ts` — no disable comments at all).
+
+- ✅ **COST** — Build session has `tokens_total: null` with "orchestrator to fill tokens_total from subagent_tokens at ship" note, consistent with AGENTS §4 and the metered-cycle pattern. Verify session added by this cycle (same pattern).
+
+**Reviewer:** claude-sonnet-4-6 (cold session, 2026-06-27)
