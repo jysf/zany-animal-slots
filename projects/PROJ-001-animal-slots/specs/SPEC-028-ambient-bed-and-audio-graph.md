@@ -46,6 +46,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. DEC-013)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -267,26 +275,26 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-028-ambient-bed
+- **PR (if applicable):** n/a (local only per spec)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-013 authored at design
+  - none — DEC-013 authored at design
 - **Deviations from spec:**
-  - [list]
+  - none; all drop-in code used verbatim with only one lint fix (removed unused parameter names in the Loop mock factory)
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none; SPEC-029 (SFX) and SPEC-030 (mixing) already in backlog and plug into the same channels
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The `ambientBed.test.ts` mock for `Loop` used typed parameter names (`_cb`, `_interval`) that the `@typescript-eslint/no-unused-vars` rule flagged even with the underscore prefix. The spec drop-in didn't include the mock factory, so this was discovered only at `just lint`. Took one fix iteration.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. One implicit nuance: the ESLint `no-unused-vars` rule's behavior with underscore-prefixed params in vi.fn() factories isn't mentioned in the spec or constraints; worth noting in the template for future mock-heavy specs.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Write the `vi.mock` factory signatures with no named parameters at all (just `vi.fn(() => …)`) from the start, since the callback signature inside a mock factory is irrelevant to the test assertions. This avoids the lint trip-up entirely.
 
 ---
 

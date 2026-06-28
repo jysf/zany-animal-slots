@@ -22,6 +22,7 @@ import JackpotMoment from './JackpotMoment';
 import { useSlotMachine } from './useSlotMachine';
 import { useAudio } from './audio/useAudio';
 import { useWinJingle } from './audio/useWinJingle';
+import { useAmbientBed } from './audio/useAmbientBed';
 
 export default function App() {
   const { muted, toggleMute, unlocked } = useAudio();
@@ -45,6 +46,7 @@ export default function App() {
   } = useSlotMachine();
 
   useWinJingle(celebration, { muted, unlocked });
+  useAmbientBed({ muted, unlocked });
 
   return (
     <div className="device-stage" data-testid="device-stage">

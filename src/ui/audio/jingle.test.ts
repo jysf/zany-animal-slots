@@ -1,20 +1,27 @@
 // jingle.test.ts — unit tests for JINGLE_NOTES and playJingle (SPEC-027).
-// Mocks the 'tone' module so no AudioContext is needed in the test environment.
+// Updated in SPEC-028: jingle now routes via connect(getChannel('jingle'))
+// instead of toDestination(); mock updated accordingly.
+// Mocks the 'tone' module and './audioEngine' so no AudioContext is needed.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Shared spy for triggerAttackRelease — defined before the mock factory so it
 // can be referenced inside the factory and asserted in tests.
 const triggerAttackRelease = vi.fn();
 
+vi.mock('./audioEngine', () => ({
+  getChannel: vi.fn(() => ({})), // returns a mock channel node; Synth.connect receives it
+}));
+
 vi.mock('tone', () => ({
   start: vi.fn(() => Promise.resolve()),
   now: vi.fn(() => 0),
   Synth: vi.fn(() => ({
-    toDestination: () => ({ triggerAttackRelease }),
+    // SPEC-028: connect() replaces toDestination(); must be chainable to triggerAttackRelease
+    connect: vi.fn(() => ({ triggerAttackRelease })),
   })),
 }));
 
-// Import after the mock is registered.
+// Import after the mocks are registered.
 import { JINGLE_NOTES, playJingle } from './jingle';
 import { start } from 'tone';
 
