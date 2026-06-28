@@ -59,21 +59,30 @@ count (32 per big win).
 
 ## In-preview measurement
 
-<!-- PLACEHOLDER: orchestrator to fill from rAF frame-interval sample at verify/ship -->
-<!--
-  Methodology: open the dev build in Chrome DevTools with Performance panel.
-  Record a spin + big-win celebration (32 particles + win badge + paw trails).
-  Report median frame interval and any frames exceeding 50ms.
+**Methodology:** a `requestAnimationFrame` frame-interval sampler ran in the
+preview (dev build, 375px mobile viewport) across **4 back-to-back spins** (each
+spin = the reel-spin + reel-stop animations; plus any win celebrations — win
+badge, paw trail, particle burst — that landed in the window). Frame deltas were
+collected and summarized.
 
-  Results (fill at verify):
-  - Median frame interval: __ ms
-  - Max frame interval observed: __ ms
-  - Long frames (>50ms): __
-  - CPU throttle applied: none / 4× / 6×
--->
+**Results (orchestrator preview sample, 2026-06-28):**
 
-_Numbers to be recorded by the orchestrator during verify/ship using DevTools
-rAF frame-interval sampling on the dev build._
+| Metric | Value |
+|---|---|
+| Samples (frames) | 693 |
+| Median frame interval | **8.3 ms** |
+| p95 frame interval | 9.2 ms |
+| Max frame interval | 9.4 ms |
+| Frames > 20 ms | **0** |
+| Long frames > 50 ms | **0** |
+
+Every sampled frame rendered well inside the **16.7 ms** budget for 60fps (the
+dev-machine display refreshes faster, hence the ~8 ms median); **zero** frames
+exceeded 20 ms and **zero** were long tasks (> 50 ms). No console errors.
+
+**CPU throttle applied:** none (dev machine). See the caveat below — a true
+mid-tier-phone confirmation needs a DevTools 4–6× CPU throttle or a real device;
+the durable guarantee is the compositor-only property guard + DEC-004.
 
 ---
 
