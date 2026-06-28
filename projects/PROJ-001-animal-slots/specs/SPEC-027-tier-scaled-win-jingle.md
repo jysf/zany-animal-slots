@@ -47,6 +47,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -257,26 +265,26 @@ they need no Tone. The jingle test mocks the `tone` module.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-027-win-jingle
+- **PR (if applicable):** local only (not pushed per instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-007 authorizes Tone.js + the jingle
+  - none — DEC-007 authorizes Tone.js + the jingle
 - **Deviations from spec:**
-  - [list]
+  - `WinTier` is not re-exported from `useSlotMachine`; both `jingle.ts` and `useWinJingle.ts` import it from `../../engine/index` instead. The spec's drop-in code suggested `from '../useSlotMachine'` but that module does not re-export the type.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none; this completes the STAGE-004 backlog
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The drop-in code in "Notes for the Implementer" suggested `import type { WinTier } from '../useSlotMachine'`, but `useSlotMachine.ts` only imports `WinTier` internally and does not re-export it. TypeScript caught this immediately; the fix (import from `../../engine/index`) was obvious, but it required a short investigation cycle.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps. DEC-007 covering the dep, the audio-gesture-and-mute constraint, and the note that this repo has no react-hooks ESLint plugin were all accurate and sufficient. The spec's note about not adding an exhaustive-deps disable comment was especially useful — otherwise the default instinct would have been to add one.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Verify that every type referenced in drop-in import paths is actually exported before writing the files, rather than discovering the mismatch at typecheck. A one-line grep (`grep "export.*WinTier" src/ui/useSlotMachine.ts`) would have caught it before the first typecheck run.
 
 ---
 

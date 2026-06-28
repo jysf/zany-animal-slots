@@ -11,6 +11,7 @@
 // so the balance count-up fires on a win (driven by useCountUp inside Status).
 // SPEC-025: renders JackpotMoment overlay inside .cabinet for the jackpot tier.
 // SPEC-026: calls useAudio() and threads muted + toggleMute into Header.
+// SPEC-027: destructures unlocked from useAudio() and calls useWinJingle.
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -20,9 +21,10 @@ import Action from './regions/Action';
 import JackpotMoment from './JackpotMoment';
 import { useSlotMachine } from './useSlotMachine';
 import { useAudio } from './audio/useAudio';
+import { useWinJingle } from './audio/useWinJingle';
 
 export default function App() {
-  const { muted, toggleMute } = useAudio();
+  const { muted, toggleMute, unlocked } = useAudio();
   const {
     grid,
     balance,
@@ -41,6 +43,8 @@ export default function App() {
     autoSpinning,
     toggleAutoSpin,
   } = useSlotMachine();
+
+  useWinJingle(celebration, { muted, unlocked });
 
   return (
     <div className="device-stage" data-testid="device-stage">
