@@ -49,23 +49,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 65661
+      estimated_usd: 0.43
+      duration_minutes: 4.2
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=65661, 254s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 79326
+      estimated_usd: 0.52
+      duration_minutes: 4.2
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=79326, 253s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. the preview rAF frame-interval measurement)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 144987
+    estimated_usd: 0.95
+    session_count: 5
 ---
 
 # SPEC-034: Performance pass (~60fps)
@@ -266,13 +274,26 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Closing the perf pass as a *structural guarantee* (the
+   compositor-only sweep) rather than a one-time benchmark is the durable win — the
+   ~60fps target now can't silently regress because a future keyframe is mechanically
+   forbidden from animating a layout property. The preview rAF sample (median 8.3ms, 0
+   long frames) confirmed the dev profile, and the doc is honest that a throttled-device
+   pass is the manual confirmation. DEC-004 is validated, not revisited.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-004 holds. STAGE-005 leaves three new test-enforced invariants worth a
+   weekly-review mention (they could become explicit constraints, but the guard tests
+   already enforce them): reduced-motion coverage (SPEC-031), WCAG-AA contrast
+   (SPEC-032), and compositor-only animation (this spec). The one carry-forward note:
+   `tone` roughly doubled the bundle (~407KB JS) — a STAGE-006/PROJ-002 bundle-size
+   concern, not a frame-rate one.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. This completes STAGE-005's 7-item backlog (audio suite +
+   reduced-motion + contrast/44px + colorblind + perf). Next is the **STAGE-005 Stage
+   Ship** (Prompt 1d, offered not auto-run), then STAGE-006 (release & deploy) is the
+   last stage of PROJ-001.
 
 ---
 
