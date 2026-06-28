@@ -4,7 +4,7 @@
 task:
   id: SPEC-027
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -47,10 +47,34 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 73131
+      estimated_usd: 0.48
+      duration_minutes: 5.0
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=73131). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4). duration_minutes ~5 (active work; the raw Agent duration_ms included a long idle gap, not compute)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 70511
+      estimated_usd: 0.47
+      duration_minutes: 4.4
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=70511, 266s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview jingle-path check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 143642
+    estimated_usd: 0.95
+    session_count: 5
 ---
 
 # SPEC-027: Tier-scaled win jingle
@@ -257,26 +281,69 @@ they need no Tone. The jingle test mocks the `tone` module.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-027-win-jingle
+- **PR (if applicable):** local only (not pushed per instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-007 authorizes Tone.js + the jingle
+  - none — DEC-007 authorizes Tone.js + the jingle
 - **Deviations from spec:**
-  - [list]
+  - `WinTier` is not re-exported from `useSlotMachine`; both `jingle.ts` and `useWinJingle.ts` import it from `../../engine/index` instead. The spec's drop-in code suggested `from '../useSlotMachine'` but that module does not re-export the type.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none; this completes the STAGE-004 backlog
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The drop-in code in "Notes for the Implementer" suggested `import type { WinTier } from '../useSlotMachine'`, but `useSlotMachine.ts` only imports `WinTier` internally and does not re-export it. TypeScript caught this immediately; the fix (import from `../../engine/index`) was obvious, but it required a short investigation cycle.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps. DEC-007 covering the dep, the audio-gesture-and-mute constraint, and the note that this repo has no react-hooks ESLint plugin were all accurate and sufficient. The spec's note about not adding an exhaustive-deps disable comment was especially useful — otherwise the default instinct would have been to add one.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Verify that every type referenced in drop-in import paths is actually exported before writing the files, rather than discovering the mismatch at typecheck. A one-line grep (`grep "export.*WinTier" src/ui/useSlotMachine.ts`) would have caught it before the first typecheck run.
+
+---
+
+## Verify
+
+**Reviewer:** claude-sonnet-4-6 (cold — did not build this)
+**Date:** 2026-06-27
+**Verdict:** ✅ APPROVED
+
+### Gate results
+
+| Gate | Result |
+|---|---|
+| `just typecheck` | exit 0 |
+| `just lint` | exit 0 |
+| `just test` | exit 0 — 32 test files, **203 tests** passed (0 failed) |
+| `just build` | exit 0 — 1030 modules transformed, 384.93 kB bundle |
+| `just decisions-audit --changed main` | advisory only — DEC-007 correctly flagged as governing `src/ui/audio/**`; all changes consistent |
+
+### Checklist
+
+- ✅ **JINGLE_NOTES strictly increasing** — `small=3, big=5, jackpot=7` (3 < 5 < 7). Evidence: `jingle.ts` lines 7–11; test asserts `small.length < big.length < jackpot.length`.
+- ✅ **playJingle('none') is a no-op** — `jingle.ts` line 14 returns early before any Tone call. Test `jingle.test.ts` line 33–37 asserts `start` and `triggerAttackRelease` NOT called.
+- ✅ **playJingle(tier) calls Tone.start() once + triggers JINGLE_NOTES[tier].length notes** — confirmed in `jingle.ts` lines 17–21; tests assert `start` called once and `triggerAttackRelease` called `JINGLE_NOTES.small.length` (3) / `JINGLE_NOTES.jackpot.length` (7) times.
+- ✅ **Tone mock is non-vacuous** — `vi.mock('tone', …)` defines a shared `triggerAttackRelease` spy before the factory; each tier test runs independently (beforeEach clears mocks). Would fail if `playJingle` didn't scale or didn't call Tone.
+- ✅ **useWinJingle plays once on new win when !muted && unlocked** — `useWinJingle.test.ts` line 13–28; `play` spy called once with `'small'`.
+- ✅ **Does not play when muted** — test line 30–40; `play` not called.
+- ✅ **Does not play when locked** — test line 42–51; `play` not called.
+- ✅ **Does not play without celebration** — test line 53–62; `play` not called.
+- ✅ **Re-plays on new celebration.id** — test line 64–81; `play` called twice total after `id:1` then `id:2`.
+- ✅ **Does not re-play when only mute toggles (same id)** — test line 83–102; after win `id:1`, toggle muted true, then false — `play` stays at 1 call.
+- ✅ **useEffect keyed on [celebration?.id] only** — `useWinJingle.ts` line 23: `}, [celebration?.id])`. Muted/unlocked read at fire time inside the effect. Correct: mute toggle alone never changes `celebration?.id` so no re-fire.
+- ✅ **play param is injectable** — third param defaults to `playJingle` but tests pass `vi.fn()`. No real Tone runs in hook tests.
+- ✅ **tone in package.json dependencies** — confirmed: `"tone": "^15.1.22"` in `dependencies` (not devDependencies).
+- ✅ **DEP AUTHORIZED** — DEC-007 explicitly authorizes `tone` / Tone.js. No new DEC was added or is required. Confirmed no new `DEC-*` files in `git diff main..HEAD`.
+- ✅ **MIT license** — `node_modules/tone/package.json`: `"license": "MIT"`. Satisfies `license-policy` constraint.
+- ✅ **Engine unchanged** — `git diff main..HEAD -- src/engine/` is empty.
+- ✅ **No eslint-disable in audio/** — `grep -rn "eslint-disable" src/ui/audio/` returned no matches.
+- ✅ **No @testing-library/user-event** — hook tests use `renderHook` + `rerender` only; no `fireEvent`, no `userEvent`.
+- ✅ **Scope** — only `src/ui/audio/jingle.ts`, `jingle.test.ts`, `useWinJingle.ts`, `useWinJingle.test.ts`, `src/ui/App.tsx`, `package.json`, `package-lock.json`, plus spec/timeline/stage docs. No engine, no unrelated UI.
+- ✅ **decisions-audit** — `just decisions-audit --changed main` advisory only; DEC-007 governs `src/ui/audio/**` and implementation is fully consistent. 16 pre-existing scope-overlap warnings from `just decisions-audit` (no flag); all pre-date this PR, none contradictory.
+- ✅ **Build reflection honest and specific** — correctly identifies the `WinTier` import-path fix: `useSlotMachine.ts` imports `WinTier` from `engine/index` but does not re-export it. Both `jingle.ts` and `useWinJingle.ts` import from `../../engine/index` (the public interface, DEC-001 compliant). Confirmed via `grep "export.*WinTier" src/engine/index.ts` → line 18: `export type { WinTier } from './tiers'`.
+- ✅ **Cost build session** — present with `tokens_total: null` + "orchestrator to fill" note. Correct per AGENTS §4 (metered subagent cycle; orchestrator fills at ship).
 
 ---
 
@@ -285,10 +352,25 @@ they need no Tone. The jingle test mocks the `tone` module.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Splitting the audio into the gate (SPEC-026) then the jingle
+   (this spec) paid off: `useWinJingle` is a tiny gated effect that reuses
+   `celebration` (SPEC-021), `muted`/`unlocked` (SPEC-026), and the engine `tier` —
+   no new plumbing. Making `playJingle` injectable into the hook let the gating tests
+   run with a spy (zero Tone), while a separate `tone`-mocked test proves the
+   tier-scaling reaches the synth. The one fix worth carrying forward: import
+   `WinTier` from the public `src/engine/index`, not the hook (DEC-001) — I'll write
+   that exact path into future audio/spec Notes.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No decision/constraint change. DEC-007 cleanly pre-authorized the `tone` dep,
+   so the build added it without a stop-and-ask — exactly the pattern dogfood
+   finding #10 wanted (a dep DEC written *before* the build needs it). The bundle
+   roughly doubled (~385 KB JS / ~109 KB gz) — expected and DEC-007-authorized;
+   STAGE-005's perf pass can revisit if it matters.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. This completes STAGE-004's 9-item backlog (win-amount, paytable,
+   win-state router, count-up, paw trail, particles, jackpot moment, mute/unlock,
+   jingle). Next is the **STAGE-004 Stage Ship** (Prompt 1d) — offered to the user,
+   not auto-run. The full audio suite (ambient bed, SFX, mixing) remains STAGE-005 /
+   PROJ-002 per DEC-007.
