@@ -52,23 +52,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 71532
+      estimated_usd: 0.47
+      duration_minutes: 3.9
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=71532, 233s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 69804
+      estimated_usd: 0.46
+      duration_minutes: 4.3
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=69804, 255s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview particle-burst check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 141336
+    estimated_usd: 0.93
+    session_count: 5
 ---
 
 # SPEC-024: Win particle burst
@@ -399,10 +407,20 @@ component (don't hard-code the numbers). For reduced motion, override
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Hosting the burst in Game (which already had `celebration`
+   from SPEC-023) meant zero App wiring; reusing `prefersReducedMotion()` (SPEC-022)
+   and the `celebration.id` replay key (SPEC-021) made this a small, additive
+   overlay. Driving the count off the engine's `tier` keeps "bigger win → bigger
+   burst" honest. Preview confirmed 10 particles flying out on a live small win.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No decision/constraint changes. One recurring build-agent friction worth a
+   template note (logged as dogfood finding): build agents reflexively add
+   `// eslint-disable-line react-hooks/exhaustive-deps` on hooks with intentional
+   partial deps, but this project's ESLint has no react-hooks plugin, so the
+   directive is flagged and must be removed (self-corrected on SPEC-022 and -024).
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-025 (wolf jackpot moment — full-cabinet howl visual + moon
+   overlay) is next and will build on the jackpot-tier burst this spec already
+   throws; then 026 (mute/unlock) and 027 (jingle).
