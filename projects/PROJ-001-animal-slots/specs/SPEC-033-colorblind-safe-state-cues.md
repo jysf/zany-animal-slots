@@ -53,6 +53,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-28
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-28
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -261,3 +269,33 @@ Written during **design**, BEFORE build.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate results (2026-06-28, branch `feat/spec-033-colorblind-cues`):
+
+| Gate | Result |
+|---|---|
+| `just typecheck` | ✅ exit 0 |
+| `just lint` | ✅ exit 0 |
+| `just test` | ✅ 249/249 tests, 42 files |
+| `just build` | ✅ exit 0 (406 kB bundle) |
+| `just decisions-audit --changed main` | ✅ advisory only (DEC-004, DEC-006, DEC-010) |
+
+Checklist:
+
+- **Acceptance criteria — tier words**: `TIER_WORD` map in `WinBadge.tsx` maps `small→'WIN'`, `big→'BIG WIN'`, `jackpot→'JACKPOT'`. Rendered as `{TIER_WORD[t]} +{amount}`. Tests confirm each word per tier and that small does `not.toContain('BIG')`. Omitted tier defaults to 'small' → 'WIN +55' (existing "contains 55" test passes). ✅
+- **Acceptance criteria — data-tier**: `<div data-tier={t} ...>` with `t = tier === 'none' ? 'small' : tier`. Tests confirm `tier="big"→data-tier="big"` and omitted→`data-tier="small"`. ✅
+- **Acceptance criteria — null guards + role="status"**: `if (!show || amount <= 0) return null` intact. `role="status"` present. Null case tests for amount=0 and show=false kept unchanged. ✅
+- **Redundant (not sole) color cue**: The tier word ('WIN' / 'BIG WIN' / 'JACKPOT') is the accessible signal; the border color is the backup. CSS comment: "The tier WORD is the accessible signal; this color is a backup (WCAG: don't rely on color alone)." Text is the primary cue; color is supplemental. ✅
+- **CSS — token-only, no raw hex**: `win-badge.css` has `[data-tier="small"]`, `[data-tier="big"]`, `[data-tier="jackpot"]` border-color rules using `--color-win-small`, `--color-win-big`, `--color-jackpot`. `grep '#[0-9a-fA-F]{3,8}'` returns 0 matches. Base `.win-badge` keeps `--color-coin` border as default. ✅
+- **Game threading**: `Game.tsx` line 29: `<WinBadge amount={lastWin} show={!spinning} tier={celebration?.tier} />`. ✅
+- **Engine unchanged**: `git diff main..HEAD -- src/engine/` is empty. No new dependency in `package.json`. ✅
+- **Tests not vacuous**: WinBadge tests assert actual tier words per tier; Game test asserts 'JACKPOT' text reaches the live badge; CSS contract test asserts all three win-tier tokens present and no raw hex. ✅
+- **Decision drift**: `just decisions-audit --changed main` flags DEC-004/DEC-006/DEC-010 as advisory — all consistent with the change. No new DEC emitted; spec says none expected. ✅
+- **Build reflection**: Honest and specific. Notes the drop-in snippets were exact, the only judgment call was placement of the describe block. No inflation or vagueness. ✅
+- **Cost — build session**: `tokens_total: null` with "orchestrator to fill tokens_total from subagent_tokens at ship" note. Correct per §4 rules. ✅
