@@ -4,7 +4,7 @@
 task:
   id: SPEC-029
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -46,10 +46,34 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 51704
+      estimated_usd: 0.34
+      duration_minutes: 2.8
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=51704, 170s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 65733
+      estimated_usd: 0.43
+      duration_minutes: 4.4
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=65733, 263s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview SFX check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 117437
+    estimated_usd: 0.77
+    session_count: 5
 ---
 
 # SPEC-029: SFX set
@@ -245,26 +269,55 @@ real Tone); `sfx.test.ts` mocks `tone`.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-029-sfx-set
+- **PR (if applicable):** local only — no push per instructions
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
   - none expected
 - **Deviations from spec:**
-  - [list]
+  - none; drop-in code from "Notes for the Implementer" used exactly as provided
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned SPEC-030 (dynamic mixing)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The `sfx.test.ts` mock wiring for `MembraneSynth` required care: the reelStop path calls `triggerAttackRelease` directly on the drum instance (not on a chained return from `connect`), so the mock needed `triggerAttackRelease` on the synth object itself as well as `connect` returning `drumMock` self-referentially. The spec's test outline didn't spell this out, requiring a quick read of the implementation to reason about the mock shape.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. The note about "no exhaustive-deps disable comment" is slightly inconsistent with normal practice (the comments are typically no-ops without the plugin), but the spec calls it out clearly enough to follow without slowdown.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Write the `sfx.test.ts` mock for `MembraneSynth` last, after confirming the implementation path (direct call on drum vs. chained return), rather than trying to infer the mock shape from the implementation outline alone.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate results (all exit 0):
+- `just typecheck` — 0 errors
+- `just lint` — 0 errors
+- `just test` — 225/225 passed (37 test files; +11 new: 4 sfx + 7 useGameSfx)
+- `just build` — clean production build (406 kB JS, 677 ms)
+- `just decisions-audit --changed` — 0 new warnings (19 scope warnings are pre-existing on main; confirmed identical output)
+
+Checklist:
+
+- **AC: playSfx routes through getChannel('sfx'), never toDestination; REEL_STOP_CLUNKS===5; 5 staggered hits; never throws** — PASS. `sfx.ts`: every branch calls `getChannel('sfx')` then `.connect(ch)` on the synth (lines 16, 22). No `.toDestination()` call anywhere in the file (grep confirmed — the only match is a comment). `REEL_STOP_CLUNKS = 5` (line 11). reelStop loop runs `for (let i = 0; i < REEL_STOP_CLUNKS; i++)` with `t0 + i * 0.09` stagger (lines 23–25). Entire function body wrapped in `try { } catch { }` (lines 14/31–33).
+- **AC: useGameSfx spin/reelStop on correct edges; no fire on mount; no fire on unrelated re-renders** — PASS. `useGameSfx.ts`: `prev = useRef<boolean | null>(null)` (line 17); effect reads `was = prev.current`, sets `prev.current = isSpinning`, returns early if `was === null` (mount guard, line 25); edge-detects `!was && isSpinning` → `play('spin')`, `was && !isSpinning` → `play('reelStop')` (lines 27–28). Effect keyed on `[isSpinning]` only (line 29) — unrelated re-renders don't trigger it.
+- **AC: win once per new winning celebration.id (tier !== 'none'); not on no-win** — PASS. Second effect (lines 32–36): guards `!celebration || celebration.tier === 'none'` before playing 'win'. Keyed on `[celebration?.id]` (line 36) — fires once per id change.
+- **AC: gating (muted or !unlocked)** — PASS. Both effects check `if (muted || !unlocked) return` before any `play()` call (lines 26, 34). Gating variables destructured from `opts` at function top (line 16) and read at fire time.
+- **ENGINE UNCHANGED** — PASS. `git diff main..HEAD -- src/engine/` is empty.
+- **NO NEW DEP** — PASS. `git diff main..HEAD -- package.json` is empty.
+- **NO toDestination in sfx.ts** — PASS. Only occurrence is in a comment (`// …never toDestination()`); no actual `.toDestination()` call.
+- **EDGE DETECTION** — PASS. `prev` initialized to `null`; mount guard `if (was === null) return` present; `[isSpinning]` and `[celebration?.id]` dep arrays are minimal and correct; `muted`/`unlocked` read at fire time from outer closure.
+- **TESTS NOT VACUOUS** — PASS. `useGameSfx.test.ts` injects a `play` spy and asserts exact call counts per edge scenario; gating tests drive a spin edge AND a win and assert zero calls. `sfx.test.ts` mocks `tone` and `./audioEngine`, asserts `getChannel` called with `'sfx'`, asserts `connect(mockChannel)` (not toDestination), asserts 5 trigger calls for reelStop, and asserts the never-throws guard. Tests would fail if routing, gating, count, or try/catch were removed.
+- **NO BAD ESLINT-DISABLE / NO user-event** — PASS. No `eslint-disable` in any of the four new files. No `user-event` import.
+- **DECISION DRIFT** — PASS. `just decisions-audit --changed` reports 0 new issues (the tool found no uncommitted changes to audit; the committed diff was reviewed manually — DEC-013 and DEC-007 are honored: sfx channel only, synthesized only, gated). No new DEC needed (DEC-013 already covers this channel).
+- **BUILD REFLECTION** — PASS. Three questions answered honestly and specifically; the MembraneSynth mock-shape observation is credible detail. Minor note: Q2 observation about exhaustive-deps comment is correct (no effect without the plugin), and worth tracking for later.
+- **COST** — PASS. Build session has `tokens_total: null` with "orchestrator to fill" note, as required.
 
 ---
 
@@ -273,10 +326,20 @@ real Tone); `sfx.test.ts` mocks `tone`.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. SPEC-028's `sfx` channel meant this was pure plug-in: synths
+   `.connect(getChannel('sfx'))`, fired off `isSpinning` edges + `celebration` via the
+   same injected-spy-tested hook pattern as the jingle. Driving SFX off the engine's
+   real events (not new state) kept it honest and fire-once. The win ting is kept
+   short/quiet so it layers under the jingle rather than competing.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-013 covered the channel; nothing new. One small note for mock-heavy
+   audio specs (the build hit it briefly): when a synth calls `triggerAttackRelease`
+   directly on the instance returned by the constructor (not the `connect()` return),
+   the `tone` mock must expose `triggerAttackRelease` on the instance itself — worth a
+   line in future audio-spec test outlines.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-030 (dynamic mixing) is next — it tweaks the bed/sfx/jingle
+   channel gains to duck/swell, the payoff of the shared-graph foundation. Then the
+   a11y audits (031–033) and the perf pass (034).
