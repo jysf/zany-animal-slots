@@ -7,7 +7,7 @@
 task:
   id: SPEC-021
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: S                    # S | M | L  (L means split it)
@@ -49,10 +49,34 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 66361
+      estimated_usd: 0.44
+      duration_minutes: 3.2
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=66361, 191s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 65177
+      estimated_usd: 0.43
+      duration_minutes: 3.4
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=65177, 202s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 131538
+    estimated_usd: 0.87
+    session_count: 4
 ---
 
 # SPEC-021: Win-state router
@@ -238,26 +262,71 @@ Written during **design**, BEFORE build. Hook flow uses fake timers (advance by
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-021-win-state-router
+- **PR (if applicable):** n/a (local only per instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned celebration consumer specs (SPEC-022–SPEC-027)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down. The spec was unusually precise: it gave the exact interface shape, the exact setTimeout body snippet, the exact reset() change, and the exact test seeds with expected outcomes. The hook's existing structure (SPEC-016's timed-resolve flow, SPEC-019's lastWin placement) made the integration spot obvious.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. DEC-001 and DEC-005 both directly applied and were correctly cited. One subtlety worth noting: the spec correctly specifies that `celebrationIdRef` must NOT be reset in `reset()` — this keeps ids monotonically increasing across resets — and this was called out explicitly in the Notes, so it was not missed.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec's "Notes for the Implementer" section was a verbatim drop-in guide; following it exactly was the right call. The only minor efficiency gain would be to run `just typecheck` first (fastest feedback on the interface changes) before writing tests, but the parallel read of all files up-front made the implementation essentially a single-pass write.
+
+---
+
+## Verify
+
+*Cold review by claude-sonnet-4-6, 2026-06-27. Branch: feat/spec-021-win-state-router, PR #21.*
+
+### Gate results
+
+```
+just typecheck  — exit 0 (tsc --noEmit clean)
+just lint       — exit 0 (ESLint clean)
+just test       — exit 0 (148/148 tests passed, 23 test files; useSlotMachine.test.tsx: 32 tests including 6 new celebration tests)
+just build      — exit 0 (vite build 261ms, 56 modules)
+```
+
+### Checklist
+
+- **ACCEPTANCE CRITERIA** — confirmed met on every checkbox:
+  - `Celebration` interface exported with exact shape `{ id: number; tier: WinTier; totalWin: number; lineWins: LineWin[] }` — confirmed in diff line ~55 of useSlotMachine.ts.
+  - `celebration` starts `null` — `useState<Celebration | null>(null)` at line 112 confirmed; test "celebration starts null" passes.
+  - Winning spin (seed 276) → `tier: 'big'`, `totalWin: 55`, `lineWins.length === 3` — test "celebration is set on a winning spin" asserts all three; advances `SPIN_DURATION_MS` via fake timers. Confirmed.
+  - Losing spin (seed 12345) → `celebration === null` — test "celebration is null after a losing spin" asserts null. Confirmed.
+  - `id` strictly increases across wins — test "celebration id strictly increases across wins" captures `id1` then `id2` and asserts `id2 > id1`. Confirmed.
+  - Jackpot seed 407947 → `tier: 'jackpot'`, `totalWin: 2000` — test "celebration carries the jackpot tier" asserts both. Confirmed.
+  - `reset()` clears `celebration` to `null` — test "reset clears celebration" asserts null after `reset()`. Confirmed.
+  - Engine unchanged; gate exits 0 — `git diff main..HEAD -- src/engine/` is empty; all gate steps exit 0.
+
+- **ENGINE UNCHANGED** — `git diff main..HEAD -- src/engine/` produced no output. The UI imports via `src/engine/index` only (no engine internals directly referenced). Confirmed.
+
+- **NO SCOPE CREEP** — Changed files are exactly `src/ui/useSlotMachine.ts` and `src/ui/useSlotMachine.test.tsx` (plus spec/timeline docs). `git diff main..HEAD -- src/ui/App.tsx src/ui/regions/ src/styles/` is empty. `git diff main..HEAD -- package.json` is empty. No new dependencies introduced. Confirmed.
+
+- **TESTS NOT VACUOUS** — All 6 celebration tests advance fake timers by `SPIN_DURATION_MS` and assert real values from seeded outcomes. The id-increment test would catch a non-monotonic id (it checks `id2 > id1`, not just `id2 !== id1`). The loss test would catch a non-null celebration. The jackpot test asserts both `tier` and `totalWin`. These tests are structurally honest and would fail if celebration weren't wired.
+
+- **MONOTONIC ID** — `celebrationIdRef = useRef(0)` at line 113. `reset()` only calls `setCelebration(null)` — `celebrationIdRef.current` is NOT touched in `reset()`. The ref is incremented before `setCelebration(...)` in the setTimeout resolve callback. Not derived from `celebration?.id`. Confirmed.
+
+- **DECISION DRIFT** — `just decisions-audit --changed main` surfaced DEC-004 (animation via CSS transforms) and DEC-010 (global CSS styling) as advisory — both govern `src/ui/**`. This spec adds no CSS or animation; it is pure hook state derived from the engine outcome. No contradiction. No new non-trivial build decision needs a DEC record.
+
+- **BUILD REFLECTION** — Honest and specific: the implementer notes the spec was unusually precise (verbatim snippet drop-in), correctly calls out the `celebrationIdRef` no-reset subtlety, and gives a concrete efficiency suggestion (run `just typecheck` first). Not boilerplate.
+
+- **COST** — Build cost session has `tokens_total: null` with note "orchestrator to fill tokens_total from subagent_tokens at ship". Correct per AGENTS §4 for metered sub-agent cycles.
+
+### Verdict
+
+✅ APPROVED — all acceptance criteria met, gate green (148/148), engine untouched, no scope creep, tests are substantive, monotonic id correctly implemented via useRef, decisions consistent, reflection honest.
 
 ---
 
@@ -267,10 +336,21 @@ Written during **design**, BEFORE build. Hook flow uses fake timers (advance by
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Modelling the celebration as a one-shot signal with a
+   monotonic `useRef` id (rather than reusing `lastWin` or a derived counter) is
+   the right shape: it gives consumers a clean `useEffect([celebration?.id])`
+   fire-once edge that survives two equal back-to-back wins and a `null` no-win
+   sitting between two wins. Carrying `tier`/`totalWin`/`lineWins` on the object
+   means the five consumer specs (022–025, 027) read everything they need from
+   one field without re-querying the hook.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-001 and DEC-005 covered the approach exactly; the signal is derived
+   purely from the engine `SpinOutcome` and fires only on an actual win. No new
+   DEC needed — it is plain UI state, not a game-logic or architectural choice.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The consumers are already on the STAGE-004 backlog (SPEC-022
+   count-up next, then 023 paw-prints, 024 particles, 025 jackpot moment, 026
+   mute/unlock, 027 jingle). This spec deliberately ships no rendering — it is the
+   foundation those specs build on.

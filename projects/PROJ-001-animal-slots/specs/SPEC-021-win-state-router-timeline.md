@@ -8,6 +8,6 @@ Cycle prompts live in `prompts/SPEC-021-<cycle>.md`.
 ## Instructions
 
 - [x] **design** — completed 2026-06-27 (Opus): spec + 6 failing celebration tests + build prompt; seeds verified (276→big/55/3, 12345→none, 407947→jackpot/2000).
-- [ ] **build** — Sonnet sub-agent; make the celebration tests pass; gate green; local branch only.
-- [ ] **verify** — Sonnet sub-agent; cold review against ACs + constraints.
+- [x] **build** — gate green (148/148, +6 celebration tests); engine untouched; pushed, PR #21 (Sonnet sub-agent).
+- [x] **verify** — 2026-06-27 (Sonnet): ✅ APPROVED; 148/148 tests green (6 celebration tests); engine untouched; gate exit 0; monotonic id via useRef confirmed.
 - [ ] **ship** — orchestrator (Opus): squash-merge, cost totals, archive.
