@@ -26,7 +26,7 @@ export default function Game({ grid, spinning = false, lineWins = [], lastWin = 
   return (
     <main className="cabinet__game">
       <ReelGrid grid={grid} spinning={spinning} lineWins={lineWins} trailKey={celebration?.id ?? null} />
-      <WinBadge amount={lastWin} show={!spinning} />
+      <WinBadge amount={lastWin} show={!spinning} tier={celebration?.tier} />
       <ParticleBurst celebration={celebration} />
     </main>
   );

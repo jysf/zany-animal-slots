@@ -4,7 +4,7 @@
 task:
   id: SPEC-033
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: S
@@ -45,10 +45,34 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-06-28
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. colorblind audit)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 71242
+      estimated_usd: 0.47
+      duration_minutes: 6.2
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=71242, 370s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 66732
+      estimated_usd: 0.44
+      duration_minutes: 4.0
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=66732, 238s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 6
+      recorded_at: 2026-06-28
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview tier-badge check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 137974
+    estimated_usd: 0.91
+    session_count: 5
 ---
 
 # SPEC-033: Colorblind-safe state cues
@@ -218,26 +242,26 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-033-colorblind-cues
+- **PR (if applicable):** local only (no push per instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none; drop-in code used verbatim
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned SPEC-034 perf pass
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down. The spec's "Notes for the Implementer" was unusually complete — the drop-in code snippets for all four files were exact and needed no interpretation. The only judgment call was where to insert the new describe block in `reels.animation.test.ts`, and the existing file made the pattern obvious.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. `respect-reduced-motion` was correctly listed as a no-op for this spec (the badge's animation already had a reduced-motion path and this spec adds no new animation). `engine-no-dom` was implicitly observed by importing `WinTier` as a type only from `src/engine/index`.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec was sized right (S) and the drop-in code matched the existing conventions exactly. Reading all six source files before writing a line was the right order and took under a minute — worth keeping as the default for even small specs.
 
 ---
 
@@ -246,10 +270,50 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Framing the colorblind fix as a *redundant text cue* (the tier
+   word) backed by color — rather than fiddling with hues — is the right WCAG pattern
+   and also just makes the badge clearer for everyone. It also gave the so-far-unused
+   `--color-win-*` tokens their first real job (as the backup border), so the palette
+   is now fully exercised. Backward-compatible default (`tier` omitted → `WIN`) meant
+   the existing badge tests kept passing.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-006/010 covered it. The three a11y audits (reduced-motion, contrast,
+   colorblind) are all now test-enforced; if the weekly review wants to formalize them
+   as constraints (`contrast-aa`, `state-not-color-only`) that's a docs nicety, not a
+   functional gap — the guard tests already enforce them.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-034 (the performance pass) is the last STAGE-005 spec; it will
+   measure the spin + celebrations + the now-complete audio graph against the ~60fps
+   target. After it ships, STAGE-005's backlog is complete (7/7).
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+Gate results (2026-06-28, branch `feat/spec-033-colorblind-cues`):
+
+| Gate | Result |
+|---|---|
+| `just typecheck` | ✅ exit 0 |
+| `just lint` | ✅ exit 0 |
+| `just test` | ✅ 249/249 tests, 42 files |
+| `just build` | ✅ exit 0 (406 kB bundle) |
+| `just decisions-audit --changed main` | ✅ advisory only (DEC-004, DEC-006, DEC-010) |
+
+Checklist:
+
+- **Acceptance criteria — tier words**: `TIER_WORD` map in `WinBadge.tsx` maps `small→'WIN'`, `big→'BIG WIN'`, `jackpot→'JACKPOT'`. Rendered as `{TIER_WORD[t]} +{amount}`. Tests confirm each word per tier and that small does `not.toContain('BIG')`. Omitted tier defaults to 'small' → 'WIN +55' (existing "contains 55" test passes). ✅
+- **Acceptance criteria — data-tier**: `<div data-tier={t} ...>` with `t = tier === 'none' ? 'small' : tier`. Tests confirm `tier="big"→data-tier="big"` and omitted→`data-tier="small"`. ✅
+- **Acceptance criteria — null guards + role="status"**: `if (!show || amount <= 0) return null` intact. `role="status"` present. Null case tests for amount=0 and show=false kept unchanged. ✅
+- **Redundant (not sole) color cue**: The tier word ('WIN' / 'BIG WIN' / 'JACKPOT') is the accessible signal; the border color is the backup. CSS comment: "The tier WORD is the accessible signal; this color is a backup (WCAG: don't rely on color alone)." Text is the primary cue; color is supplemental. ✅
+- **CSS — token-only, no raw hex**: `win-badge.css` has `[data-tier="small"]`, `[data-tier="big"]`, `[data-tier="jackpot"]` border-color rules using `--color-win-small`, `--color-win-big`, `--color-jackpot`. `grep '#[0-9a-fA-F]{3,8}'` returns 0 matches. Base `.win-badge` keeps `--color-coin` border as default. ✅
+- **Game threading**: `Game.tsx` line 29: `<WinBadge amount={lastWin} show={!spinning} tier={celebration?.tier} />`. ✅
+- **Engine unchanged**: `git diff main..HEAD -- src/engine/` is empty. No new dependency in `package.json`. ✅
+- **Tests not vacuous**: WinBadge tests assert actual tier words per tier; Game test asserts 'JACKPOT' text reaches the live badge; CSS contract test asserts all three win-tier tokens present and no raw hex. ✅
+- **Decision drift**: `just decisions-audit --changed main` flags DEC-004/DEC-006/DEC-010 as advisory — all consistent with the change. No new DEC emitted; spec says none expected. ✅
+- **Build reflection**: Honest and specific. Notes the drop-in snippets were exact, the only judgment call was placement of the describe block. No inflation or vagueness. ✅
+- **Cost — build session**: `tokens_total: null` with "orchestrator to fill tokens_total from subagent_tokens at ship" note. Correct per §4 rules. ✅

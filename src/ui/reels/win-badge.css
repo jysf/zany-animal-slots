@@ -47,6 +47,14 @@
   pointer-events: none;
 }
 
+/* ─── Tier border colors (redundant cue — SPEC-033) ─────────────────────────── */
+
+/* The tier WORD is the accessible signal; this color is a backup
+   (WCAG: don't rely on color alone). Tokens only (DEC-010). */
+.win-badge[data-tier="small"]   { border-color: var(--color-win-small); }
+.win-badge[data-tier="big"]     { border-color: var(--color-win-big); }
+.win-badge[data-tier="jackpot"] { border-color: var(--color-jackpot); }
+
 /* ─── Reduced-motion override ────────────────────────────────────────────────── */
 
 /* Show the badge without any motion (respect-reduced-motion constraint, DEC-004). */
