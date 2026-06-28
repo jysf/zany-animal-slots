@@ -1,9 +1,24 @@
 // Tests for the Game region (SPEC-012): verifies the reel grid renders inside
 // the main region with the expected 15 symbol cells.
 // SPEC-013: Game now takes a `grid` prop; pass INITIAL_GRID in the test.
+// SPEC-023: threads celebration into paw trail via ReelGrid.
 import { render, screen } from '@testing-library/react';
 import Game from './Game';
 import { INITIAL_GRID } from '../reels/symbols';
+import type { Grid, LineWin } from '../../engine/index';
+import type { Celebration } from '../useSlotMachine';
+
+/** A minimal known 5×3 grid used across several tests. */
+const TEST_GRID: Grid = [
+  ['WOLF',  'DEER',  'FOX'     ],
+  ['BEAR',  'EAGLE', 'OWL'     ],
+  ['BISON', 'DEER',  'SQUIRREL'],
+  ['FOX',   'WOLF',  'BEAR'    ],
+  ['DEER',  'OWL',   'EAGLE'   ],
+];
+
+/** L1 win of count 3: reels 0,1,2 at row 1 (middle row). */
+const L1_WIN_3: LineWin = { line: 'L1', symbol: 'BEAR', count: 3, multiplier: 1, amount: 10 };
 
 describe('Game', () => {
   it('the Game region renders the reel grid', () => {
@@ -16,5 +31,21 @@ describe('Game', () => {
     for (const cell of cells) {
       expect(main).toContainElement(cell);
     }
+  });
+
+  // ── SPEC-023: paw-trail threading ───────────────────────────────────────────
+
+  it('threads the celebration into a paw trail on a win', () => {
+    const celebration: Celebration = { id: 1, tier: 'small', totalWin: 10, lineWins: [L1_WIN_3] };
+
+    // With celebration: 3 paws (L1 count-3 covers reels 0/1/2 at row 1).
+    const { container, rerender } = render(
+      <Game grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} celebration={celebration} />,
+    );
+    expect(container.querySelectorAll('.reel__paw')).toHaveLength(3);
+
+    // Without celebration: no paws.
+    rerender(<Game grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} />);
+    expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
   });
 });

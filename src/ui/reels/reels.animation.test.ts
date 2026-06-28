@@ -31,3 +31,14 @@ describe('reels.css animation contract (SPEC-016)', () => {
     expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 });
+
+describe('reels.css animation contract (SPEC-023)', () => {
+  it('defines the paw-trail keyframe and class', () => {
+    // The paw-trail-pop keyframe must be present.
+    expect(css).toMatch(/@keyframes\s+paw-trail-pop/);
+    // The .reel__paw class must be declared.
+    expect(css).toMatch(/\.reel__paw/);
+    // The keyframe must use transform (GPU-composited per DEC-004 / perf-60fps).
+    expect(css).toMatch(/paw-trail-pop[\s\S]*?transform/);
+  });
+});

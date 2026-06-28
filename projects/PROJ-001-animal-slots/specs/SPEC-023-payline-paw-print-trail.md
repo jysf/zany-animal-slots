@@ -4,7 +4,7 @@
 task:
   id: SPEC-023
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -48,10 +48,34 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 59595
+      estimated_usd: 0.39
+      duration_minutes: 3.4
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=59595, 203s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 76814
+      estimated_usd: 0.51
+      duration_minutes: 4.9
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=76814, 291s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview paw-trail check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 136409
+    estimated_usd: 0.90
+    session_count: 5
 ---
 
 # SPEC-023: Payline paw-print trail
@@ -259,26 +283,69 @@ fixtures already in `ReelGrid.test.tsx`. Query paws via
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-023-paw-trail
+- **PR (if applicable):** none (local only per spec instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none (covered by DEC-004/006/010 as expected)
 - **Deviations from spec:**
-  - [list]
+  - none; drop-in markup and CSS matched spec verbatim
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none at this time; tier-scaling paw size/speed is explicitly out of scope
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down; the "Notes for the Implementer" section provided complete drop-in code for every file. The spec was exceptionally clear about where the `key` prop on the inner `<span>` should be placed relative to JSX (child span, not the outer cell key).
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The `position: relative` addition to `.reel__cell` could theoretically affect existing glow-shadow rendering in SPEC-018, but in practice `box-shadow` is unaffected by stacking context changes here, so it's a non-issue. Worth noting but not worth a new decision.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec's "both" fill mode explanation (keeps paw hidden at 0% until its staggered delay fires) was important context; I'd highlight that sentence when briefing the next implementer since it's easy to omit and hard to debug visually.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+**Gate results (all exit 0):**
+- `just typecheck` — pass (tsc --noEmit, 0 errors)
+- `just lint` — pass (ESLint, 0 warnings)
+- `just test` — pass (167/167 tests across 25 files; +7 new paw tests)
+- `just build` — pass (Vite production build, 266ms)
+- `just decisions-audit --changed` — "No changed files in scope (your uncommitted changes)" (expected: the flag checks uncommitted working-tree changes; the branch changes are committed). `just decisions-audit` (no flag) shows 16 pre-existing scope-overlap warnings across the decision set — none are new, none introduced by this spec, and none are contradictions.
+
+**Checklist:**
+
+- **ACCEPTANCE CRITERIA — L1 count-3 → 3 paws.** `ReelGrid.test.tsx` line `expect(container.querySelectorAll('.reel__paw')).toHaveLength(3)` with `lineWins={[L1_WIN_3]} trailKey={1}` proves this. L1 covers reels 0/1/2 at row 1 (3 cells). Evidence: test passes, count verified in diff.
+
+- **No paws on no-win / spinning / trailKey null.** Three separate negative cases in `ReelGrid.test.tsx`: `lineWins={[]}`, `spinning={true}`, and `trailKey={null}` — each asserts `.reel__paw` count === 0. The spinning path is gated mechanically: `winKeys = spinning ? EMPTY : winningCellKeys(lineWins)` makes `isWin` always false while spinning, so no paw renders even if `trailKey != null`. Not vacuous — each test would fail if the relevant guard were removed.
+
+- **@keyframes paw-trail-pop (transform/opacity), staggered via --reel-index, aria-hidden, pointer-events:none.** Confirmed in `reels.css`: `@keyframes paw-trail-pop` uses `transform: scale(...)` and `opacity` at 0%/60%/100%. Animation declaration: `animation: paw-trail-pop 0.3s ease-out calc(var(--reel-index, 0) * 0.12s) both`. Paw markup: `aria-hidden="true"` in `ReelGrid.tsx` line 51; `pointer-events: none` in CSS line 67. All confirmed.
+
+- **Reduced-motion path; no raw hex in reels.css.** The `@media (prefers-reduced-motion: reduce)` block at line 131–137 includes `.reel__paw { animation: none; }`. The base `.reel__paw` rule has `opacity: 0.85` so the paw shows statically without motion. `grep '#[0-9a-fA-F]{3,6}' reels.css` → 0 matches. Confirmed token-only.
+
+- **Replay key — paw keyed on trailKey.** `key={paw-${trailKey}}` is set on the `<span className="reel__paw">` at `ReelGrid.tsx:51`. In React, changing a key on a single conditional child at the same tree position unmounts and remounts the element, re-triggering the CSS keyframe. This means identical back-to-back wins (same grid, new `celebration.id`) re-animate the paws. Correct pattern.
+
+- **ENGINE UNCHANGED.** `git diff main..HEAD -- src/engine/` → empty. Confirmed. UI consumes only `lineWins` (via `ReelGrid` props), `winningCellKeys` (existing helper), and `celebration?.id` via `trailKey`. No engine internals touched.
+
+- **ROLE=IMG INTACT.** `getAllByRole('img')` returns exactly 15 in the a11y paw test (`ReelGrid.test.tsx`). Every `.reel__paw` has `aria-hidden="true"`, excluding them from the a11y tree. The cell `<span role="img" aria-label={label}>` is unchanged.
+
+- **NO SCOPE CREEP / NO NEW DEPS.** Changed files: `src/ui/reels/ReelGrid.tsx`, `src/ui/reels/ReelGrid.test.tsx`, `src/ui/reels/reels.css`, `src/ui/reels/reels.animation.test.ts`, `src/ui/regions/Game.tsx`, `src/ui/regions/Game.test.tsx`, `src/ui/App.tsx` — exactly the listed outputs. `package.json` unchanged. No new CSS file (paw CSS lives in `reels.css`).
+
+- **CSS CONTRACT.** `@keyframes paw-trail-pop` present; `.reel__paw` present; keyframe uses `transform`; reduced-motion block includes `.reel__paw { animation: none }`; no raw hex. `.reel__cell { position: relative }` added as a second rule block at line 55 (additive to the existing `.reel__cell` rule at line 38). The `box-shadow` on `.reel__cell--win` (SPEC-018) is unaffected — `position: relative` changes stacking context but does not alter box-shadow rendering. Confirmed harmless.
+
+- **TESTS NOT VACUOUS.** Five paw tests in `ReelGrid.test.tsx`, one in `Game.test.tsx`, one CSS-contract test in `reels.animation.test.ts`. Each test would fail if its specific guard were absent: the spinning test fails if `winKeys` weren't suppressed while spinning; the trailKey-null test fails if the `trailKey != null` guard were removed; the aria-hidden test fails if paws carried `role="img"`. Not coverage theater.
+
+- **DECISION DRIFT.** No new decisions emitted — correct, as spec notes "No new DEC — squarely DEC-004/006/010 territory." Pre-existing 16 scope-overlap warnings from `just decisions-audit` are unrelated to this spec and were present before this branch. DEC-004 (CSS keyframes), DEC-006 (🐾 emoji), DEC-010 (token-only CSS, no raw hex), DEC-001 (engine untouched) all honored.
+
+- **BUILD REFLECTION.** Three questions answered honestly. Q1 notes the spec was clear and the `key` prop placement was well-explained. Q2 notes the `position: relative` addition is a non-issue for SPEC-018's box-shadow — accurate and specific. Q3 notes the `both` fill-mode rationale is worth highlighting for future implementers. No unearned self-praise; specific and credible.
+
+- **COST.** Build session present with `tokens_total: null` and `"orchestrator to fill tokens_total from subagent_tokens at ship"` note. Verify session added (same null pattern). Design session marked as main-loop with note. Pattern consistent with AGENTS.md §4 and prior specs.
+
+Reviewed by: claude-sonnet-4-6, 2026-06-27
 
 ---
 
@@ -287,10 +354,20 @@ fixtures already in `ReelGrid.test.tsx`. Query paws via
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Reusing `winningCellKeys` (SPEC-018) and the reel's existing
+   `--reel-index` custom property (which inherits into the paw child) meant the
+   staggered trace needed no new geometry — the paw just rides the same left→right
+   cascade the reel-stop bounce already uses. Keying the paw on `celebration.id`
+   gives correct per-win replay for free. Preview confirmed 3 paws on the 3 winning
+   cells with the symbols still readable.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. Squarely DEC-004/006/010. One small UX observation for a later polish
+   spec (not this stage): the centered `WinBadge` (z-10) can sit over paws on
+   middle-row wins — a pre-existing overlap from SPEC-019, not introduced here.
+   Worth revisiting when the celebration layering is tuned, but out of scope now.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-024 (particles) is next, then 025 jackpot moment, 026
+   mute/unlock, 027 jingle. A connecting line/SVG path between paws was explicitly
+   deferred (v1 is per-cell paw markers) and can be a future polish spec if wanted.
