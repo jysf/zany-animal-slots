@@ -46,6 +46,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -229,26 +237,26 @@ timers for the restore.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-030-dynamic-mixing
+- **PR (if applicable):** local only (not yet pushed)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none (DEC-013 covers bus mixing as expected)
 - **Deviations from spec:**
-  - [list]
+  - none — drop-in code used verbatim; `mixer.ts` and `useDynamicMixing.ts` match the spec's "Notes for the Implementer" exactly
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing STAGE-005 backlog (reduced-motion, contrast, colorblind, perf)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down. The "Notes for the Implementer" gave complete drop-in code and the existing `useWinJingle` / `audioEngine` files made the mock pattern obvious. The spec was the clearest of the STAGE-005 audio series.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps. The `vi.useFakeTimers()` / `vi.useRealTimers()` discipline for the `setTimeout`-based restore wasn't explicitly called out in the spec, but it was obvious from the test description and the fake-timer pattern is standard Vitest.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing of substance. The spec was tight enough that the build was purely mechanical: write the files, run the gate, done in one pass. If anything, I'd note that the `rampTo` mock in `mixer.test.ts` must be defined *before* the `vi.mock(...)` call (module hoisting order) — a subtle Vitest constraint worth a one-liner in the spec's notes.
 
 ---
 
