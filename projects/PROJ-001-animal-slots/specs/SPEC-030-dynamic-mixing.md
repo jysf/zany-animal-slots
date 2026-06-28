@@ -49,23 +49,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 71957
+      estimated_usd: 0.47
+      duration_minutes: 3.3
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=71957, 197s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 67995
+      estimated_usd: 0.45
+      duration_minutes: 3.3
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=67995, 197s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 139952
+    estimated_usd: 0.92
+    session_count: 5
 ---
 
 # SPEC-030: Dynamic mixing
@@ -311,10 +319,19 @@ just build      ✅  exit 0 — 1037 modules; dist/assets/index-*.js 406 kB
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. DEC-013's channel architecture made this exactly what it
+   promised: tier-aware mixing is a single `getChannel('bed').gain.rampTo(...)` plus a
+   timed restore — no per-synth plumbing. Reusing the `useWinJingle` fire-once-gated
+   pattern for `useDynamicMixing` kept it tiny and fully spy-testable. The audio suite
+   (bed → SFX → mixing) came together cleanly because the foundation was laid first.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-013 covered bus mixing. The recurring mock-hoisting note (define the
+   `rampTo`/spy refs before the `vi.mock` factory) is already standard Vitest and was
+   handled; not worth a template change.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The audio suite is complete (bed + SFX + jingle + mixing). Next are
+   the a11y audits — SPEC-031 (reduced-motion), SPEC-032 (contrast + 44px), SPEC-033
+   (colorblind-safe state cues) — then SPEC-034 (perf pass), which will also measure
+   the audio graph's cost.
