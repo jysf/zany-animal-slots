@@ -125,12 +125,12 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [x] SPEC-028 (shipped 2026-06-27) — **Ambient music bed + audio-graph foundation**: a generative Tone.js loop on `Tone.Transport`, gated by mute+unlock; sets up the shared master bus / channels the SFX and mixing build on (DEC-013); jingle re-routed onto its channel. **[M]**
 - [x] SPEC-029 (shipped 2026-06-27) — **SFX set**: synthesized spin whoosh, per-reel stop clunk (×5), and win ting, fired off the spin flow (`isSpinning` edges) / `celebration` signal; routed through the `sfx` channel, gated. **[M]**
 - [x] SPEC-030 (shipped 2026-06-27) — **Dynamic mixing**: bus-level bed automation — swell on a big win, duck under the jackpot moment, restore to baseline — keyed off the engine win tier (`celebration`), gated. **[M]**
-- [~] SPEC-031 (verify) — **Reduced-motion audit**: a global motion safety net + a regression-guard sweep (every `@keyframes` CSS has a reduced-motion block) + audio-not-motion-gated + App-renders-under-reduced-motion; confirms the paths shipped per-stage. **[S]**
+- [x] SPEC-031 (shipped 2026-06-28) — **Reduced-motion audit**: a global motion safety net + a regression-guard sweep (every `@keyframes` CSS has a reduced-motion block) + audio-not-motion-gated + App-renders-under-reduced-motion; confirmed all 5 keyframes CSS already compliant. **[S]**
 - [ ] (not yet written) — **Contrast + 44px audit & fixes**: WCAG AA contrast on text/controls + ≥44px hit areas; token/markup fixes; documented. **[M]**
 - [ ] (not yet written) — **Colorblind-safe state cues**: ensure win-tier feedback isn't color-only (tier label/icon as needed); symbols stay shape-distinct. **[S]**
 - [ ] (not yet written) — **Performance pass**: measure + hold ~60fps spin/celebration on a throttled mid-tier profile; fix long tasks; document; revisit DEC-004 only if it fails. **[M]** *(could grow to L if profiling surfaces deep work — split then)*
 
-**Count:** 3 shipped / 0 active / 4 pending — 5×M, 1×(S–M), 1×S; **no L** (audio suite complete; a11y + perf remain). Sized at
+**Count:** 4 shipped / 0 active / 3 pending — 5×M, 1×(S–M), 1×S; **no L** (audio suite + reduced-motion done; contrast/colorblind/perf remain). Sized at
 Stage Frame; within the 3–8 range (no rescoping needed). Two carry the most
 uncertainty — dynamic mixing (#3) and the perf pass (#7); split #7 if profiling
 reveals deep work.
