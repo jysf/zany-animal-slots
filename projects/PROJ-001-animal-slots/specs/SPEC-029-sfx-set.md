@@ -49,23 +49,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 51704
+      estimated_usd: 0.34
+      duration_minutes: 2.8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=51704, 170s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 65733
+      estimated_usd: 0.43
+      duration_minutes: 4.4
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=65733, 263s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview SFX check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 117437
+    estimated_usd: 0.77
+    session_count: 5
 ---
 
 # SPEC-029: SFX set
@@ -318,10 +326,20 @@ Checklist:
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. SPEC-028's `sfx` channel meant this was pure plug-in: synths
+   `.connect(getChannel('sfx'))`, fired off `isSpinning` edges + `celebration` via the
+   same injected-spy-tested hook pattern as the jingle. Driving SFX off the engine's
+   real events (not new state) kept it honest and fire-once. The win ting is kept
+   short/quiet so it layers under the jingle rather than competing.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-013 covered the channel; nothing new. One small note for mock-heavy
+   audio specs (the build hit it briefly): when a synth calls `triggerAttackRelease`
+   directly on the instance returned by the constructor (not the `connect()` return),
+   the `tone` mock must expose `triggerAttackRelease` on the instance itself — worth a
+   line in future audio-spec test outlines.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-030 (dynamic mixing) is next — it tweaks the bed/sfx/jingle
+   channel gains to duck/swell, the payoff of the shared-graph foundation. Then the
+   a11y audits (031–033) and the perf pass (034).
