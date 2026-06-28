@@ -50,23 +50,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 75223
+      estimated_usd: 0.50
+      duration_minutes: 4.4
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=75223, 262s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 71858
+      estimated_usd: 0.47
+      duration_minutes: 4.3
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=71858, 257s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview mute-toggle check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 147081
+    estimated_usd: 0.97
+    session_count: 5
 ---
 
 # SPEC-026: Mute toggle and audio unlock
@@ -315,13 +323,27 @@ Written during **design**, BEFORE build. `localStorage.clear()` in `beforeEach`.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Mirroring `storage.ts` for `muteStorage` and the
+   `.paytable__trigger` button for `MuteToggle` made this fast and consistent.
+   Splitting the audio gate (mute + unlock) into its own spec before the jingle was
+   the right call — SPEC-027 now has `muted`/`unlocked` ready to gate Tone.js with
+   zero plumbing, and the autoplay-policy compliance is proven independently of any
+   sound. Preview confirmed the header toggle + persistence across reload.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-007 already specified the gate; this implements it. Two recurring
+   build-agent frictions worth a future template note (already logged as dogfood
+   findings): (a) the missing `react-hooks` ESLint plugin (agents add invalid
+   exhaustive-deps disables), and (b) `@testing-library/user-event` is NOT installed
+   — agents reach for `userEvent.click` and must fall back to `fireEvent`. A
+   one-line "use fireEvent; no user-event in this repo" in UI build prompts would
+   save a typecheck loop.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-027 (the tier-scaled Tone.js win jingle) is the last
+   STAGE-004 spec; it consumes this spec's `muted` + `unlocked` and the engine win
+   tier, and adds the `tone` dependency (DEC-007-authorized). After it ships,
+   STAGE-004's 9-item backlog is complete.
 
 ---
 
