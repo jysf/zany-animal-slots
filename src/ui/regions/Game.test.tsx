@@ -51,6 +51,26 @@ describe('Game', () => {
     expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
   });
 
+  // ── SPEC-033: tier threading into the win badge ─────────────────────────────
+
+  it('threads the tier into the win badge', () => {
+    const celebration: Celebration = {
+      id: 1,
+      tier: 'jackpot',
+      totalWin: 2000,
+      lineWins: [],
+    };
+    render(
+      <Game
+        grid={INITIAL_GRID}
+        spinning={false}
+        lastWin={2000}
+        celebration={celebration}
+      />,
+    );
+    expect(screen.getByRole('status').textContent).toContain('JACKPOT');
+  });
+
   // ── SPEC-024: particle burst threading ──────────────────────────────────────
 
   it('renders a particle burst on a win', () => {
