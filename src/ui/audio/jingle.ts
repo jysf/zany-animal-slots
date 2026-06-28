@@ -1,7 +1,9 @@
 // jingle.ts — tier-scaled win jingle synthesis via Tone.js (SPEC-027).
 // DEC-007: synthesized audio, win-jingle only, gated by caller (useWinJingle).
+// SPEC-028: routes through the shared audio graph (DEC-013) instead of toDestination.
 // Named imports keep the bundle as tree-shakeable as possible.
 import { start, now, Synth } from 'tone';
+import { getChannel } from './audioEngine';
 import type { WinTier } from '../../engine/index';
 
 export const JINGLE_NOTES: Record<'small' | 'big' | 'jackpot', string[]> = {
@@ -16,7 +18,7 @@ export function playJingle(tier: WinTier): void {
     // After the 'none' guard, tier is 'small' | 'big' | 'jackpot' — safe to index.
     const notes = JINGLE_NOTES[tier as keyof typeof JINGLE_NOTES];
     void start();                       // resume the AudioContext (gesture has occurred)
-    const synth = new Synth().toDestination();
+    const synth = new Synth().connect(getChannel('jingle'));
     const t0 = now();
     notes.forEach((note, i) => synth.triggerAttackRelease(note, '8n', t0 + i * 0.12));
   } catch {

@@ -4,7 +4,7 @@
 task:
   id: SPEC-028
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -46,10 +46,34 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. DEC-013)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 58608
+      estimated_usd: 0.39
+      duration_minutes: 3.5
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=58608, 209s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 73878
+      estimated_usd: 0.49
+      duration_minutes: 4.1
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=73878, 245s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview audio-graph check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 132486
+    estimated_usd: 0.88
+    session_count: 5
 ---
 
 # SPEC-028: Ambient bed & audio graph
@@ -267,26 +291,62 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-028-ambient-bed
+- **PR (if applicable):** n/a (local only per spec)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-013 authored at design
+  - none — DEC-013 authored at design
 - **Deviations from spec:**
-  - [list]
+  - none; all drop-in code used verbatim with only one lint fix (removed unused parameter names in the Loop mock factory)
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none; SPEC-029 (SFX) and SPEC-030 (mixing) already in backlog and plug into the same channels
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The `ambientBed.test.ts` mock for `Loop` used typed parameter names (`_cb`, `_interval`) that the `@typescript-eslint/no-unused-vars` rule flagged even with the underscore prefix. The spec drop-in didn't include the mock factory, so this was discovered only at `just lint`. Took one fix iteration.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. One implicit nuance: the ESLint `no-unused-vars` rule's behavior with underscore-prefixed params in vi.fn() factories isn't mentioned in the spec or constraints; worth noting in the template for future mock-heavy specs.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Write the `vi.mock` factory signatures with no named parameters at all (just `vi.fn(() => …)`) from the start, since the callback signature inside a mock factory is irrelevant to the test assertions. This avoids the lint trip-up entirely.
+
+---
+
+## Verify
+
+Verified 2026-06-27 by claude-sonnet-4-6 (cold reviewer, separate session).
+
+**Verdict: ✅ APPROVED**
+
+Gate results:
+- `just typecheck` — exit 0 (no type errors)
+- `just lint` — exit 0 (no lint errors)
+- `just test` — exit 0 (35 test files, 214 tests, all passing; +11 new tests: 3 audioEngine + 3 ambientBed + 5 useAmbientBed)
+- `just build` — exit 0 (vite production build, 394.64 kB bundle)
+
+Checklist (evidence-based):
+
+- ✅ **getChannel idempotent + connects to master** — `getChannel` uses a Map singleton; `audioEngine.ts:32-35` stores and retrieves from `channels`. Test in `audioEngine.test.ts:49-56` confirms same instance on two calls. `connect(getMaster())` call visible in implementation. Note: test asserts `connectMock.toHaveBeenCalled()` but does not assert the specific argument was the master — weak but implementation is correct.
+- ✅ **getMaster single shared node** — module-level `let master: Gain | null = null` with lazy init (`audioEngine.ts:22-26`).
+- ✅ **CHANNEL_GAINS bed/sfx/jingle in (0,1]** — values 0.25/0.6/0.8; test iterates all three and asserts numeric + `>0` + `<=1` (`audioEngine.test.ts:37-46`).
+- ✅ **startBed starts transport+loop, idempotent** — `if (loop) return` guard on line 13 of `ambientBed.ts`; test "is idempotent" asserts `Loop` constructor called only once on double-call (`ambientBed.test.ts:60-67`); transport started via `getTransport().start()`.
+- ✅ **stopBed cleans up** — stops and disposes loop, disposes pad, nulls refs (`ambientBed.ts:23-31`); test asserts `loopStopMock` and `loopDisposeMock` called.
+- ✅ **useAmbientBed starts when unlocked&&!muted, stops when muted/!unlocked, stops on unmount** — 5 injected-spy tests in `useAmbientBed.test.ts` cover all paths; no real Tone used; `renderHook` from `@testing-library/react`.
+- ✅ **playJingle routes via getChannel('jingle') (no toDestination)** — `jingle.ts:21`: `new Synth().connect(getChannel('jingle'))`; `toDestination` is absent from jingle routing; `./audioEngine` mock added to `jingle.test.ts`.
+- ✅ **Jingle per-tier note counts unchanged** — `jingle.test.ts:46-58` asserts `JINGLE_NOTES.small.length`, `jackpot.length`; test passes (4 tests).
+- ✅ **Engine unchanged** — `git diff main..HEAD -- src/engine/` is empty.
+- ✅ **No new deps** — `git diff main..HEAD -- package.json package-lock.json` is empty.
+- ✅ **Audio gating correct** — hook enforces `unlocked && !muted` before calling start; try/catch in engine + bed guards against missing AudioContext.
+- ✅ **DEC-013 honored** — master bus + named channels (`bed`/`sfx`/`jingle`) + Transport; jingle re-routed; lazy/idempotent creation guarded; lazy creation in jsdom safe (both `ensureAudio` and `startBed` are wrapped in try/catch).
+- ✅ **Tests not vacuous** — hook tests use injected spies and assert call counts precisely; engine/bed tests mock `tone` and assert real wiring (idempotency via Map, single loop via `if (loop) return`).
+- ✅ **No bad eslint-disable or user-event** — grepped: zero matches.
+- ✅ **Decision drift** — `just decisions-audit --changed` output: "No changed files in scope" (tool looks at uncommitted diff; branch diff is clean). `just decisions-audit` shows 19 pre-existing scope-overlap warnings across older DECs — none new, none from this spec. DEC-013 governs `src/ui/audio/**` and is fully honored. DEC-007 and DEC-001 also honored (synthesized only, engine untouched).
+- ✅ **Build reflection honest** — notes the lint trip on mock param names (`_cb`, `_interval`) and the one fix iteration; specific and accurate (confirmed final code uses parameterless lambdas in the Loop mock factory).
+- ✅ **Cost session** — build session present with `tokens_total: null` and "orchestrator to fill" note; correct per AGENTS §4 (subagent, filled at ship).
+
+Minor observation (no punch-list item): the `audioEngine.test.ts` "connects each channel to the master" test does not assert `connectMock.toHaveBeenCalledWith(master)` — it only checks the mock was called and that `ch !== master`. Implementation is correct; future test improvement only.
 
 ---
 
@@ -295,10 +355,21 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Authoring DEC-013 at design — master bus + named channels +
+   Transport — meant the build was a clean transcription and gives SPEC-029/030 real
+   channels to plug into; re-routing the jingle now (2 lines + a mock tweak) made the
+   shared graph genuine rather than aspirational. The injectable `{start, stop}` on
+   `useAmbientBed` kept the gating fully unit-tested with spies (no real Tone), the
+   same pattern that worked for the jingle.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-013 captured the one new decision. A small recurring note for mock-heavy
+   audio specs (already in the build prompts): write `vi.fn(() => …)` mock factories
+   with no named callback params, since this repo's `no-unused-vars` flags even
+   underscore-prefixed ones — the build hit that once and fixed it.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-029 (SFX set) plugs into the `sfx` channel created here, then
+   SPEC-030 (dynamic mixing) tweaks channel gains to duck/swell. The a11y audits
+   (031–033) and the perf pass (034) follow. The full audio suite is on track within
+   STAGE-005's framed backlog.
