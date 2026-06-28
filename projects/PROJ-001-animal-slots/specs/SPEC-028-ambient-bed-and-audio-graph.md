@@ -49,23 +49,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 58608
+      estimated_usd: 0.39
+      duration_minutes: 3.5
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=58608, 209s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 73878
+      estimated_usd: 0.49
+      duration_minutes: 4.1
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=73878, 245s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview audio-graph check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 132486
+    estimated_usd: 0.88
+    session_count: 5
 ---
 
 # SPEC-028: Ambient bed & audio graph
@@ -347,10 +355,21 @@ Minor observation (no punch-list item): the `audioEngine.test.ts` "connects each
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Authoring DEC-013 at design — master bus + named channels +
+   Transport — meant the build was a clean transcription and gives SPEC-029/030 real
+   channels to plug into; re-routing the jingle now (2 lines + a mock tweak) made the
+   shared graph genuine rather than aspirational. The injectable `{start, stop}` on
+   `useAmbientBed` kept the gating fully unit-tested with spies (no real Tone), the
+   same pattern that worked for the jingle.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-013 captured the one new decision. A small recurring note for mock-heavy
+   audio specs (already in the build prompts): write `vi.fn(() => …)` mock factories
+   with no named callback params, since this repo's `no-unused-vars` flags even
+   underscore-prefixed ones — the build hit that once and fixed it.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-029 (SFX set) plugs into the `sfx` channel created here, then
+   SPEC-030 (dynamic mixing) tweaks channel gains to duck/swell. The a11y audits
+   (031–033) and the perf pass (034) follow. The full audio suite is on track within
+   STAGE-005's framed backlog.
