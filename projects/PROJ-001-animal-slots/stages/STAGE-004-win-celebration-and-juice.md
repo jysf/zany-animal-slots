@@ -129,7 +129,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-022 (shipped 2026-06-27) — **Balance count-up**: the displayed balance ticks old→new on a win (JS interval tween via `useCountUp`, keyed off SPEC-021's `celebration`; snaps under reduced motion — DEC-012). **[M]**
 - [x] SPEC-025 (shipped 2026-06-27) — **Wolf jackpot moment**: full-cabinet night-sky + rising moon 🌕 + howling wolf 🐺 + JACKPOT banner on the five-Wolf hit; CSS keyframes (reduced-motion static), auto-dismiss, keyed off `celebration.tier === 'jackpot'`. **[M]**
 - [ ] (not yet written) — Tier-scaled synthesized win jingle (Tone.js) keyed off win-tier — **backlog rider [S]**.
-- [~] SPEC-026 (build) — **Mute toggle + audio unlock**: audio FOUNDATION (no sound) — `useAudio` ({ muted, toggleMute, unlocked }), persisted mute (localStorage `mute`), first-gesture unlock, a 🔊/🔇 MuteToggle in the header (constraint `audio-gesture-and-mute`, DEC-007). **[S]**
+- [~] SPEC-026 (verify) — **Mute toggle + audio unlock**: audio FOUNDATION (no sound) — `useAudio` ({ muted, toggleMute, unlocked }), persisted mute (localStorage `mute`), first-gesture unlock, a 🔊/🔇 MuteToggle in the header (constraint `audio-gesture-and-mute`, DEC-007). **[S]**
 
 **Count:** 7 shipped / 0 active / 2 pending — sized at Stage Frame. **Current slice (DONE):**
 SPEC-019 (win amount) + SPEC-020 (paytable sheet) first, then pause; the
