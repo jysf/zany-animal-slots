@@ -45,6 +45,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. DEC-012)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -280,26 +288,26 @@ for the reduced-motion query (restore afterward).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-022-balance-count-up
+- **PR (if applicable):** local only (no push per build instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-012 authored at design
+  - none — DEC-012 authored at design
 - **Deviations from spec:**
-  - [list]
+  - Removed the inline `// eslint-disable-line react-hooks/exhaustive-deps` comment from `useCountUp.ts` — the `react-hooks/exhaustive-deps` ESLint rule is not configured in this project so the disable comment itself caused a lint error. The deps array `[signal?.id, target]` is intentionally narrowed per the spec's Notes (the `signal.id !== lastIdRef.current` guard prevents re-firing on unrelated rerenders); no functional change.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-listed STAGE-004 backlog specs (paw-print trail, particles, jackpot moment, jingle, mute toggle)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing material. The Notes were extremely complete drop-in code; the only friction was the stray eslint-disable comment that referenced a rule not present in the project's config, which lint caught immediately and was a one-line fix.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps. DEC-012, DEC-004, DEC-001, `respect-reduced-motion`, and `test-before-implementation` all applied cleanly. The absence of `react-hooks/exhaustive-deps` in the ESLint config isn't a missing constraint — the intentional narrow deps are documented in the hook comment.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — I'd skip trying to add the eslint-disable comment in the first place (knowing the rule isn't installed), saving one lint/fix cycle. Everything else — the drop-in code from Notes, the fake-timer test structure — worked first-try.
 
 ---
 
