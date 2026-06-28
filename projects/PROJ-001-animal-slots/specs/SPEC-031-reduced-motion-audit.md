@@ -48,23 +48,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 64339
+      estimated_usd: 0.42
+      duration_minutes: 3.3
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=64339, 197s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 65755
+      estimated_usd: 0.43
+      duration_minutes: 4.5
+      recorded_at: 2026-06-28
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=65755). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4). duration_minutes ~4.5 (active work; raw Agent duration_ms included idle)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 6
       recorded_at: 2026-06-28
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 130094
+    estimated_usd: 0.85
+    session_count: 5
 ---
 
 # SPEC-031: Reduced-motion audit
@@ -270,13 +278,22 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. The per-stage discipline of building each reduced-motion path
+   as the animation shipped paid off here: the audit found zero gaps across all five
+   `@keyframes` files. The valuable additions were the *guard* (a fs-walk sweep that
+   fails if any future keyframes CSS forgets the block) and the *global net* (catches
+   anything the per-component blocks miss) — cheap insurance that makes the
+   reduced-motion promise structural rather than per-spec discipline.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. `respect-reduced-motion` is now enforced by a test, not just convention —
+   arguably the constraint could note that the sweep test exists, but that's a docs
+   nicety, not required. One tiny build-prompt note (the build hit it): name test
+   files with JSX `.tsx`, not `.ts`.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-032 (contrast + 44px audit) is next, then SPEC-033
+   (colorblind-safe state cues), then SPEC-034 (perf pass) closes STAGE-005.
 
 ---
 
