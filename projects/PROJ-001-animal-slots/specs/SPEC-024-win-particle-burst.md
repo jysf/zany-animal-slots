@@ -57,6 +57,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -315,6 +323,74 @@ component (don't hard-code the numbers). For reduced motion, override
 
 3. **If you did this task again, what would you do differently?**
    — I'd lint-check the "Notes for the Implementer" code snippets mentally before copy-pasting, specifically to catch eslint-disable comments that reference rules not in the project. Everything else — file layout, useMemo-before-early-return discipline, CSS-contract test reading the real file — was clean.
+
+---
+
+## Verify
+
+*Completed 2026-06-27 by claude-sonnet-4-6 (cold reviewer).*
+
+**Verdict: ✅ APPROVED**
+
+### Gate results
+
+| Check | Result |
+|---|---|
+| `just typecheck` | exit 0 |
+| `just lint` | exit 0 |
+| `just test` | exit 0 — 175/175 tests, 26 files (7 new ParticleBurst + 1 new Game = +8 from spec expectation) |
+| `just build` | exit 0 — 60 modules, dist 153.65 kB |
+| `just decisions-audit --changed main` | DEC-004, DEC-006, DEC-010 flagged (advisory, expected); consistent with all three |
+
+### Checklist (evidence per item)
+
+- **ACCEPTANCE CRITERIA — renders nothing when celebration null / tier 'none' / reduced motion:**
+  ✅ ParticleBurst.tsx line 45: `if (!celebration || count === 0 || prefersReducedMotion()) return null`. Three tests confirm (renders nothing without celebration, renders nothing for tier none, renders nothing under reduced motion).
+
+- **Renders exactly PARTICLE_COUNTS[tier] particles; counts strictly increasing small < big < jackpot:**
+  ✅ PARTICLE_COUNTS = { small: 10, big: 20, jackpot: 32 }. "scales the burst by tier" test asserts strict ordering and that each tier renders exactly that count via `.particle` query.
+
+- **Particles are 🍂/🌰, aria-hidden; burst container aria-hidden + pointer-events:none:**
+  ✅ ParticleBurst.tsx lines 48–50: `<div aria-hidden="true">` + `<span aria-hidden="true">{p.emoji}</span>`. Emoji from `EMOJI = ['🍂', '🌰']`. particles.css: `.particle-burst { pointer-events: none }`. Test "particles and the burst are decorative" asserts both aria-hidden and emoji content.
+
+- **CSS @keyframes particle-fly uses transform/opacity:**
+  ✅ particles.css lines 34–38: `@keyframes particle-fly` uses `transform: translate(...)` at 0% and 100%, `opacity` at all stops. CSS-contract test reads the file and asserts this.
+
+- **Burst keyed on celebration.id; positions memoized on id:**
+  ✅ ParticleBurst.tsx line 43: `useMemo(..., [id, count])`. The `key={id}` on the `.particle-burst` div (line 48) forces the burst container to unmount/remount on each new win, resetting the CSS animation. useMemo ensures trajectories don't reshuffle on unrelated re-renders of the same win.
+
+- **useMemo BEFORE early return (stable hook order):**
+  ✅ useMemo at line 29; early return at line 45. Correct order confirmed.
+
+- **particles.css has @media reduced-motion + no raw hex:**
+  ✅ Lines 44–48: `@media (prefers-reduced-motion: reduce) { .particle { animation: none; } }`. No `#RRGGBB` literals in file. CSS-contract test verifies both.
+
+- **ENGINE UNCHANGED — `git diff main..HEAD -- src/engine/` is EMPTY:**
+  ✅ Confirmed empty.
+
+- **ROLE=IMG INTACT — 15 symbol cells stay role="img"; particles not role=img:**
+  ✅ Particles use `aria-hidden="true"` with no role. ReelGrid.tsx has one `role="img"` site (line 46). Game.test.tsx still passes its `getAllByRole('img')` expecting 15 cells.
+
+- **NO SCOPE CREEP / NO NEW DEPS — only listed files changed; package.json unchanged:**
+  ✅ Changed files: ParticleBurst.tsx, ParticleBurst.test.tsx, particles.css, Game.tsx, Game.test.tsx, plus spec/timeline docs. No App.tsx change. No package.json change.
+
+- **NO leftover eslint-disable:**
+  ✅ Grep of all changed source files finds zero `eslint-disable` strings. Build report's mention of removing it is accurate — the final code is clean.
+
+- **TESTS NOT VACUOUS:**
+  ✅ Tests import `PARTICLE_COUNTS` (line 10 of test file) — no hard-coded numbers. Reduced-motion test would fail if the null-return path were absent. Tier-scaling test asserts strict ordering and renders each tier into a separate container to compare.
+
+- **CSS CONTRACT:**
+  ✅ `@keyframes particle-fly` present with transform. `@media (prefers-reduced-motion: reduce)` block present. Zero raw hex confirmed by grep.
+
+- **DECISION DRIFT:**
+  ✅ `just decisions-audit --changed main` returns DEC-004, DEC-006, DEC-010 as advisory (exactly the three the spec expected). Implementation is consistent with each: transform/opacity keyframe (DEC-004), 🍂/🌰 emoji (DEC-006), token-only CSS + BEM-ish `.particle`/`.particle-burst` class names (DEC-010). No new DEC emitted (correct — spec said no new DEC needed).
+
+- **BUILD REFLECTION — honest and specific:**
+  ✅ Reflection identifies the one friction point (spurious `eslint-disable` comment in sample code referencing `react-hooks` plugin not installed), gives the exact lint-run at which it was caught, and proposes a concrete process improvement. Not vague.
+
+- **COST — build session present with tokens_total: null + "orchestrator to fill" note:**
+  ✅ `cost.sessions` has build session with `tokens_total: null` and `notes: "orchestrator to fill tokens_total from subagent_tokens at ship"`. Design session is correctly null with main-loop note.
 
 ---
 
