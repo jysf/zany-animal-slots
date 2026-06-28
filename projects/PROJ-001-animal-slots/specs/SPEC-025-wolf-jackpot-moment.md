@@ -56,6 +56,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -318,3 +326,42 @@ Import `JACKPOT_MOMENT_MS` from the component.
 
 3. **Is there a follow-up spec I should write now before I forget?**
    — <answer>
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+**Gate results (all exit 0):**
+- `just typecheck` — pass
+- `just lint` — pass
+- `just test` — 181/181 tests passed (27 test files); JackpotMoment.test.tsx contributes 6 tests
+- `just build` — production build clean (62 modules, 154 kB JS)
+
+**`just decisions-audit --changed`:** No issues (clean committed working tree).
+**`just decisions-audit`:** 16 pre-existing scope-overlap warnings across 12 decisions; none introduced by this spec, all pre-date it.
+
+**Checklist:**
+
+- ✅ **Renders nothing when celebration null / tier small/big/none** — `if (!isJackpot || !visible) return null` at line 23 of JackpotMoment.tsx; tests "renders nothing without a celebration" and "renders nothing for a non-jackpot tier" (iterates small/big/none) verify this; they would fail if the tier gate were absent.
+- ✅ **On tier 'jackpot' renders `.jackpot-moment` with 🌕, 🐺, JACKPOT banner, role="status" + aria-label, pointer-events:none** — confirmed in JackpotMoment.tsx lines 25–32; `jackpot.css` line 22 sets `pointer-events: none`; test "renders the jackpot scene on a jackpot" asserts all of these.
+- ✅ **Auto-dismiss after JACKPOT_MOMENT_MS** — `setTimeout(() => setVisible(false), JACKPOT_MOMENT_MS)` with `return () => clearTimeout(t)` cleanup; test advances fake timers by `JACKPOT_MOMENT_MS` and checks overlay gone.
+- ✅ **Re-show on new jackpot id** — effect is keyed on `[id, isJackpot]`; when id changes from 1→2, effect re-runs, calls `setVisible(true)` + arms new timer; test "re-shows on a new jackpot id" verifies this; the test would fail if the id were missing from the dependency array.
+- ✅ **No state-update-after-unmount risk** — `return () => clearTimeout(t)` cleanup cancels any pending timer on unmount or before the next effect run.
+- ✅ **Engine unchanged** — `git diff main..HEAD -- src/engine/` is empty (confirmed).
+- ✅ **CSS @keyframes use transform/opacity** — 4 keyframe blocks (`jackpot-sky-in`, `jackpot-moon-rise`, `jackpot-wolf-howl`, `jackpot-banner-in`) confirmed in jackpot.css lines 57–76; all use `transform` and/or `opacity`.
+- ✅ **@media (prefers-reduced-motion: reduce) block present** — jackpot.css line 78; sets `animation: none` on all four animated elements and explicitly preserves `opacity: 0.92` on sky so the scene remains visible.
+- ✅ **No raw hex in jackpot.css** — grep for `#[0-9a-fA-F]{3,8}` returns zero matches; CSS-contract test in the test file also asserts this.
+- ✅ **z-index ≥ 20** — `z-index: 20` at jackpot.css line 17.
+- ✅ **Only expected files changed** — `git diff --name-only`: `src/ui/App.tsx`, `src/ui/JackpotMoment.tsx`, `src/ui/JackpotMoment.test.tsx`, `src/ui/jackpot.css`, plus 3 project/spec docs (spec, timeline, stage). No package.json change.
+- ✅ **No new deps** — `git diff main..HEAD -- package.json` empty.
+- ✅ **No bad eslint-disable** — zero `eslint-disable` comments in any new file.
+- ✅ **Tests not vacuous** — fake timers used throughout; non-jackpot test iterates all three non-jackpot tiers and unmounts between; re-show test depends on the id key in the dependency array; CSS-contract test reads the actual file on disk.
+- ✅ **App.tsx existing tests still pass** — all 4 App.test.tsx tests pass (banner/regions/heading/controls); JackpotMoment returns null in the default render (no celebration prop), so it is invisible to those tests.
+- ✅ **Decision drift** — DEC-004 (CSS keyframes, reduced-motion static), DEC-006 (🌕/🐺 emoji art), DEC-010 (token-only CSS, prefixed class names), DEC-001 (fires on engine's jackpot tier only, engine untouched) — all honored. No new DEC emitted; spec says none needed and build confirms.
+- ✅ **Build reflection** — honest and specific; notes the one minor ambiguity (tier:'none' in tests), identifies no missing constraints, and concedes the spec was essentially transcription. Not a boilerplate non-answer.
+- ✅ **Cost sessions** — design: null-with-note ("main-loop, not separately metered") ✓; build: null-with-note ("orchestrator to fill tokens_total from subagent_tokens at ship") ✓; both are correct per AGENTS §4 until the orchestrator fills them at ship.
+- ✅ **portrait-first / perf-60fps** — overlay uses only `transform`/`opacity` keyframes on a handful of elements; fills the ≤430px cabinet via `position: absolute; inset: 0`.
+
+**No punch list items.** Ready to ship.

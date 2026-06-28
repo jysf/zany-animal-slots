@@ -9,5 +9,5 @@ Cycle prompts live in `prompts/SPEC-025-<cycle>.md`.
 
 - [x] **design** — completed 2026-06-27 (Opus): spec + failing tests (6 JackpotMoment incl. CSS-contract) + build prompt; full-cabinet moon/wolf/banner overlay, auto-dismiss (JACKPOT_MOMENT_MS), reduced-motion static, z-index 20.
 - [x] **build** — gate green (181/181, +6 tests); engine untouched; preview-verified (injected overlay renders moon/wolf/JACKPOT at z-index 20 over the dimmed cabinet); pushed, PR #25 (Sonnet sub-agent).
-- [ ] **verify** — Sonnet sub-agent; cold review against ACs + constraints.
+- [x] **verify** — 2026-06-27 (Sonnet): ✅ APPROVED; 181/181 tests, all ACs met, engine unchanged, no scope creep, gate clean.
 - [ ] **ship** — orchestrator (Opus): squash-merge, cost totals, archive.
