@@ -48,23 +48,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 69567
+      estimated_usd: 0.46
+      duration_minutes: 3.5
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=69567, 212s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 70803
+      estimated_usd: 0.47
+      duration_minutes: 3.5
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=70803, 211s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-06-27
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview count-up check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 140370
+    estimated_usd: 0.93
+    session_count: 5
 ---
 
 # SPEC-022: Balance count-up
@@ -324,13 +332,24 @@ for the reduced-motion query (restore afterward).
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Authoring DEC-012 during *design* (rather than leaving the
+   JS-vs-CSS call to the build agent) paid off: the build was a clean drop-in of
+   the Notes code, and verify had an authoritative record to check against instead
+   of having to judge whether a JS tween violated DEC-004. The `prefersReducedMotion()`
+   helper + the `src/test/setup.ts` matchMedia mock are reusable foundations the
+   later JS-touching specs can lean on. Preview confirmed the live tick (870→875 on
+   a real small win) — exactly the feel intended.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-012 captured the one genuinely new decision. One reusable artifact
+   worth remembering for future specs: the default `window.matchMedia` mock now
+   lives in `src/test/setup.ts`, so any later JS reduced-motion check is testable
+   out of the box (override to `matches:true` per-test, restore in `afterEach`).
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-023 (payline paw-print trail) is next, then 024 particles,
+   025 jackpot moment, 026 mute/unlock, 027 jingle. The count-up deliberately
+   animates only the balance; the WIN readout and other numbers stay instant.
 
 ---
 
