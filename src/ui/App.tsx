@@ -10,6 +10,7 @@
 // SPEC-022: destructures celebration from useSlotMachine and passes it to Status
 // so the balance count-up fires on a win (driven by useCountUp inside Status).
 // SPEC-025: renders JackpotMoment overlay inside .cabinet for the jackpot tier.
+// SPEC-026: calls useAudio() and threads muted + toggleMute into Header.
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -18,8 +19,10 @@ import Status from './regions/Status';
 import Action from './regions/Action';
 import JackpotMoment from './JackpotMoment';
 import { useSlotMachine } from './useSlotMachine';
+import { useAudio } from './audio/useAudio';
 
 export default function App() {
+  const { muted, toggleMute } = useAudio();
   const {
     grid,
     balance,
@@ -42,7 +45,7 @@ export default function App() {
   return (
     <div className="device-stage" data-testid="device-stage">
       <div className="cabinet">
-        <Header />
+        <Header muted={muted} onToggleMute={toggleMute} />
         <Game grid={grid} spinning={isSpinning} lineWins={lineWins} lastWin={lastWin} celebration={celebration} />
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
         <Action
