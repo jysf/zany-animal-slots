@@ -54,6 +54,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -257,6 +265,44 @@ timers for the restore.
 
 3. **If you did this task again, what would you do differently?**
    — Nothing of substance. The spec was tight enough that the build was purely mechanical: write the files, run the gate, done in one pass. If anything, I'd note that the `rampTo` mock in `mixer.test.ts` must be defined *before* the `vi.mock(...)` call (module hoisting order) — a subtle Vitest constraint worth a one-liner in the spec's notes.
+
+---
+
+## Verify
+
+Reviewed 2026-06-27 by claude-sonnet-4-6 (cold session, PR #30).
+
+### Gate results
+
+```
+just typecheck  ✅  exit 0 (tsc --noEmit, strict)
+just lint       ✅  exit 0 (no ESLint errors)
+just test       ✅  exit 0 — 237/237 tests, 39 files (incl. 6 mixer + 6 useDynamicMixing)
+just build      ✅  exit 0 — 1037 modules; dist/assets/index-*.js 406 kB
+```
+
+`just decisions-audit --changed main` — advisory reminders for DEC-004, DEC-007, DEC-010, DEC-013. All confirmed consistent; DEC-013 is the governing decision for this spec and the implementation follows it exactly.
+
+### Checklist
+
+- ✅ **AC: `applyMix('jackpot')` ducks then restores** — `mixer.ts` ramps `getChannel('bed').gain` to `MIX.duckLevel` (0.05) then after `setTimeout(MIX.holdMs=3000)` ramps to `CHANNEL_GAINS.bed` (0.25). Test "jackpot ducks then restores" asserts both `rampTo` calls with exact values after `vi.advanceTimersByTime(MIX.holdMs)`. Evidence: `mixer.test.ts` lines 33–44.
+- ✅ **AC: `applyMix('big')` swells then restores** — ramps to `MIX.swellLevel` (0.45) then restores to 0.25. Test "big swells then restores" asserts same pattern. Evidence: `mixer.test.ts` lines 46–57.
+- ✅ **AC: `applyMix('small')` and `applyMix('none')` are no-ops** — early return on `tier !== 'big' && tier !== 'jackpot'`; tests advance timers and assert `rampTo` not called. Evidence: `mixer.test.ts` lines 59–68.
+- ✅ **AC: Never throws** — outer `try/catch` wraps all audio calls; inner try/catch in `setTimeout` callback; "never throws even when rampTo throws" test confirms. Evidence: `mixer.test.ts` lines 70–73.
+- ✅ **AC: `MIX.duckLevel < CHANNEL_GAINS.bed < MIX.swellLevel`** — 0.05 < 0.25 < 0.45. "MIX levels are ordered" test asserts both inequalities. Evidence: `mixer.test.ts` lines 26–29 + `mixer.ts` lines 8–10.
+- ✅ **AC: `useDynamicMixing` fires once per new `celebration.id` (tier≠none), gated by `!muted && unlocked`** — six tests cover: new win triggers once, jackpot tier passed correctly, new win id fires again (total 2 calls), null celebration is no-op, muted blocks, locked blocks. Evidence: `useDynamicMixing.test.ts` (all 6 tests).
+- ✅ **DEC-013 honored** — `mixer.ts` calls `getChannel('bed').gain.rampTo(...)`, not individual synths; restore target is `CHANNEL_GAINS.bed`. Verified in `audioEngine.ts`: `getChannel()` returns a `Gain` node; `.gain` is the Tone.js `Param` with `rampTo()`.
+- ✅ **Engine unchanged** — `git diff main..HEAD -- src/engine/` is empty.
+- ✅ **No new dep** — `git diff main..HEAD -- package.json` is empty.
+- ✅ **Tests not vacuous** — `useDynamicMixing` tests inject `vi.fn()` as `mix` param and assert exact call counts + tier argument. `mixer.test.ts` mocks `./audioEngine`, uses fake timers, and asserts exact `rampTo` arguments for duck/swell target AND the post-holdMs restore, plus no-op branches and never-throws. Tests would fail if ramp targets, restore target, holdMs timing, or gating conditions were wrong.
+- ✅ **No bad `eslint-disable` / no `user-event`** — grep clean across all four new files.
+- ✅ **Decision drift** — `just decisions-audit --changed main` advisory only; DEC-013 governs the territory; no new DEC required (DEC-013 already covers bus mixing).
+- ✅ **Build reflection honest** — three answers are specific and accurate (noted the Vitest module-hoisting subtlety; no inflated difficulty claimed; deviations: none, consistent with verbatim drop-in code).
+- ✅ **Cost sessions** — build session present with `tokens_total: null` and "orchestrator to fill" note. Design session has null numerics with "main-loop, not separately metered" note. Both correct per AGENTS §4.
+
+### Verdict
+
+✅ **APPROVED** — all acceptance criteria met, gate exits 0 (237/237 tests), DEC-013 honored, engine untouched, no new deps, tests are substantive, no constraint violations.
 
 ---
 
