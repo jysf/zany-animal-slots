@@ -128,7 +128,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-024 (shipped 2026-06-27) — **Win particle burst**: leaves 🍂 / acorns 🌰 erupt over the reels on a win, count scaled by tier (small 10<big 20<jackpot 32); CSS `particle-fly` keyframe, renders nothing under reduced motion, keyed off `celebration`. **[M]**
 - [x] SPEC-022 (shipped 2026-06-27) — **Balance count-up**: the displayed balance ticks old→new on a win (JS interval tween via `useCountUp`, keyed off SPEC-021's `celebration`; snaps under reduced motion — DEC-012). **[M]**
 - [x] SPEC-025 (shipped 2026-06-27) — **Wolf jackpot moment**: full-cabinet night-sky + rising moon 🌕 + howling wolf 🐺 + JACKPOT banner on the five-Wolf hit; CSS keyframes (reduced-motion static), auto-dismiss, keyed off `celebration.tier === 'jackpot'`. **[M]**
-- [ ] (not yet written) — Tier-scaled synthesized win jingle (Tone.js) keyed off win-tier — **backlog rider [S]**.
+- [~] SPEC-027 (build) — **Tier-scaled win jingle**: a synthesized Tone.js jingle keyed off the engine win tier (short arpeggio / flourish / triumphant run), gated by mute + first-gesture unlock; adds the `tone` dep (DEC-007-authorized). **[M]**
 - [x] SPEC-026 (shipped 2026-06-27) — **Mute toggle + audio unlock**: audio FOUNDATION (no sound) — `useAudio` ({ muted, toggleMute, unlocked }), persisted mute (localStorage `mute`), first-gesture unlock, a 🔊/🔇 MuteToggle in the header (constraint `audio-gesture-and-mute`, DEC-007). **[S]**
 
 **Count:** 8 shipped / 0 active / 1 pending — sized at Stage Frame. **Current slice (DONE):**
