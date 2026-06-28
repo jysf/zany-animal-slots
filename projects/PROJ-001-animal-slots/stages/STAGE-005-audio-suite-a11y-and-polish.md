@@ -124,7 +124,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
 - [x] SPEC-028 (shipped 2026-06-27) — **Ambient music bed + audio-graph foundation**: a generative Tone.js loop on `Tone.Transport`, gated by mute+unlock; sets up the shared master bus / channels the SFX and mixing build on (DEC-013); jingle re-routed onto its channel. **[M]**
 - [x] SPEC-029 (shipped 2026-06-27) — **SFX set**: synthesized spin whoosh, per-reel stop clunk (×5), and win ting, fired off the spin flow (`isSpinning` edges) / `celebration` signal; routed through the `sfx` channel, gated. **[M]**
-- [ ] (not yet written) — **Dynamic mixing**: bus-level swell on a big win and duck under the jackpot moment; balance bed/SFX/jingle levels. **[M]** *(most uncertain — depends on the bed + SFX landing first)*
+- [~] SPEC-030 (build) — **Dynamic mixing**: bus-level bed automation — swell on a big win, duck under the jackpot moment, restore to baseline — keyed off the engine win tier (`celebration`), gated. **[M]**
 - [ ] (not yet written) — **Reduced-motion audit**: confirm/complete a non-animated feedback path for spin + every celebration; CSS-contract sweep + behavior tests; audio still plays under reduced motion. **[S–M]**
 - [ ] (not yet written) — **Contrast + 44px audit & fixes**: WCAG AA contrast on text/controls + ≥44px hit areas; token/markup fixes; documented. **[M]**
 - [ ] (not yet written) — **Colorblind-safe state cues**: ensure win-tier feedback isn't color-only (tier label/icon as needed); symbols stay shape-distinct. **[S]**
