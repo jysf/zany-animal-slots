@@ -56,6 +56,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-06-27
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-06-27
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -287,6 +295,49 @@ fixtures already in `ReelGrid.test.tsx`. Query paws via
 
 3. **If you did this task again, what would you do differently?**
    — Nothing material. The spec's "both" fill mode explanation (keeps paw hidden at 0% until its staggered delay fires) was important context; I'd highlight that sentence when briefing the next implementer since it's easy to omit and hard to debug visually.
+
+---
+
+## Verify
+
+**Verdict: ✅ APPROVED**
+
+**Gate results (all exit 0):**
+- `just typecheck` — pass (tsc --noEmit, 0 errors)
+- `just lint` — pass (ESLint, 0 warnings)
+- `just test` — pass (167/167 tests across 25 files; +7 new paw tests)
+- `just build` — pass (Vite production build, 266ms)
+- `just decisions-audit --changed` — "No changed files in scope (your uncommitted changes)" (expected: the flag checks uncommitted working-tree changes; the branch changes are committed). `just decisions-audit` (no flag) shows 16 pre-existing scope-overlap warnings across the decision set — none are new, none introduced by this spec, and none are contradictions.
+
+**Checklist:**
+
+- **ACCEPTANCE CRITERIA — L1 count-3 → 3 paws.** `ReelGrid.test.tsx` line `expect(container.querySelectorAll('.reel__paw')).toHaveLength(3)` with `lineWins={[L1_WIN_3]} trailKey={1}` proves this. L1 covers reels 0/1/2 at row 1 (3 cells). Evidence: test passes, count verified in diff.
+
+- **No paws on no-win / spinning / trailKey null.** Three separate negative cases in `ReelGrid.test.tsx`: `lineWins={[]}`, `spinning={true}`, and `trailKey={null}` — each asserts `.reel__paw` count === 0. The spinning path is gated mechanically: `winKeys = spinning ? EMPTY : winningCellKeys(lineWins)` makes `isWin` always false while spinning, so no paw renders even if `trailKey != null`. Not vacuous — each test would fail if the relevant guard were removed.
+
+- **@keyframes paw-trail-pop (transform/opacity), staggered via --reel-index, aria-hidden, pointer-events:none.** Confirmed in `reels.css`: `@keyframes paw-trail-pop` uses `transform: scale(...)` and `opacity` at 0%/60%/100%. Animation declaration: `animation: paw-trail-pop 0.3s ease-out calc(var(--reel-index, 0) * 0.12s) both`. Paw markup: `aria-hidden="true"` in `ReelGrid.tsx` line 51; `pointer-events: none` in CSS line 67. All confirmed.
+
+- **Reduced-motion path; no raw hex in reels.css.** The `@media (prefers-reduced-motion: reduce)` block at line 131–137 includes `.reel__paw { animation: none; }`. The base `.reel__paw` rule has `opacity: 0.85` so the paw shows statically without motion. `grep '#[0-9a-fA-F]{3,6}' reels.css` → 0 matches. Confirmed token-only.
+
+- **Replay key — paw keyed on trailKey.** `key={paw-${trailKey}}` is set on the `<span className="reel__paw">` at `ReelGrid.tsx:51`. In React, changing a key on a single conditional child at the same tree position unmounts and remounts the element, re-triggering the CSS keyframe. This means identical back-to-back wins (same grid, new `celebration.id`) re-animate the paws. Correct pattern.
+
+- **ENGINE UNCHANGED.** `git diff main..HEAD -- src/engine/` → empty. Confirmed. UI consumes only `lineWins` (via `ReelGrid` props), `winningCellKeys` (existing helper), and `celebration?.id` via `trailKey`. No engine internals touched.
+
+- **ROLE=IMG INTACT.** `getAllByRole('img')` returns exactly 15 in the a11y paw test (`ReelGrid.test.tsx`). Every `.reel__paw` has `aria-hidden="true"`, excluding them from the a11y tree. The cell `<span role="img" aria-label={label}>` is unchanged.
+
+- **NO SCOPE CREEP / NO NEW DEPS.** Changed files: `src/ui/reels/ReelGrid.tsx`, `src/ui/reels/ReelGrid.test.tsx`, `src/ui/reels/reels.css`, `src/ui/reels/reels.animation.test.ts`, `src/ui/regions/Game.tsx`, `src/ui/regions/Game.test.tsx`, `src/ui/App.tsx` — exactly the listed outputs. `package.json` unchanged. No new CSS file (paw CSS lives in `reels.css`).
+
+- **CSS CONTRACT.** `@keyframes paw-trail-pop` present; `.reel__paw` present; keyframe uses `transform`; reduced-motion block includes `.reel__paw { animation: none }`; no raw hex. `.reel__cell { position: relative }` added as a second rule block at line 55 (additive to the existing `.reel__cell` rule at line 38). The `box-shadow` on `.reel__cell--win` (SPEC-018) is unaffected — `position: relative` changes stacking context but does not alter box-shadow rendering. Confirmed harmless.
+
+- **TESTS NOT VACUOUS.** Five paw tests in `ReelGrid.test.tsx`, one in `Game.test.tsx`, one CSS-contract test in `reels.animation.test.ts`. Each test would fail if its specific guard were absent: the spinning test fails if `winKeys` weren't suppressed while spinning; the trailKey-null test fails if the `trailKey != null` guard were removed; the aria-hidden test fails if paws carried `role="img"`. Not coverage theater.
+
+- **DECISION DRIFT.** No new decisions emitted — correct, as spec notes "No new DEC — squarely DEC-004/006/010 territory." Pre-existing 16 scope-overlap warnings from `just decisions-audit` are unrelated to this spec and were present before this branch. DEC-004 (CSS keyframes), DEC-006 (🐾 emoji), DEC-010 (token-only CSS, no raw hex), DEC-001 (engine untouched) all honored.
+
+- **BUILD REFLECTION.** Three questions answered honestly. Q1 notes the spec was clear and the `key` prop placement was well-explained. Q2 notes the `position: relative` addition is a non-issue for SPEC-018's box-shadow — accurate and specific. Q3 notes the `both` fill-mode rationale is worth highlighting for future implementers. No unearned self-praise; specific and credible.
+
+- **COST.** Build session present with `tokens_total: null` and `"orchestrator to fill tokens_total from subagent_tokens at ship"` note. Verify session added (same null pattern). Design session marked as main-loop with note. Pattern consistent with AGENTS.md §4 and prior specs.
+
+Reviewed by: claude-sonnet-4-6, 2026-06-27
 
 ---
 
