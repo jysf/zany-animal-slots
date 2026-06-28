@@ -127,7 +127,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary`
 - [x] SPEC-023 (shipped 2026-06-27) — **Payline paw-print trail**: a 🐾 pops onto each winning cell, staggered reel 0→N (CSS keyframe via `--reel-index`, reduced-motion static), keyed off SPEC-021's `celebration` so it replays each win. **[M]**
 - [x] SPEC-024 (shipped 2026-06-27) — **Win particle burst**: leaves 🍂 / acorns 🌰 erupt over the reels on a win, count scaled by tier (small 10<big 20<jackpot 32); CSS `particle-fly` keyframe, renders nothing under reduced motion, keyed off `celebration`. **[M]**
 - [x] SPEC-022 (shipped 2026-06-27) — **Balance count-up**: the displayed balance ticks old→new on a win (JS interval tween via `useCountUp`, keyed off SPEC-021's `celebration`; snaps under reduced motion — DEC-012). **[M]**
-- [ ] (not yet written) — Wolf jackpot moment: howl visual + moon scene on the five-Wolf hit. **[M]**
+- [~] SPEC-025 (build) — **Wolf jackpot moment**: full-cabinet night-sky + rising moon 🌕 + howling wolf 🐺 + JACKPOT banner on the five-Wolf hit; CSS keyframes (reduced-motion static), auto-dismiss, keyed off `celebration.tier === 'jackpot'`. **[M]**
 - [ ] (not yet written) — Tier-scaled synthesized win jingle (Tone.js) keyed off win-tier — **backlog rider [S]**.
 - [ ] (not yet written) — Global mute toggle (persisted) + first-gesture audio unlock (constraint `audio-gesture-and-mute`). **[S]**
 
