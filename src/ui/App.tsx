@@ -12,6 +12,7 @@
 // SPEC-025: renders JackpotMoment overlay inside .cabinet for the jackpot tier.
 // SPEC-026: calls useAudio() and threads muted + toggleMute into Header.
 // SPEC-027: destructures unlocked from useAudio() and calls useWinJingle.
+// SPEC-030: calls useDynamicMixing for bus-level bed automation (swell/duck).
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -24,6 +25,7 @@ import { useAudio } from './audio/useAudio';
 import { useWinJingle } from './audio/useWinJingle';
 import { useAmbientBed } from './audio/useAmbientBed';
 import { useGameSfx } from './audio/useGameSfx';
+import { useDynamicMixing } from './audio/useDynamicMixing';
 
 export default function App() {
   const { muted, toggleMute, unlocked } = useAudio();
@@ -49,6 +51,7 @@ export default function App() {
   useWinJingle(celebration, { muted, unlocked });
   useAmbientBed({ muted, unlocked });
   useGameSfx(isSpinning, celebration, { muted, unlocked });
+  useDynamicMixing(celebration, { muted, unlocked });
 
   return (
     <div className="device-stage" data-testid="device-stage">

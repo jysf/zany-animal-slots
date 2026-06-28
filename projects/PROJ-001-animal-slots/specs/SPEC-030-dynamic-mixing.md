@@ -4,7 +4,7 @@
 task:
   id: SPEC-030
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -46,10 +46,34 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-06-27
       notes: "main-loop, not separately metered (AGENTS §4); design cycle"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 71957
+      estimated_usd: 0.47
+      duration_minutes: 3.3
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=71957, 197s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 67995
+      estimated_usd: 0.45
+      duration_minutes: 3.3
+      recorded_at: 2026-06-27
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=67995, 197s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-06-27
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping; incl. preview check)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 139952
+    estimated_usd: 0.92
+    session_count: 5
 ---
 
 # SPEC-030: Dynamic mixing
@@ -229,26 +253,64 @@ timers for the restore.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-030-dynamic-mixing
+- **PR (if applicable):** local only (not yet pushed)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected
+  - none (DEC-013 covers bus mixing as expected)
 - **Deviations from spec:**
-  - [list]
+  - none — drop-in code used verbatim; `mixer.ts` and `useDynamicMixing.ts` match the spec's "Notes for the Implementer" exactly
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the existing STAGE-005 backlog (reduced-motion, contrast, colorblind, perf)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed me down. The "Notes for the Implementer" gave complete drop-in code and the existing `useWinJingle` / `audioEngine` files made the mock pattern obvious. The spec was the clearest of the STAGE-005 audio series.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps. The `vi.useFakeTimers()` / `vi.useRealTimers()` discipline for the `setTimeout`-based restore wasn't explicitly called out in the spec, but it was obvious from the test description and the fake-timer pattern is standard Vitest.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing of substance. The spec was tight enough that the build was purely mechanical: write the files, run the gate, done in one pass. If anything, I'd note that the `rampTo` mock in `mixer.test.ts` must be defined *before* the `vi.mock(...)` call (module hoisting order) — a subtle Vitest constraint worth a one-liner in the spec's notes.
+
+---
+
+## Verify
+
+Reviewed 2026-06-27 by claude-sonnet-4-6 (cold session, PR #30).
+
+### Gate results
+
+```
+just typecheck  ✅  exit 0 (tsc --noEmit, strict)
+just lint       ✅  exit 0 (no ESLint errors)
+just test       ✅  exit 0 — 237/237 tests, 39 files (incl. 6 mixer + 6 useDynamicMixing)
+just build      ✅  exit 0 — 1037 modules; dist/assets/index-*.js 406 kB
+```
+
+`just decisions-audit --changed main` — advisory reminders for DEC-004, DEC-007, DEC-010, DEC-013. All confirmed consistent; DEC-013 is the governing decision for this spec and the implementation follows it exactly.
+
+### Checklist
+
+- ✅ **AC: `applyMix('jackpot')` ducks then restores** — `mixer.ts` ramps `getChannel('bed').gain` to `MIX.duckLevel` (0.05) then after `setTimeout(MIX.holdMs=3000)` ramps to `CHANNEL_GAINS.bed` (0.25). Test "jackpot ducks then restores" asserts both `rampTo` calls with exact values after `vi.advanceTimersByTime(MIX.holdMs)`. Evidence: `mixer.test.ts` lines 33–44.
+- ✅ **AC: `applyMix('big')` swells then restores** — ramps to `MIX.swellLevel` (0.45) then restores to 0.25. Test "big swells then restores" asserts same pattern. Evidence: `mixer.test.ts` lines 46–57.
+- ✅ **AC: `applyMix('small')` and `applyMix('none')` are no-ops** — early return on `tier !== 'big' && tier !== 'jackpot'`; tests advance timers and assert `rampTo` not called. Evidence: `mixer.test.ts` lines 59–68.
+- ✅ **AC: Never throws** — outer `try/catch` wraps all audio calls; inner try/catch in `setTimeout` callback; "never throws even when rampTo throws" test confirms. Evidence: `mixer.test.ts` lines 70–73.
+- ✅ **AC: `MIX.duckLevel < CHANNEL_GAINS.bed < MIX.swellLevel`** — 0.05 < 0.25 < 0.45. "MIX levels are ordered" test asserts both inequalities. Evidence: `mixer.test.ts` lines 26–29 + `mixer.ts` lines 8–10.
+- ✅ **AC: `useDynamicMixing` fires once per new `celebration.id` (tier≠none), gated by `!muted && unlocked`** — six tests cover: new win triggers once, jackpot tier passed correctly, new win id fires again (total 2 calls), null celebration is no-op, muted blocks, locked blocks. Evidence: `useDynamicMixing.test.ts` (all 6 tests).
+- ✅ **DEC-013 honored** — `mixer.ts` calls `getChannel('bed').gain.rampTo(...)`, not individual synths; restore target is `CHANNEL_GAINS.bed`. Verified in `audioEngine.ts`: `getChannel()` returns a `Gain` node; `.gain` is the Tone.js `Param` with `rampTo()`.
+- ✅ **Engine unchanged** — `git diff main..HEAD -- src/engine/` is empty.
+- ✅ **No new dep** — `git diff main..HEAD -- package.json` is empty.
+- ✅ **Tests not vacuous** — `useDynamicMixing` tests inject `vi.fn()` as `mix` param and assert exact call counts + tier argument. `mixer.test.ts` mocks `./audioEngine`, uses fake timers, and asserts exact `rampTo` arguments for duck/swell target AND the post-holdMs restore, plus no-op branches and never-throws. Tests would fail if ramp targets, restore target, holdMs timing, or gating conditions were wrong.
+- ✅ **No bad `eslint-disable` / no `user-event`** — grep clean across all four new files.
+- ✅ **Decision drift** — `just decisions-audit --changed main` advisory only; DEC-013 governs the territory; no new DEC required (DEC-013 already covers bus mixing).
+- ✅ **Build reflection honest** — three answers are specific and accurate (noted the Vitest module-hoisting subtlety; no inflated difficulty claimed; deviations: none, consistent with verbatim drop-in code).
+- ✅ **Cost sessions** — build session present with `tokens_total: null` and "orchestrator to fill" note. Design session has null numerics with "main-loop, not separately metered" note. Both correct per AGENTS §4.
+
+### Verdict
+
+✅ **APPROVED** — all acceptance criteria met, gate exits 0 (237/237 tests), DEC-013 honored, engine untouched, no new deps, tests are substantive, no constraint violations.
 
 ---
 
@@ -257,10 +319,19 @@ timers for the restore.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. DEC-013's channel architecture made this exactly what it
+   promised: tier-aware mixing is a single `getChannel('bed').gain.rampTo(...)` plus a
+   timed restore — no per-synth plumbing. Reusing the `useWinJingle` fire-once-gated
+   pattern for `useDynamicMixing` kept it tiny and fully spy-testable. The audio suite
+   (bed → SFX → mixing) came together cleanly because the foundation was laid first.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-013 covered bus mixing. The recurring mock-hoisting note (define the
+   `rampTo`/spy refs before the `vi.mock` factory) is already standard Vitest and was
+   handled; not worth a template change.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The audio suite is complete (bed + SFX + jingle + mixing). Next are
+   the a11y audits — SPEC-031 (reduced-motion), SPEC-032 (contrast + 44px), SPEC-033
+   (colorblind-safe state cues) — then SPEC-034 (perf pass), which will also measure
+   the audio graph's cost.
