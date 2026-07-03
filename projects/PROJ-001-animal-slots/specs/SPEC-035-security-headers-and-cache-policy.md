@@ -53,6 +53,14 @@ cost:
       duration_minutes: null
       recorded_at: 2026-07-03
       notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-03
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -253,6 +261,36 @@ includes _headers" assertion passed — `dist/_headers` equals `public/_headers`
    implement without guessing. I might pre-run the build before writing the test so the
    dist check runs on the first `npm test` pass rather than skipping, but the skip-if-absent
    guard is correct behaviour for a fresh checkout.
+
+---
+
+## Verify
+
+*Cold review — 2026-07-03. Reviewer did NOT build this.*
+
+### Verdict: ✅ APPROVED
+
+### Gate results
+
+- `just typecheck` — exit 0
+- `just lint` — exit 0
+- `just test` — exit 0 (44 test files, 257 tests, 5 new contract tests in `src/deploy/headers.contract.test.ts`)
+- `just build` — exit 0 (Vite build succeeds; dist/index.html + assets produced)
+- `diff public/_headers dist/_headers` — **FILES ARE IDENTICAL** (both 533B)
+
+### Checklist
+
+- **Acceptance Criteria — CSP directives:** `public/_headers` sets for `/*`: `default-src 'self'`, `script-src 'self'`, `style-src 'self' 'unsafe-inline'`, `img-src 'self' data:`, `font-src 'self'`, `connect-src 'self'`, `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`. All confirmed present by direct file read. ✅
+- **Acceptance Criteria — standard headers:** `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()` — all present. ✅
+- **Acceptance Criteria — cache policy:** `/assets/*` block has `Cache-Control: public, max-age=31536000, immutable`; `/*` default has `Cache-Control: no-cache`. ✅
+- **Acceptance Criteria — no `unsafe-inline`/`unsafe-eval` in script-src:** `script-src 'self'` only; confirmed by file read and by the contract test's `extractScriptSrc` regex, which captures all tokens in the directive and asserts they do not contain `'unsafe-inline'` or `'unsafe-eval'`. Manual verification with `node -e` confirms adding `'unsafe-inline'` would be detected. ✅
+- **Acceptance Criteria — dist/_headers equals public/_headers:** `diff` returned no differences; build report's 533B size confirmed; contract test's "the built dist includes _headers" assertion runs when dist/ is present. ✅
+- **CSP correct for the built output:** `dist/index.html` has exactly one `<script type="module" crossorigin src="...">` and zero `<style>` blocks — confirming `script-src 'self'` is valid. The app uses inline style attributes at runtime (reel-index, particle custom props), justifying `style-src 'unsafe-inline'` for style only. `dist/index.html` grep confirmed these facts. ✅
+- **Tests not vacuous:** The `extractDirective` helper parses lines case-sensitively; `extractScriptSrc` captures the full token list before the semicolon. Adding `'unsafe-inline'` to script-src would cause `expect(scriptSrc).not.toContain("'unsafe-inline'")` to fail. The dist-equals-public check skips gracefully only when `dist/_headers` is absent, not unconditionally. ✅
+- **Engine unchanged:** `git diff main...HEAD -- src/engine/` — empty. ✅
+- **No new dependency:** `git diff main...HEAD -- package.json` — empty. ✅
+- **Decision drift:** `just decisions-audit --changed main` — "No active decision's affected_scope matches these changes." DEC-008 governs `_headers` (its `affected_scope` entry `"_headers"` uses a bare-file glob that doesn't match `public/_headers` by path — a pre-existing limitation of the DEC-008 record, not introduced by this PR). DEC-005/006/007 justify the tight CSP. No new DEC required or expected. The 19 scope warnings from `just decisions-audit` are all pre-existing conflicts among older DECs, none new. ✅
+- **Build reflection + cost:** Reflection answers are specific and honest (not placeholder `<answer>` text). Build cost session has `tokens_total: null` with `"orchestrator to fill"` note — correct per AGENTS §4 for a subagent build cycle. ✅
 
 ---
 
