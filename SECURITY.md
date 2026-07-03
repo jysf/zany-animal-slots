@@ -1,40 +1,46 @@
-# Security
+# Security Policy
 
-This repo was scaffolded from a spec-driven template. The security model
-below comes with it; adapt the reporting section to your team.
+Zany Animal Slots is a play-money slot game deployed as a static site on
+Cloudflare Pages (see STAGE-006 / DEC-008).
 
-## Threat model
+## Security posture
 
-This is local-first tooling — markdown, a `justfile`, and bash. No server,
-no network calls, no secret handling beyond keeping secrets out of git.
-The realistic risks:
+- **Play-money only** — no real currency, wagering, deposits, or payouts. The
+  balance is a cosmetic number in `localStorage`; resetting it means nothing
+  financially.
+- **No PII** — the app collects, stores, and transmits no personal data. No
+  accounts, no login, no analytics, no trackers, no ads.
+- **No backend / client-only** — a 100% client-side static SPA (Vite build →
+  static assets). No server, database, API, or session — nothing to breach
+  server-side.
+- **No third-party runtime calls** — audio is synthesized in-browser (Web Audio
+  / Tone.js); there are no external network requests at runtime.
+- **Client state** — only a play-money balance + a mute preference in
+  `localStorage`. Tampering affects only the tamperer's own cosmetic state.
+- **RNG is not a security primitive** — the seedable mulberry32 RNG drives game
+  visuals, not anything sensitive; it is not used for cryptography.
 
-1. **Untrusted arguments.** Commands like `just new-spec "<title>"` take
-   free-form strings. User input is escaped before it's substituted into
-   files, cycle values are allowlisted, and titles are slugified for
-   filenames so they can't traverse paths.
-2. **Untrusted repo content + agents.** This workflow is driven by coding
-   agents. They **read** specs, decisions, briefs, and handoffs, and they
-   **run** `just` commands. Treat any of that content as untrusted *if it
-   originates outside your team* — a pasted issue, an external brief, a
-   dependency's README. Such text can attempt prompt injection (steering
-   the agent) or be passed verbatim into a command. Review what an agent
-   proposes to run before you let it run.
-3. **Secrets in git.** The shipped `.gitignore` excludes `.env*`, `*.pem`,
-   and `*.key`, and `guidance/constraints.yaml` makes "no committed
-   credentials" a blocking rule. Keep secrets in environment variables
-   referenced via `.env.example`.
+## Deployment hardening
 
-## Good habits
-
-- Don't paste untrusted text into a brief/spec and then have an agent act
-  on it unreviewed.
-- Keep the `no-secrets-in-code` constraint enabled.
-- If you add CI (e.g. GitHub Actions), scope `permissions` minimally and
-  never interpolate `${{ github.event.* }}` into a `run:` block.
+- **Response headers** ship with the app via `public/_headers` (SPEC-035): a
+  tight CSP (`default-src 'self'`), `X-Content-Type-Options: nosniff`,
+  `frame-ancestors 'none'`, `Referrer-Policy`, `Permissions-Policy`, and cache
+  rules. Cloudflare Pages serves them.
+- **HSTS** is intentionally NOT in `_headers` — it is applied at the **Cloudflare
+  zone/edge** configuration (STAGE-006 design) so it covers the whole domain,
+  not a single response.
+- **Supply chain** — dependencies are gated in CI (SPEC-036): a permissive-only
+  license check + `npm audit` on production dependencies.
 
 ## Reporting a vulnerability
 
-Replace this with your team's process. For a private repo, that's usually:
-open a private issue or security advisory, describe the impact without a
-public exploit, and coordinate a fix before disclosure.
+- **Report privately** — open a GitHub **Security Advisory** on this repository
+  (Security → Advisories → *Report a vulnerability*). Please do **not** open a
+  public issue for a security report.
+- **Include** the affected URL/commit, the impact, and reproduction steps — no
+  weaponized exploit needed.
+- **Scope** — a play-money, no-PII, client-only app: the realistic surface is
+  client-side (CSP/XSS, dependency vulnerabilities, `localStorage` tampering that
+  only affects the tamperer).
+- **Response** — best-effort, no bug bounty / no monetary reward. We acknowledge
+  reports and coordinate a fix before public **disclosure**.

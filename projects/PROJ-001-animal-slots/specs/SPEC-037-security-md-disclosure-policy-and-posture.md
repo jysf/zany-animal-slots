@@ -45,6 +45,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-07-03
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (replace the scaffold-default SECURITY.md with the deployed posture + disclosure policy; write the contract test)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-03
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -255,26 +263,26 @@ make these pass (the new `SECURITY.md` content makes them green).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-037-security-md`
+- **PR (if applicable):** none (local only)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — docs + a contract test, no new dep
+  - none — docs + a contract test only, no new dep
 - **Deviations from spec:**
-  - [list]
+  - none; SECURITY.md skeleton from spec Notes used verbatim with real prose
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond what was already listed as out-of-scope (`.well-known/security.txt`, HSTS zone config, `license-policy` severity bump)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed the build; the Notes section provided a complete SECURITY.md skeleton and the exact test patterns. The dogfood finding #15 (`process` → `import.meta.url`) was clearly called out in both the spec and the build prompt.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The ESLint browser-scope note (no `process` at repo root) is specific enough to warrant a constraint entry, but the inline callout in Notes + the build prompt was sufficient here.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. Reading the spec's Notes skeleton first and using it directly (rather than drafting from scratch) was the right call and eliminated any content ambiguity.
 
 ---
 
