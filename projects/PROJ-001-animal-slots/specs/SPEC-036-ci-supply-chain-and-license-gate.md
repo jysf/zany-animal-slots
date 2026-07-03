@@ -48,15 +48,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
+      tokens_total: 45000
+      estimated_usd: 0.30
       duration_minutes: null
       recorded_at: 2026-07-03
-      notes: "orchestrator to fill — original Sonnet build sub-agent was KILLED mid-run just before the gate; the orchestrator (Opus) validated the uncommitted work, fixed a lint failure (Node-globals ESLint block), and confirmed the gate. Sub-agent tokens unknown; record as best-effort estimate at ship."
+      notes: "BEST-EFFORT ESTIMATE — the original Sonnet build sub-agent was KILLED mid-run just before the gate (its true token/duration count is unrecoverable). It had produced the scanner + tests + ci.yml + justfile edits (~80% of the build). The orchestrator (Opus) then validated the uncommitted work and fixed one lint failure (Node-globals ESLint block for scripts/). 45000 is a conservative order-of-magnitude estimate for the Sonnet portion (cf. SPEC-035 build=59583 for a slightly larger spec); estimated_usd ~= tokens x $6.6/M Sonnet blended. Opus validation/fix work is main-loop, not separately metered (AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 46226
+      estimated_usd: 0.31
+      duration_minutes: 6.8
+      recorded_at: 2026-07-03
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=46226, 410s). Cold review: full gate re-run + function-level scanner probe + engine-freeze/no-new-dep checks → PASS. estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-07-03
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator finished the interrupted build, ran the gate, squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 91226
+    estimated_usd: 0.61
+    session_count: 5
 ---
 
 # SPEC-036: CI supply-chain & license gate
@@ -326,10 +342,21 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Add the Node-globals ESLint block to the build prompt as boilerplate for any
+   [REPO] spec that introduces a `scripts/*.mjs`. It was the only surprise in an
+   otherwise drop-in build; anticipating it would have kept the killed-agent handoff
+   fully clean. Also: run `just lint` the instant a new script file exists, before
+   wiring anything downstream.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — The `license-policy` constraint is now mechanically CI-enforced, so its severity
+   could be bumped advisory→blocking in `guidance/constraints.yaml` (a small follow-up
+   `guidance/` edit, out of scope for this spec). No decision needed — the gate added
+   no dependency (DEC-009 precedent honored by design). Worth logging as dogfood
+   finding: new `scripts/*.mjs` under a browser-scoped flat ESLint config need a Node
+   globals block — fold into UI/script build-prompt boilerplate.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-037 (SECURITY.md) is already framed and next. The
+   advisory→blocking severity bump is a one-line `guidance/` follow-up, not a spec.
+   A full SBOM/provenance/signing pipeline remains deferred to PROJ-002+.
