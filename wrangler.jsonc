@@ -1,0 +1,23 @@
+{
+  // Cloudflare Workers Static Assets deploy for the built SPA (STAGE-006, DEC-014).
+  //
+  // `npx wrangler deploy` uploads ./dist as STATIC ASSETS — there is no Worker
+  // script (no `main`), so this is a pure static site served at the edge.
+  //
+  // Why this file exists: without an explicit assets config, `wrangler deploy`
+  // auto-detects the Vite framework and tries to apply the Cloudflare Vite plugin,
+  // which requires Vite >= 6 and aborted our first deploy (we are on Vite 5). An
+  // explicit `assets` block makes wrangler treat this as a static-assets upload and
+  // skip that framework auto-config entirely.
+  //
+  // Response headers (CSP etc.) ship via dist/_headers (SPEC-035) — Workers Static
+  // Assets honors _headers/_redirects. HSTS is set at the Cloudflare zone/edge, not
+  // here (see SECURITY.md / SPEC-037).
+  "name": "zany-animal-slots",
+  "compatibility_date": "2026-07-03",
+  "assets": {
+    "directory": "./dist",
+    // Serve index.html for unmatched paths so refreshes / deep links work.
+    "not_found_handling": "single-page-application"
+  }
+}
