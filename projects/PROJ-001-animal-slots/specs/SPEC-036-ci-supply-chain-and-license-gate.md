@@ -4,7 +4,7 @@
 task:
   id: SPEC-036
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -45,10 +45,34 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-07-03
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. scanning the installed license set — all permissive; one exception: caniuse-lite CC-BY-4.0)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 45000
+      estimated_usd: 0.30
+      duration_minutes: null
+      recorded_at: 2026-07-03
+      notes: "BEST-EFFORT ESTIMATE — the original Sonnet build sub-agent was KILLED mid-run just before the gate (its true token/duration count is unrecoverable). It had produced the scanner + tests + ci.yml + justfile edits (~80% of the build). The orchestrator (Opus) then validated the uncommitted work and fixed one lint failure (Node-globals ESLint block for scripts/). 45000 is a conservative order-of-magnitude estimate for the Sonnet portion (cf. SPEC-035 build=59583 for a slightly larger spec); estimated_usd ~= tokens x $6.6/M Sonnet blended. Opus validation/fix work is main-loop, not separately metered (AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 46226
+      estimated_usd: 0.31
+      duration_minutes: 6.8
+      recorded_at: 2026-07-03
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=46226, 410s). Cold review: full gate re-run + function-level scanner probe + engine-freeze/no-new-dep checks → PASS. estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-07-03
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator finished the interrupted build, ran the gate, squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 91226
+    estimated_usd: 0.61
+    session_count: 5
 ---
 
 # SPEC-036: CI supply-chain & license gate
@@ -267,28 +291,49 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-036-supply-chain-gate`
+- **PR (if applicable):** #36
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — no new dep (scanner is dependency-free)
+  - none — no new dep (scanner is dependency-free plain Node ESM)
 - **Deviations from spec:**
-  - [list]
+  - Added an ESLint config block for `scripts/**/*.{js,mjs,cjs}` granting Node
+    globals (`globals.node`) so the new `scripts/license-check.mjs` (which uses
+    `process`/`console` in its CLI guard) lints clean under the flat config, which
+    otherwise runs in the browser globals set. The spec listed only `ci.yml` +
+    `justfile` as modified files; `eslint.config.js` is a necessary third edit. No
+    behavioral change to any existing lint rule — the block is scoped to `scripts/`.
+  - The original Sonnet build sub-agent was killed just before running the gate; the
+    orchestrator (Opus) validated the uncommitted work, hit + fixed the lint failure
+    above, and confirmed the gate.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - Propose bumping the `license-policy` constraint severity advisory→blocking now
+    that it is CI-enforced (a `guidance/` edit — raise in Ship Reflection, not this
+    spec).
 - **Audit/license result:**
-  - [`just license-check` result (0 violations) + `just audit --omit=dev` summary]
+  - `just license-check` → exit 0: "all dependency licenses are permissive (or
+    excepted)" — `scan(node_modules)` returns `[]` (whole tree permissive; the one
+    documented exception, `caniuse-lite` CC-BY-4.0, is honored).
+  - `just audit` (`npm audit --omit=dev --audit-level=high`) → exit 0: "found 0
+    vulnerabilities".
+  - Full gate: typecheck ✓, lint ✓, test ✓ (265 passed, +8 new license-check tests),
+    build ✓. `git diff main..HEAD -- src/engine/` empty (engine frozen).
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The Notes gave a drop-in scanner but didn't flag that its Node-global CLI guard
+   would trip the repo's browser-scoped ESLint (no `node` env). Adding the scoped
+   config block was the only real work beyond dropping in the provided code.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. Worth noting for future [REPO] script specs: any new
+   `scripts/*.mjs` needs the Node-globals ESLint block, so it should be boilerplate in
+   the build prompt (like the react-hooks / user-event one-liners).
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Run `just lint` immediately after creating the `.mjs`, before wiring the CI job —
+   the lint failure was the only surprise and would have surfaced in seconds.
 
 ---
 
@@ -297,10 +342,21 @@ Written during **design**, BEFORE build.
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Add the Node-globals ESLint block to the build prompt as boilerplate for any
+   [REPO] spec that introduces a `scripts/*.mjs`. It was the only surprise in an
+   otherwise drop-in build; anticipating it would have kept the killed-agent handoff
+   fully clean. Also: run `just lint` the instant a new script file exists, before
+   wiring anything downstream.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — The `license-policy` constraint is now mechanically CI-enforced, so its severity
+   could be bumped advisory→blocking in `guidance/constraints.yaml` (a small follow-up
+   `guidance/` edit, out of scope for this spec). No decision needed — the gate added
+   no dependency (DEC-009 precedent honored by design). Worth logging as dogfood
+   finding: new `scripts/*.mjs` under a browser-scoped flat ESLint config need a Node
+   globals block — fold into UI/script build-prompt boilerplate.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-037 (SECURITY.md) is already framed and next. The
+   advisory→blocking severity bump is a one-line `guidance/` follow-up, not a spec.
+   A full SBOM/provenance/signing pipeline remains deferred to PROJ-002+.

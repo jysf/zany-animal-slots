@@ -46,3 +46,25 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  supply-chain:
+    name: supply-chain (audit + license check)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Vulnerability audit (prod deps, high severity)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: License check (permissive-only allow-list)
+        run: node scripts/license-check.mjs
