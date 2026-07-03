@@ -178,6 +178,35 @@ appended at the bottom. Scaffold more entries with `just new-feedback "<slug>"`.
       `user-event` as a dev dep if richer interaction tests are wanted. `status:
       open` — surfaced on SPEC-026.
 
+14. **Agent-tool sub-agents share the orchestrator's working tree, and the harness
+    auto-backgrounds them — interleaving orchestrator git/tree work while a
+    sub-agent runs can corrupt a branch.** During this project a design commit
+    once landed on the wrong branch because the orchestrator ran `new-spec` /
+    `checkout` / commits while a build sub-agent was mid-run in the same tree
+    (recovered via cherry-pick + reset). This is a structural hazard of the
+    claude-only variant (local sub-agents in the shared checkout), not a one-off.
+    - **Suggested fix (process):** the orchestrator now follows a hard rule —
+      launch exactly ONE build/verify sub-agent, then do NO git/tree operations
+      (no `new-spec`, `checkout`, or commits, and do not design the next spec)
+      until that sub-agent reports complete and its branch is merged. Worth baking
+      into the orchestrator prompt boilerplate for the claude-only variant.
+      `status: open (mitigated by rule)` — surfaced mid-project; reaffirmed when
+      finishing SPEC-036 after its build sub-agent was killed mid-run.
+
+15. **A new `scripts/*.mjs` under a browser-scoped flat ESLint config fails lint on
+    Node globals (`process`, `console`).** On SPEC-036 the (drop-in) supply-chain
+    scanner's CLI guard used `process.exit`/`console`, which the repo's
+    `eslint.config.js` (js-recommended + tseslint, no `node` env) flagged as
+    `no-undef`. The killed build sub-agent left this unresolved; the orchestrator
+    fixed it by adding a scoped `files: ['scripts/**/*.{js,mjs,cjs}']` block with
+    `globals.node`.
+    - **Suggested fix (process/spec):** for any [REPO] spec that introduces a
+      Node script, add a one-line note to the build prompt — "new `scripts/*.mjs`
+      need a Node-globals ESLint block (`globals.node`) or they fail `no-undef`" —
+      alongside the existing react-hooks / user-event boilerplate (findings #12,
+      #13). And run `just lint` the instant a new script file exists. `status:
+      open` — surfaced on SPEC-036.
+
 ## What worked (keep)
 
 - The `value:` (project) and `value_contribution:` (stage) blocks forced

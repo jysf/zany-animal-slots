@@ -131,15 +131,15 @@ specs. Tag: **[REPO]** = agent-buildable · **[OPS]** = operator handoff.
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
 - [x] SPEC-035 (shipped 2026-07-03) — **[REPO]** Security headers + cache policy (`public/_headers`): a tight CSP (`default-src 'self'`; `style-src` allows inline style *attributes* for the dynamic `--reel-index`/particle custom props; `img-src 'self' data:` if needed) + `X-Content-Type-Options: nosniff`, `frame-ancestors 'none'`, `Referrer-Policy`, `Permissions-Policy`, and immutable-vs-no-cache rules; a contract test on the file. **[M]**
-- [~] SPEC-036 (build) — **[REPO]** CI supply-chain gate: `npm audit --omit=dev` + a dependency-free permissive-only license check (`scripts/license-check.mjs`; 1 exception: caniuse-lite CC-BY-4.0), as a `just` recipe + a GitHub Actions job; passes on the current dep set (incl. `tone`). **[M]**
+- [x] SPEC-036 (shipped 2026-07-03) — **[REPO]** CI supply-chain gate: `npm audit --omit=dev` + a dependency-free permissive-only license check (`scripts/license-check.mjs`; 1 exception: caniuse-lite CC-BY-4.0), as `just license-check`/`audit` recipes + a `supply-chain` GitHub Actions job; passes on the current dep set (incl. `tone`). **[M]**
 - [ ] (not yet written) — **[REPO]** `SECURITY.md`: disclosure policy + the deployed posture (play-money, no PII, no backend, client-only); a small contract test that the required sections exist. **[S]**
 - [ ] (not yet written) — **[OPS]** Cloudflare Pages project + automated deploy on merge to `main` (Git integration recommended; `wrangler`/Actions + `CLOUDFLARE_API_TOKEN` alternative). Operator creates the project/secret; the agent supplies any in-repo config (e.g. a `wrangler.toml` / Action) if the Actions path is chosen. **[M]**
 - [ ] (not yet written) — **[OPS]** Custom sub-domain binding: add `slots.<domain>` as a Pages custom domain + DNS `CNAME`; does **not** change the deploy job. **[S]**
 - [ ] (not yet written) — **[OPS]** Production smoke check: the live URL serves the app, the security headers check out (e.g. `curl -I` / an online header scan), and all five game states are reachable. **[S]**
 
-**Count:** 1 shipped / 1 in-flight (SPEC-036 build) / 4 pending — 3×[REPO] (2×M, 1×S)
-buildable now, 3×[OPS] (1×M, 2×S) handoff. No L; within the 3–8 range. The agent
-builds the three [REPO] specs this batch and stops at the handoff boundary.
+**Count:** 2 shipped ([REPO]) / 4 pending — 1×[REPO] (SECURITY.md, S) buildable now,
+3×[OPS] (1×M, 2×S) handoff. No L; within the 3–8 range. The agent builds the three
+[REPO] specs this batch (2/3 done) and stops at the handoff boundary.
 
 ## Design Notes
 
