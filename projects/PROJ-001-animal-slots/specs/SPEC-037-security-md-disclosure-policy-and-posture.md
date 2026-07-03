@@ -7,7 +7,7 @@
 task:
   id: SPEC-037
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: S                    # S | M | L  (L means split it)
@@ -45,10 +45,34 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-07-03
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (replace the scaffold-default SECURITY.md with the deployed posture + disclosure policy; write the contract test)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 51000
+      estimated_usd: 0.34
+      duration_minutes: 2.2
+      recorded_at: 2026-07-03
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=51000, 132s). Rewrote SECURITY.md + added the root contract test; gate green. estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 40769
+      estimated_usd: 0.27
+      duration_minutes: 4.6
+      recorded_at: 2026-07-03
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=40769, 276s). Cold review: full gate re-run + AC-by-AC content check + test-is-a-real-guard mapping + engine-freeze/no-new-dep/one-spec checks → PASS, 0 defects. estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-07-03
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate validation + squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 91769
+    estimated_usd: 0.61
+    session_count: 5
 ---
 
 # SPEC-037: SECURITY.md disclosure policy and posture
@@ -255,26 +279,26 @@ make these pass (the new `SECURITY.md` content makes them green).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-037-security-md`
+- **PR (if applicable):** none (local only)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — docs + a contract test, no new dep
+  - none — docs + a contract test only, no new dep
 - **Deviations from spec:**
-  - [list]
+  - none; SECURITY.md skeleton from spec Notes used verbatim with real prose
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond what was already listed as out-of-scope (`.well-known/security.txt`, HSTS zone config, `license-policy` severity bump)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing slowed the build; the Notes section provided a complete SECURITY.md skeleton and the exact test patterns. The dogfood finding #15 (`process` → `import.meta.url`) was clearly called out in both the spec and the build prompt.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. The ESLint browser-scope note (no `process` at repo root) is specific enough to warrant a constraint entry, but the inline callout in Notes + the build prompt was sufficient here.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing significant. Reading the spec's Notes skeleton first and using it directly (rather than drafting from scratch) was the right call and eliminated any content ambiguity.
 
 ---
 
@@ -284,10 +308,24 @@ make these pass (the new `SECURITY.md` content makes them green).
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Little to change — the build was a clean drop-in (the design shipped a ready
+   skeleton + a real-guard test, and finding #15's guidance kept the root test's
+   `import.meta.url` pattern lint-clean on the first try, so the killed-agent lesson
+   from SPEC-036 paid off immediately). If anything, I'd have the contract test also
+   assert the "not a public issue" phrasing, but that content crosses a line break;
+   the current `/security advisory/i` + `/disclosure/i` guards are sufficient.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — The scaffold ships a generic local-tooling `SECURITY.md`; any project that
+   deploys will want to replace it with a deployed-posture policy. Worth a template
+   note (or a checklist item in the deploy stage frame) so this isn't rediscovered
+   per project. No constraint/decision change needed here. Still-open follow-up from
+   SPEC-036: bump the `license-policy` constraint severity advisory→blocking now that
+   it's CI-enforced (a one-line `guidance/` edit).
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — Not now. A `.well-known/security.txt` (RFC 9116) pointing at this policy is a
+   sensible small follow-up once the custom domain is bound — but it depends on the
+   final URL, so it belongs after the [OPS] deploy/domain work (noted in Out of
+   scope). The three [OPS] specs (Pages project + deploy, sub-domain binding, prod
+   smoke check) are the immediate next steps and are the operator's to run.
