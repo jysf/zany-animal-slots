@@ -45,6 +45,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-07-03
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. CSP tuning against the built dist/index.html)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-03
+      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -211,26 +219,40 @@ Written during **design**, BEFORE build. Read `public/_headers` via `fs`
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-035-security-headers
+- **PR (if applicable):** local only (no push per spec instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-008 governs
+  - none — DEC-008 governs
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned STAGE-006 [OPS] specs
+
+### dist/_headers confirmed
+
+`npm run build` produced `dist/_headers` (533B); the contract test's "the built dist
+includes _headers" assertion passed — `dist/_headers` equals `public/_headers` byte-for-byte.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing meaningfully slow. The Notes section gave the exact file content and the
+   test described the parsing approach clearly. The only moment of care was confirming
+   the `dist/index.html` truly had no inline scripts before trusting `script-src 'self'`
+   — but the spec told me to verify that, and `dist/index.html` confirmed it.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. DEC-008/DEC-005/DEC-006/DEC-007 collectively justify every
+   CSP directive. The `vite.config.ts` public-dir default (copies `public/` to `dist/`
+   verbatim) is implicit knowledge but obvious from the Vite docs and confirmed by the
+   build output.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural. The spec was well-scoped and the Notes gave enough detail to
+   implement without guessing. I might pre-run the build before writing the test so the
+   dist check runs on the first `npm test` pass rather than skipping, but the skip-if-absent
+   guard is correct behaviour for a fresh checkout.
 
 ---
 
