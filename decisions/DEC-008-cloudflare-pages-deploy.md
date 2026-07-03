@@ -26,7 +26,7 @@ superseded_by: null
 # Governs deploy/CI config added in STAGE-006.
 affected_scope:
   - .github/workflows/**
-  - "_headers"
+  - public/_headers
   - wrangler.toml
 
 tags:
