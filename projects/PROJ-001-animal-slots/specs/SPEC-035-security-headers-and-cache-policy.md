@@ -4,7 +4,7 @@
 task:
   id: SPEC-035
   type: story
-  cycle: build
+  cycle: verify
   blocked: false
   priority: high
   complexity: M
@@ -45,10 +45,34 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-07-03
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. CSP tuning against the built dist/index.html)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 59583
+      estimated_usd: 0.39
+      duration_minutes: 5.6
+      recorded_at: 2026-07-03
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=59583, 339s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 71534
+      estimated_usd: 0.47
+      duration_minutes: 9.3
+      recorded_at: 2026-07-03
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=71534, 560s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 8
+      recorded_at: 2026-07-03
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 131117
+    estimated_usd: 0.86
+    session_count: 5
 ---
 
 # SPEC-035: Security headers & cache policy
@@ -211,26 +235,70 @@ Written during **design**, BEFORE build. Read `public/_headers` via `fs`
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-035-security-headers
+- **PR (if applicable):** local only (no push per spec instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — DEC-008 governs
+  - none — DEC-008 governs
 - **Deviations from spec:**
-  - [list]
+  - none
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned STAGE-006 [OPS] specs
+
+### dist/_headers confirmed
+
+`npm run build` produced `dist/_headers` (533B); the contract test's "the built dist
+includes _headers" assertion passed — `dist/_headers` equals `public/_headers` byte-for-byte.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing meaningfully slow. The Notes section gave the exact file content and the
+   test described the parsing approach clearly. The only moment of care was confirming
+   the `dist/index.html` truly had no inline scripts before trusting `script-src 'self'`
+   — but the spec told me to verify that, and `dist/index.html` confirmed it.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraints. DEC-008/DEC-005/DEC-006/DEC-007 collectively justify every
+   CSP directive. The `vite.config.ts` public-dir default (copies `public/` to `dist/`
+   verbatim) is implicit knowledge but obvious from the Vite docs and confirmed by the
+   build output.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural. The spec was well-scoped and the Notes gave enough detail to
+   implement without guessing. I might pre-run the build before writing the test so the
+   dist check runs on the first `npm test` pass rather than skipping, but the skip-if-absent
+   guard is correct behaviour for a fresh checkout.
+
+---
+
+## Verify
+
+*Cold review — 2026-07-03. Reviewer did NOT build this.*
+
+### Verdict: ✅ APPROVED
+
+### Gate results
+
+- `just typecheck` — exit 0
+- `just lint` — exit 0
+- `just test` — exit 0 (44 test files, 257 tests, 5 new contract tests in `src/deploy/headers.contract.test.ts`)
+- `just build` — exit 0 (Vite build succeeds; dist/index.html + assets produced)
+- `diff public/_headers dist/_headers` — **FILES ARE IDENTICAL** (both 533B)
+
+### Checklist
+
+- **Acceptance Criteria — CSP directives:** `public/_headers` sets for `/*`: `default-src 'self'`, `script-src 'self'`, `style-src 'self' 'unsafe-inline'`, `img-src 'self' data:`, `font-src 'self'`, `connect-src 'self'`, `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`. All confirmed present by direct file read. ✅
+- **Acceptance Criteria — standard headers:** `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()` — all present. ✅
+- **Acceptance Criteria — cache policy:** `/assets/*` block has `Cache-Control: public, max-age=31536000, immutable`; `/*` default has `Cache-Control: no-cache`. ✅
+- **Acceptance Criteria — no `unsafe-inline`/`unsafe-eval` in script-src:** `script-src 'self'` only; confirmed by file read and by the contract test's `extractScriptSrc` regex, which captures all tokens in the directive and asserts they do not contain `'unsafe-inline'` or `'unsafe-eval'`. Manual verification with `node -e` confirms adding `'unsafe-inline'` would be detected. ✅
+- **Acceptance Criteria — dist/_headers equals public/_headers:** `diff` returned no differences; build report's 533B size confirmed; contract test's "the built dist includes _headers" assertion runs when dist/ is present. ✅
+- **CSP correct for the built output:** `dist/index.html` has exactly one `<script type="module" crossorigin src="...">` and zero `<style>` blocks — confirming `script-src 'self'` is valid. The app uses inline style attributes at runtime (reel-index, particle custom props), justifying `style-src 'unsafe-inline'` for style only. `dist/index.html` grep confirmed these facts. ✅
+- **Tests not vacuous:** The `extractDirective` helper parses lines case-sensitively; `extractScriptSrc` captures the full token list before the semicolon. Adding `'unsafe-inline'` to script-src would cause `expect(scriptSrc).not.toContain("'unsafe-inline'")` to fail. The dist-equals-public check skips gracefully only when `dist/_headers` is absent, not unconditionally. ✅
+- **Engine unchanged:** `git diff main...HEAD -- src/engine/` — empty. ✅
+- **No new dependency:** `git diff main...HEAD -- package.json` — empty. ✅
+- **Decision drift:** `just decisions-audit --changed main` — "No active decision's affected_scope matches these changes." DEC-008 governs `_headers` (its `affected_scope` entry `"_headers"` uses a bare-file glob that doesn't match `public/_headers` by path — a pre-existing limitation of the DEC-008 record, not introduced by this PR). DEC-005/006/007 justify the tight CSP. No new DEC required or expected. The 19 scope warnings from `just decisions-audit` are all pre-existing conflicts among older DECs, none new. ✅
+- **Build reflection + cost:** Reflection answers are specific and honest (not placeholder `<answer>` text). Build cost session has `tokens_total: null` with `"orchestrator to fill"` note — correct per AGENTS §4 for a subagent build cycle. ✅
 
 ---
 
@@ -239,10 +307,23 @@ Written during **design**, BEFORE build. Read `public/_headers` via `fs`
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Tuning the CSP against the *built* `dist/index.html`
+   (external `type=module` script + external CSS, no inline `<script>`/`<style>`)
+   rather than guessing is what let `script-src` stay `'self'` with no `unsafe`;
+   the one honest concession is `style-src 'unsafe-inline'` for React's runtime
+   inline style *attributes* (custom props). Shipping the file + a contract test now,
+   and confirming the *served* headers in the [OPS] smoke check, is the right split —
+   headers only exist at the Cloudflare edge, not the dev server.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — One small fix surfaced in verify: **DEC-008's `affected_scope: ["_headers"]`
+   should be `public/_headers`** (the bare glob doesn't match the actual file, so
+   `just decisions-audit --changed` didn't flag this PR). I'll correct DEC-008 in the
+   STAGE-006 tidy-up. No constraint change.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-036 (CI supply-chain + license gate) is already designed and
+   next; SPEC-037 (`SECURITY.md`) follows. Then the batch stops at the credential
+   boundary and hands the operator the [OPS] Cloudflare specs (Pages project + deploy,
+   sub-domain binding, prod smoke check — which is where these headers get verified
+   live).
