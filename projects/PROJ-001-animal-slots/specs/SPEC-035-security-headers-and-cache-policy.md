@@ -48,23 +48,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 59583
+      estimated_usd: 0.39
+      duration_minutes: 5.6
       recorded_at: 2026-07-03
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=59583, 339s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 71534
+      estimated_usd: 0.47
+      duration_minutes: 9.3
+      recorded_at: 2026-07-03
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=71534, 560s). estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
-      duration_minutes: null
+      duration_minutes: 8
       recorded_at: 2026-07-03
-      notes: "orchestrator to fill tokens_total from subagent_tokens at ship"
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator squash-merge + bookkeeping)"
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 131117
+    estimated_usd: 0.86
+    session_count: 5
 ---
 
 # SPEC-035: Security headers & cache policy
@@ -299,10 +307,23 @@ includes _headers" assertion passed — `dist/_headers` equals `public/_headers`
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing material. Tuning the CSP against the *built* `dist/index.html`
+   (external `type=module` script + external CSS, no inline `<script>`/`<style>`)
+   rather than guessing is what let `script-src` stay `'self'` with no `unsafe`;
+   the one honest concession is `style-src 'unsafe-inline'` for React's runtime
+   inline style *attributes* (custom props). Shipping the file + a contract test now,
+   and confirming the *served* headers in the [OPS] smoke check, is the right split —
+   headers only exist at the Cloudflare edge, not the dev server.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — One small fix surfaced in verify: **DEC-008's `affected_scope: ["_headers"]`
+   should be `public/_headers`** (the bare glob doesn't match the actual file, so
+   `just decisions-audit --changed` didn't flag this PR). I'll correct DEC-008 in the
+   STAGE-006 tidy-up. No constraint change.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-036 (CI supply-chain + license gate) is already designed and
+   next; SPEC-037 (`SECURITY.md`) follows. Then the batch stops at the credential
+   boundary and hands the operator the [OPS] Cloudflare specs (Pages project + deploy,
+   sub-domain binding, prod smoke check — which is where these headers get verified
+   live).
