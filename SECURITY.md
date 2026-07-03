@@ -1,7 +1,7 @@
 # Security Policy
 
 Zany Animal Slots is a play-money slot game deployed as a static site on
-Cloudflare Pages (see STAGE-006 / DEC-008).
+Cloudflare (Workers Static Assets — see STAGE-006 / DEC-014).
 
 ## Security posture
 
@@ -25,7 +25,7 @@ Cloudflare Pages (see STAGE-006 / DEC-008).
 - **Response headers** ship with the app via `public/_headers` (SPEC-035): a
   tight CSP (`default-src 'self'`), `X-Content-Type-Options: nosniff`,
   `frame-ancestors 'none'`, `Referrer-Policy`, `Permissions-Policy`, and cache
-  rules. Cloudflare Pages serves them.
+  rules. Cloudflare serves them (Workers Static Assets honors `_headers`).
 - **HSTS** is intentionally NOT in `_headers` — it is applied at the **Cloudflare
   zone/edge** configuration (STAGE-006 design) so it covers the whole domain,
   not a single response.

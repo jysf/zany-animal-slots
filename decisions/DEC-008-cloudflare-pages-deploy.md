@@ -21,7 +21,7 @@ repo:
 
 created_at: 2026-06-18
 supersedes: null
-superseded_by: null
+superseded_by: DEC-014
 
 # Governs deploy/CI config added in STAGE-006.
 affected_scope:
@@ -37,6 +37,14 @@ tags:
 ---
 
 # DEC-008: Deploy the static SPA to Cloudflare Pages
+
+> **SUPERSEDED by [DEC-014](DEC-014-workers-static-assets-deploy.md) (2026-07-03).**
+> The deploy target changed from Cloudflare Pages to **Cloudflare Workers Static
+> Assets**: when we deployed in STAGE-006, the operator's dashboard did not surface
+> the Pages create flow, and `npx wrangler deploy` failed because its Vite-plugin
+> auto-config requires Vite ≥ 6 (we are on 5.4). An explicit `wrangler.jsonc`
+> `assets` block fixes it. The `_headers` CSP strategy below is unchanged (Workers
+> Static Assets honors `_headers`). Kept for history.
 
 ## Decision
 
