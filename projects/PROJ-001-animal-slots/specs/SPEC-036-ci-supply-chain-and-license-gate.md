@@ -45,6 +45,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-07-03
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (incl. scanning the installed license set — all permissive; one exception: caniuse-lite CC-BY-4.0)"
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-03
+      notes: "orchestrator to fill — original Sonnet build sub-agent was KILLED mid-run just before the gate; the orchestrator (Opus) validated the uncommitted work, fixed a lint failure (Node-globals ESLint block), and confirmed the gate. Sub-agent tokens unknown; record as best-effort estimate at ship."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -267,28 +275,49 @@ Written during **design**, BEFORE build.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-036-supply-chain-gate`
+- **PR (if applicable):** #36
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — no new dep (scanner is dependency-free)
+  - none — no new dep (scanner is dependency-free plain Node ESM)
 - **Deviations from spec:**
-  - [list]
+  - Added an ESLint config block for `scripts/**/*.{js,mjs,cjs}` granting Node
+    globals (`globals.node`) so the new `scripts/license-check.mjs` (which uses
+    `process`/`console` in its CLI guard) lints clean under the flat config, which
+    otherwise runs in the browser globals set. The spec listed only `ci.yml` +
+    `justfile` as modified files; `eslint.config.js` is a necessary third edit. No
+    behavioral change to any existing lint rule — the block is scoped to `scripts/`.
+  - The original Sonnet build sub-agent was killed just before running the gate; the
+    orchestrator (Opus) validated the uncommitted work, hit + fixed the lint failure
+    above, and confirmed the gate.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - Propose bumping the `license-policy` constraint severity advisory→blocking now
+    that it is CI-enforced (a `guidance/` edit — raise in Ship Reflection, not this
+    spec).
 - **Audit/license result:**
-  - [`just license-check` result (0 violations) + `just audit --omit=dev` summary]
+  - `just license-check` → exit 0: "all dependency licenses are permissive (or
+    excepted)" — `scan(node_modules)` returns `[]` (whole tree permissive; the one
+    documented exception, `caniuse-lite` CC-BY-4.0, is honored).
+  - `just audit` (`npm audit --omit=dev --audit-level=high`) → exit 0: "found 0
+    vulnerabilities".
+  - Full gate: typecheck ✓, lint ✓, test ✓ (265 passed, +8 new license-check tests),
+    build ✓. `git diff main..HEAD -- src/engine/` empty (engine frozen).
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — The Notes gave a drop-in scanner but didn't flag that its Node-global CLI guard
+   would trip the repo's browser-scoped ESLint (no `node` env). Adding the scoped
+   config block was the only real work beyond dropping in the provided code.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No missing constraint. Worth noting for future [REPO] script specs: any new
+   `scripts/*.mjs` needs the Node-globals ESLint block, so it should be boilerplate in
+   the build prompt (like the react-hooks / user-event one-liners).
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Run `just lint` immediately after creating the `.mjs`, before wiring the CI job —
+   the lint failure was the only surprise and would have surfaced in seconds.
 
 ---
 

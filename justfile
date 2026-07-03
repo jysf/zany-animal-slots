@@ -211,6 +211,12 @@ typecheck:
 build:
     @npm run build
 
+# Supply-chain gates (same as the CI supply-chain job).
+license-check:
+    @node scripts/license-check.mjs
+audit:
+    @npm audit --omit=dev --audit-level=high
+
 # ----------------------------------------------------------------------------
 # PROJECT TRACKING — brag log + template feedback capture.
 # ----------------------------------------------------------------------------
