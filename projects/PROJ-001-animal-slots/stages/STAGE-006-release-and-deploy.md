@@ -132,14 +132,16 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
 - [x] SPEC-035 (shipped 2026-07-03) — **[REPO]** Security headers + cache policy (`public/_headers`): a tight CSP (`default-src 'self'`; `style-src` allows inline style *attributes* for the dynamic `--reel-index`/particle custom props; `img-src 'self' data:` if needed) + `X-Content-Type-Options: nosniff`, `frame-ancestors 'none'`, `Referrer-Policy`, `Permissions-Policy`, and immutable-vs-no-cache rules; a contract test on the file. **[M]**
 - [x] SPEC-036 (shipped 2026-07-03) — **[REPO]** CI supply-chain gate: `npm audit --omit=dev` + a dependency-free permissive-only license check (`scripts/license-check.mjs`; 1 exception: caniuse-lite CC-BY-4.0), as `just license-check`/`audit` recipes + a `supply-chain` GitHub Actions job; passes on the current dep set (incl. `tone`). **[M]**
-- [~] SPEC-037 (build) — **[REPO]** `SECURITY.md`: replace the scaffold default with the deployed posture (play-money, no PII, no backend, client-only) + coordinated-disclosure policy; documents the headers/HSTS split (headers in `_headers`/SPEC-035, HSTS at the Cloudflare zone); a root-level `SECURITY.contract.test.ts` asserts the required sections + posture/HSTS/reporting claims. **[S]**
+- [x] SPEC-037 (shipped 2026-07-03) — **[REPO]** `SECURITY.md`: replaced the scaffold default with the deployed posture (play-money, no PII, no backend, client-only) + coordinated-disclosure policy; documents the headers/HSTS split (headers in `_headers`/SPEC-035, HSTS at the Cloudflare zone); a root-level `SECURITY.contract.test.ts` (5 tests) asserts the required sections + posture/HSTS/reporting claims. **[S]**
 - [ ] (not yet written) — **[OPS]** Cloudflare Pages project + automated deploy on merge to `main` (Git integration recommended; `wrangler`/Actions + `CLOUDFLARE_API_TOKEN` alternative). Operator creates the project/secret; the agent supplies any in-repo config (e.g. a `wrangler.toml` / Action) if the Actions path is chosen. **[M]**
 - [ ] (not yet written) — **[OPS]** Custom sub-domain binding: add `slots.<domain>` as a Pages custom domain + DNS `CNAME`; does **not** change the deploy job. **[S]**
 - [ ] (not yet written) — **[OPS]** Production smoke check: the live URL serves the app, the security headers check out (e.g. `curl -I` / an online header scan), and all five game states are reachable. **[S]**
 
-**Count:** 2 shipped ([REPO]) / 4 pending — 1×[REPO] (SECURITY.md, S) buildable now,
-3×[OPS] (1×M, 2×S) handoff. No L; within the 3–8 range. The agent builds the three
-[REPO] specs this batch (2/3 done) and stops at the handoff boundary.
+**Count:** 3 shipped (all [REPO]) / 3 pending — all 3×[OPS] (1×M, 2×S) handoff. No L;
+within the 3–8 range. **All three [REPO] specs are shipped (3/3); the agent has
+reached the credential boundary and handed off the three [OPS] specs to the operator.**
+STAGE-006 ships as a unit once the [OPS] specs are done (needs the operator's
+Cloudflare account/DNS).
 
 ## Design Notes
 
