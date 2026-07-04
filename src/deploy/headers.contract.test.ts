@@ -66,6 +66,12 @@ describe('headers contract (SPEC-035)', () => {
     expect(raw).toContain('X-Frame-Options: DENY');
     expect(raw).toContain('Referrer-Policy:');
 
+    // HSTS is served from _headers (not the Cloudflare zone): a Worker custom
+    // domain owns its responses, so zone-level HSTS never reaches them (DEC-014).
+    const hsts = extractDirective(raw, 'Strict-Transport-Security');
+    expect(hsts, 'Strict-Transport-Security must be present').not.toBeNull();
+    expect(hsts).toMatch(/max-age=\d+/);
+
     const permPolicy = extractDirective(raw, 'Permissions-Policy');
     expect(permPolicy, 'Permissions-Policy must be present').not.toBeNull();
     if (!permPolicy) return;
