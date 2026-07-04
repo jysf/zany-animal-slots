@@ -6,7 +6,7 @@
 // constraint: respect-reduced-motion — handled in paytable.css.
 
 import { useState, useEffect, useRef } from 'react';
-import { paytableRows } from './paytable';
+import { paytableRows, PAYLINE_COUNT } from './paytable';
 import './paytable.css';
 
 export function PaytableSheet() {
@@ -100,6 +100,17 @@ export function PaytableSheet() {
             </div>
 
             <p className="paytable__note">× total bet</p>
+
+            {/* How wins work — the payline rule (left-anchored run), so a
+                near-miss that skips the leftmost reel isn't a mystery. */}
+            <section className="paytable__rules" aria-label="How wins work">
+              <h3 className="paytable__rules-title">How wins work</h3>
+              <p className="paytable__rules-text">
+                Wins pay left-to-right on {PAYLINE_COUNT} fixed lines. You need{' '}
+                <strong>3+ matching symbols in a row starting from the leftmost reel</strong> — a
+                run that doesn&rsquo;t reach the first reel doesn&rsquo;t pay.
+              </p>
+            </section>
 
             {/* About — app identity + build id (SPEC: version display). */}
             <section className="paytable__about" aria-label="About">
