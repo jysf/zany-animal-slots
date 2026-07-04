@@ -59,11 +59,11 @@ constraints:
 
   - id: license-policy
     rule: "If this project pulls in third-party dependencies, define an allowed-license policy (typically permissive-only: MIT / Apache-2.0 / BSD / ISC / Zlib) and enforce it in CI with your ecosystem's tool — cargo-deny (Rust), pip-licenses / pip-audit (Python), license-checker (Node), go-licenses (Go). Any dependency outside the policy fails the build unless explicitly excepted."
-    severity: advisory
+    severity: blocking
     paths: ["**"]
     added_by: claude
     added_at: 2026-06-17
-    rationale: "A copyleft (GPL/AGPL) dependency can silently relicense a statically-linked binary, and license drift is invisible until an audit. Make the policy mechanical. The tool is per-language — see docs/license-policy.md (includes a Rust cargo-deny worked example)."
+    rationale: "A copyleft (GPL/AGPL) dependency can silently relicense a statically-linked binary, and license drift is invisible until an audit. Make the policy mechanical. The tool is per-language — see docs/license-policy.md (includes a Rust cargo-deny worked example). Bumped advisory→blocking 2026-07-03 now that it is actually CI-enforced for this repo: the `supply-chain` job (SPEC-036) runs `scripts/license-check.mjs` + `npm audit --omit=dev --audit-level=high` and fails the build on a violation."
 
   # --- PROJ-001 Animal Slots constraints ---
 
