@@ -32,11 +32,11 @@ value:
     - "The default machine is deliberately more fun — higher hit-frequency, a real medium-win band, and bigger jackpots — against a chosen target RTP, not by accident."
     - "A player can switch between >=2 distinct machines (theme + music + math) and the choice persists across reloads."
     - "An in-app stats view shows winnings-over-time, biggest win, spin count, and cash-in count."
-    - "A private, cookieless, no-third-party /stats dashboard shows real traffic (pageviews, referrers, geo, click events)."
+    - "Usage tracking is a provider-agnostic beacon that ships default-OFF: enabling it points at a pluggable sink (a self-hosted HTTP endpoint, a reference Cloudflare Worker+KV, or nothing) and reports usage instances/uniques cookielessly — no Cloudflare required, no posture change unless a sink is on."
     - "A first-time player understands how to play without help — the observed tester failure is fixed."
   risks_to_thesis:
     - "Game-math tuning is a loop that resists one-spec-per-branch (an explicit PROJ-001 risk); config-as-data may or may not tame it."
-    - "Reversing 'no backend' for traffic analytics enlarges the attack surface and dilutes the play-money/no-PII/client-only posture PROJ-001 sold — the analytics MUST stay privacy-first or it undercuts SECURITY.md."
+    - "Analytics is opt-in (default OFF) and provider-agnostic, so the no-backend/no-PII posture holds unless a remote sink is enabled — but whoever enables a sink must keep it privacy-first (cookieless, no PII) or it undercuts SECURITY.md."
     - "Parameterizing a frozen engine is a large refactor that could regress the very separation it means to celebrate."
     - "'More fun' is subjective; without a fun proxy metric, retuning is guesswork."
 ---
@@ -53,9 +53,11 @@ paytable, win tiers, theme tokens, and audio params. On top of that spine the wa
 — delivering a better default machine plus **2–3 selectable machines** (each its own
 theme + music + math); (b) adds **player session stats** (winnings-over-time, biggest
 win, cash-in count) so there's a sense of progress; (c) adds a **help / how-to-play**
-surface because a real tester couldn't understand it; and (d) adds **first-party,
-privacy-preserving traffic analytics** (a private `/stats` dashboard, modeled on the
-owner's `home0` design) so we can see whether anyone plays and enjoys it.
+surface because a real tester couldn't understand it; and (d) adds **configurable,
+default-off usage analytics** — a provider-agnostic beacon that can report usage
+instances to any sink you choose (a self-hosted HTTP endpoint, a reference Cloudflare
+Worker+KV, or nothing) — so you can see whether anyone plays without hard-wiring a
+vendor or reversing the no-backend posture by default.
 
 ## Why Now
 
@@ -80,8 +82,10 @@ de-risks the tuning loop that PROJ-001 flagged as awkward.
   math), with the selection persisted.
 - **Progress:** an in-app player-stats view (winnings-over-time, biggest win, spins,
   cash-ins), client-side only.
-- **Measurement:** a private `/stats` dashboard shows real traffic via cookieless,
-  no-third-party, first-party analytics with a daily-rotating visitor hash.
+- **Measurement:** a configurable, default-off usage beacon can report usage instances
+  (cookieless, no third-party) to a pluggable sink — a self-hosted HTTP endpoint or a
+  reference Cloudflare Worker+KV — with no Cloudflare required and no posture change
+  unless a sink is enabled. A `/stats` view is optional and sink-specific.
 - **Comprehension:** a first-time player can play without external help.
 
 ## Scope
@@ -99,10 +103,15 @@ de-risks the tuning loop that PROJ-001 flagged as awkward.
   win, spin count, cash-in count, win-rate; shown in an in-app panel/sheet.
 - **Help / how-to-play** — an onboarding surface (first-run overlay and/or a Help
   section) that makes the rules and controls legible to a first-timer.
-- **First-party traffic analytics** — a Worker fetch handler `/api/track` + Cloudflare
-  **KV** ingest, cookieless daily-rotating visitor hash, and a private `/stats`
-  dashboard (pageviews 24h/7d/30d, top pages, referrers, geo, click events by target),
-  modeled on `home0`'s design. **Reverses the no-backend posture** — see Decisions.
+- **Configurable usage analytics (default OFF)** — a provider-agnostic client beacon
+  that fires a minimal *usage instance* (ts, event, app version, optional cookieless
+  daily-rotating session hash) to a **configurable endpoint**, behind a **pluggable
+  sink**: `off` (client-only, the ship default — no network, posture unchanged), a
+  **generic HTTP endpoint** you self-host on any runtime (no Cloudflare), or a
+  **reference Cloudflare Worker+KV** sink (home0's design informs this one). An
+  optional, sink-specific private `/stats` view (usage instances + uniques). Cloudflare
+  is one reference sink, not a requirement. **Reverses the no-backend posture only when
+  a remote sink is enabled** — see Decisions.
 
 ### Explicitly out of scope
 - Real money / payments of any kind (constraint `no-real-money` holds — forever).
@@ -115,11 +124,13 @@ de-risks the tuning loop that PROJ-001 flagged as awkward.
 
 ## Decisions this project will need (before/at the relevant stage frame)
 
-- **Amend DEC-005 (no backend):** STAGE-011's analytics introduces a minimal
-  first-party Worker + KV. This reverses "no backend" and requires a new DEC (amending
-  DEC-005) **plus** a SECURITY.md posture update — from "no backend" to "a minimal,
-  cookieless, no-PII first-party analytics endpoint + KV; still no accounts, no
-  cross-session identity." Privacy-first is the non-negotiable guardrail.
+- **DEC-005 (no backend) — amend ONLY IF a remote sink is enabled:** analytics ships
+  **default OFF** and provider-agnostic, so the no-backend/no-PII posture is unchanged
+  by default and the default build needs no DEC. Enabling a remote sink (the reference
+  Cloudflare Worker+KV, or any self-hosted HTTP endpoint) is what reverses "no backend"
+  — at that point a new DEC amending DEC-005 + a SECURITY.md posture update apply
+  ("a minimal, cookieless, no-PII first-party usage endpoint; still no accounts, no
+  cross-session identity"). Privacy-first is the non-negotiable guardrail for any sink.
 - **Config-machine model DEC(s):** extends/supersedes DEC-006 (symbol set), DEC-011
   (paytable/reel weights), and DEC-003 (fixed paylines) — these move from hard-coded
   constants to machine config. The engine-no-dom boundary (DEC-001) must survive.
@@ -134,9 +145,12 @@ de-risks the tuning loop that PROJ-001 flagged as awkward.
 - **How many machines to ship** — recommend 3 (tuned default + Arctic + Desert).
 - **Fun proxy metric** — is there a measurable stand-in for "fun" (session length,
   spins-before-quit, return rate from analytics) to steer the retune?
-- **Analytics on Workers Static Assets** — home0 uses Pages Functions; this app is on
-  Workers Static Assets (DEC-014), so `/api/track` is a Worker route alongside the
-  assets binding, not a Pages Function. Confirm the routing shape at STAGE-011 frame.
+- **Analytics beacon + sink contract** — define the provider-agnostic beacon payload
+  + the generic HTTP-endpoint contract (runtime-agnostic, self-hostable, no Cloudflare),
+  and which reference sink(s) to ship. On Cloudflare, the sink is a Worker route
+  alongside the assets binding (not a Pages Function, per DEC-014). Default OFF is
+  confirmed; decide at the STAGE-011 frame whether to ship a `/stats` view and for
+  which sink(s).
 
 ## Stage Plan
 
@@ -154,9 +168,11 @@ is the most separable and could be deferred or split off if the wave runs long.
       winnings-over-time, biggest win, cash-ins, spins; in-app panel.
 - [ ] STAGE-010 (not yet framed) — **Help / how-to-play**: onboarding surface that
       fixes the tester-comprehension failure.
-- [ ] STAGE-011 (not yet framed) — **First-party traffic analytics**: Worker `/api/track`
-      + KV ingest + private `/stats` dashboard (home0 model); the no-backend posture
-      reversal (DEC amending DEC-005 + SECURITY.md update); [OPS] KV binding.
+- [ ] STAGE-011 (not yet framed) — **Configurable usage analytics (default OFF)**: a
+      provider-agnostic usage beacon + config; a generic HTTP-endpoint sink
+      (self-hostable, no Cloudflare) + a reference Cloudflare Worker+KV sink; optional
+      private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
+      apply ONLY when a remote sink is enabled.
 
 **Count:** 0 shipped / 0 active / 5 pending.
 
@@ -166,8 +182,9 @@ is the most separable and could be deferred or split off if the wave runs long.
 - **PROJ-001 (shipped):** the pure-TS engine, the React/CSS presentation + token
   system, the Tone.js audio graph (DEC-013), the deploy on Cloudflare Workers Static
   Assets (DEC-014), and the contract-test guard pattern.
-- **External (STAGE-011 only):** a Cloudflare **KV** namespace binding — an operator
-  step, like the PROJ-001 [OPS] deploy items.
+- **External (STAGE-011, only if the Cloudflare sink is enabled):** a Cloudflare **KV**
+  namespace binding — an operator step. The default-off build and the generic
+  HTTP-endpoint sink need no Cloudflare and no operator step.
 
 ### Enables
 - A "fun metric" iteration loop (analytics → retune → re-measure).
