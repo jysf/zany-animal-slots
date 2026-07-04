@@ -187,6 +187,37 @@
   text-align: center;
 }
 
+/* ─── "How wins work" rules section ──────────────────────────────────────────── */
+
+.paytable__rules {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-frame);
+  text-align: center;
+}
+
+.paytable__rules-title {
+  margin: var(--space-0);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.paytable__rules-text {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+}
+
+.paytable__rules-text strong {
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
+
 /* ─── About section (app identity + build id) ────────────────────────────────── */
 
 .paytable__about {

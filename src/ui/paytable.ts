@@ -3,9 +3,12 @@
 // DEC-011: multipliers come from PAYTABLE, never hard-coded here.
 // DEC-006: emoji come from SYMBOL_DISPLAY (UI layer).
 
-import { SYMBOLS, SYMBOL_TIER, PAYTABLE } from '../engine/index';
+import { SYMBOLS, SYMBOL_TIER, PAYTABLE, PAYLINES } from '../engine/index';
 import type { Tier } from '../engine/index';
 import { SYMBOL_DISPLAY } from './reels/symbols';
+
+/** Number of fixed paylines, read from the engine so the rules copy can't drift. */
+export const PAYLINE_COUNT = PAYLINES.length;
 
 /** Display row for one symbol tier in the paytable sheet. */
 export interface PaytableRow {

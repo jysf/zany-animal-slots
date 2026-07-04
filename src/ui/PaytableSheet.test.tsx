@@ -50,6 +50,18 @@ describe('PaytableSheet', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('explains how wins work (left-anchored payline rule)', () => {
+    render(<PaytableSheet />);
+    fireEvent.click(screen.getByRole('button', { name: /paytable/i }));
+
+    const rules = screen.getByRole('region', { name: /how wins work/i });
+    // The two facts a player needs to make sense of a near-miss:
+    expect(rules.textContent).toMatch(/left-to-right/i);
+    expect(rules.textContent).toMatch(/leftmost reel/i);
+    // And the minimum run length is stated.
+    expect(rules.textContent).toMatch(/3\+/);
+  });
+
   it('shows the app version + build id in the About section', () => {
     render(<PaytableSheet />);
     fireEvent.click(screen.getByRole('button', { name: /paytable/i }));
