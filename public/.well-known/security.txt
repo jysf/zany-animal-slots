@@ -1,0 +1,8 @@
+# Security contact for Zany Animal Slots (RFC 9116).
+# A play-money, no-PII, no-backend, client-only static SPA — see the full
+# posture + disclosure policy in the Policy link below.
+Contact: https://github.com/jysf/zany-animal-slots/security/advisories/new
+Policy: https://github.com/jysf/zany-animal-slots/blob/main/SECURITY.md
+Preferred-Languages: en
+# Renew before this date (RFC 9116 requires a future Expires).
+Expires: 2027-07-03T00:00:00.000Z
