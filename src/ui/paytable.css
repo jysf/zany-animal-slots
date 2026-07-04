@@ -218,6 +218,55 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* ─── Payline map — small per-line shape diagrams (2a) ───────────────────────── */
+
+.payline-map {
+  list-style: none;
+  margin: var(--space-3) var(--space-0) var(--space-0);
+  padding: var(--space-0);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.payline-map__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.payline-map__grid {
+  width: 3rem; /* ~48px; scales the 50×30 viewBox */
+  height: auto;
+  display: block;
+}
+
+/* Inactive grid dots — subtle; active dots + the connecting path are coin-gold.
+   Token colors only (DEC-010). */
+.payline-map__dot {
+  fill: var(--color-frame);
+}
+
+.payline-map__dot--on {
+  fill: var(--color-coin);
+}
+
+.payline-map__path {
+  stroke: var(--color-coin);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.payline-map__label {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.03em;
+}
+
 /* ─── About section (app identity + build id) ────────────────────────────────── */
 
 .paytable__about {

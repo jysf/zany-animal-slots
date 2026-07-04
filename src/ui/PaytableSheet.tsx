@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { paytableRows, PAYLINE_COUNT } from './paytable';
+import PaylineMap from './PaylineMap';
 import './paytable.css';
 
 export function PaytableSheet() {
@@ -110,6 +111,7 @@ export function PaytableSheet() {
                 <strong>3+ matching symbols in a row starting from the leftmost reel</strong> — a
                 run that doesn&rsquo;t reach the first reel doesn&rsquo;t pay.
               </p>
+              <PaylineMap />
             </section>
 
             {/* About — app identity + build id (SPEC: version display). */}
