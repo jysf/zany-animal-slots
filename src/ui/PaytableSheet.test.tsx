@@ -50,6 +50,17 @@ describe('PaytableSheet', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('shows the app version + build id in the About section', () => {
+    render(<PaytableSheet />);
+    fireEvent.click(screen.getByRole('button', { name: /paytable/i }));
+
+    const version = screen.getByTestId('app-version');
+    // Vite `define` replaces __APP_VERSION__ with the package.json version.
+    expect(version.textContent).toMatch(/v\d+\.\d+\.\d+/);
+    // A build id (short SHA or 'unknown') is present alongside the version.
+    expect(version.textContent).toMatch(/·/);
+  });
+
   it('closes on backdrop click', () => {
     render(<PaytableSheet />);
 

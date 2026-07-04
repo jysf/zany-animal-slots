@@ -186,3 +186,44 @@
   color: var(--color-text-muted);
   text-align: center;
 }
+
+/* ─── About section (app identity + build id) ────────────────────────────────── */
+
+.paytable__about {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-frame);
+  text-align: center;
+}
+
+.paytable__about-title {
+  margin: var(--space-0);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.paytable__about-text {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.paytable__about-version {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  /* Monospace-ish tabular look for the build id. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.paytable__about-link {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+}
