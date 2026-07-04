@@ -88,9 +88,17 @@ describe('headers contract (SPEC-035)', () => {
     expect(raw).toContain('max-age=31536000');
     expect(raw).toContain('immutable');
 
-    // The default /* block must have no-cache or no-store for navigations
+    // HTML entry points must revalidate (no-cache / no-store somewhere).
     const hasNocache = raw.includes('no-cache') || raw.includes('no-store');
-    expect(hasNocache, 'Default block must have Cache-Control: no-cache or no-store').toBe(true);
+    expect(hasNocache, 'HTML paths must have Cache-Control: no-cache or no-store').toBe(true);
+
+    // The /assets/* block must be purely immutable — NOT carry no-cache. On
+    // Workers Static Assets a no-cache in /* would be merged in and defeat the
+    // immutable rule, so it is deliberately scoped away from assets. Match the
+    // RULE block (a line starting with /assets/*), not comment mentions of it.
+    const assetsBlock = raw.match(/^\/assets\/\*[\s\S]*$/m)?.[0] ?? '';
+    expect(assetsBlock).toContain('immutable');
+    expect(assetsBlock, '/assets/* must not carry no-cache').not.toContain('no-cache');
   });
 
   it('the built dist includes _headers', () => {
