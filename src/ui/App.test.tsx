@@ -37,6 +37,28 @@ describe('App', () => {
     expect(cabinet).toContainElement(screen.getByRole('main'));
   });
 
+  // SPEC-019 (repositioned): the win display lives in an always-present banner
+  // band directly under the header title, NOT over the reels. Assert the band
+  // exists and sits between the header and the game region (so a win never
+  // covers the board). At idle (no win) the band is present but empty.
+  it('renders the win banner band between the title and the board', () => {
+    const { container } = render(<App />);
+    const banner = container.querySelector('.cabinet__winbanner');
+    expect(banner).not.toBeNull();
+
+    // DOM order: header → winbanner → game (main). The banner is above the board.
+    const cabinet = container.querySelector('.cabinet') as HTMLElement;
+    const children = Array.from(cabinet.children);
+    const headerIdx = children.findIndex((c) => c.matches('.cabinet__header'));
+    const bannerIdx = children.findIndex((c) => c.matches('.cabinet__winbanner'));
+    const gameIdx = children.findIndex((c) => c.matches('.cabinet__game'));
+    expect(headerIdx).toBeLessThan(bannerIdx);
+    expect(bannerIdx).toBeLessThan(gameIdx);
+
+    // At idle there is no win, so the badge (role=status) is not rendered.
+    expect(banner?.querySelector('.win-badge')).toBeNull();
+  });
+
   // SPEC-013: Spin control + balance readout wired from the hook.
   it('renders the Spin control and a balance readout', () => {
     render(<App />);

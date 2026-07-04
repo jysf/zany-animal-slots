@@ -51,25 +51,9 @@ describe('Game', () => {
     expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
   });
 
-  // ── SPEC-033: tier threading into the win badge ─────────────────────────────
-
-  it('threads the tier into the win badge', () => {
-    const celebration: Celebration = {
-      id: 1,
-      tier: 'jackpot',
-      totalWin: 2000,
-      lineWins: [],
-    };
-    render(
-      <Game
-        grid={INITIAL_GRID}
-        spinning={false}
-        lastWin={2000}
-        celebration={celebration}
-      />,
-    );
-    expect(screen.getByRole('status').textContent).toContain('JACKPOT');
-  });
+  // Note: the WinBadge no longer lives in the Game region (SPEC-019 repositioned
+  // it into the .cabinet__winbanner band under the header — see App.test.tsx).
+  // Tier-word rendering is covered by WinBadge.test.tsx and App.test.tsx.
 
   // ── SPEC-024: particle burst threading ──────────────────────────────────────
 
