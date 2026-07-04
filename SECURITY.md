@@ -26,9 +26,11 @@ Cloudflare (Workers Static Assets — see STAGE-006 / DEC-014).
   tight CSP (`default-src 'self'`), `X-Content-Type-Options: nosniff`,
   `frame-ancestors 'none'`, `Referrer-Policy`, `Permissions-Policy`, and cache
   rules. Cloudflare serves them (Workers Static Assets honors `_headers`).
-- **HSTS** is intentionally NOT in `_headers` — it is applied at the **Cloudflare
-  zone/edge** configuration (STAGE-006 design) so it covers the whole domain,
-  not a single response.
+- **HSTS** (`Strict-Transport-Security`) is served from `_headers` alongside the
+  other response headers. It was originally planned at the **Cloudflare** zone/edge
+  (STAGE-006 design), but a Worker custom domain owns its own responses, so the
+  zone-level HSTS setting never reaches them — serving it from `_headers` is the
+  reliable home for a Worker-hosted static site (DEC-014).
 - **Supply chain** — dependencies are gated in CI (SPEC-036): a permissive-only
   license check + `npm audit` on production dependencies.
 
