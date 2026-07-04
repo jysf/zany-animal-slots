@@ -133,15 +133,14 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [x] SPEC-035 (shipped 2026-07-03) — **[REPO]** Security headers + cache policy (`public/_headers`): a tight CSP (`default-src 'self'`; `style-src` allows inline style *attributes* for the dynamic `--reel-index`/particle custom props; `img-src 'self' data:` if needed) + `X-Content-Type-Options: nosniff`, `frame-ancestors 'none'`, `Referrer-Policy`, `Permissions-Policy`, and immutable-vs-no-cache rules; a contract test on the file. **[M]**
 - [x] SPEC-036 (shipped 2026-07-03) — **[REPO]** CI supply-chain gate: `npm audit --omit=dev` + a dependency-free permissive-only license check (`scripts/license-check.mjs`; 1 exception: caniuse-lite CC-BY-4.0), as `just license-check`/`audit` recipes + a `supply-chain` GitHub Actions job; passes on the current dep set (incl. `tone`). **[M]**
 - [x] SPEC-037 (shipped 2026-07-03) — **[REPO]** `SECURITY.md`: replaced the scaffold default with the deployed posture (play-money, no PII, no backend, client-only) + coordinated-disclosure policy; documents the headers/HSTS split (headers in `_headers`/SPEC-035, HSTS at the Cloudflare zone); a root-level `SECURITY.contract.test.ts` (5 tests) asserts the required sections + posture/HSTS/reporting claims. **[S]**
-- [~] (in progress, operator) — **[OPS]** Cloudflare **Workers Static Assets** deploy on merge to `main` (**DEC-014**, supersedes the Pages plan). The agent supplied the in-repo config `wrangler.jsonc` (`assets.directory: ./dist`, no Worker script) so `npx wrangler deploy` uploads the build without the Vite-plugin auto-config error. Operator owns the Cloudflare project + any deploy token (a CI/dashboard secret, never committed). **[M]**
+- [x] (done 2026-07-03, operator + agent) — **[OPS]** Cloudflare **Workers Static Assets** deploy (**DEC-014**, supersedes the Pages plan). The agent supplied `wrangler.jsonc` (`assets.directory: ./dist`, no Worker script); the operator's `npx wrangler deploy` now uploads the build cleanly. **LIVE at `https://zany-animal-slots.jyashinsky.workers.dev`.** **[M]**
 - [ ] (not yet written) — **[OPS]** Custom sub-domain binding: add `slots.<domain>` as a Cloudflare custom domain on the Worker + DNS `CNAME`, and set **HSTS** at the zone/edge; does **not** change the deploy config. **[S]**
-- [ ] (not yet written) — **[OPS]** Production smoke check: the live URL serves the app, the security headers check out (e.g. `curl -I` / an online header scan), and all five game states are reachable. **[S]**
+- [x] (done 2026-07-03, agent smoke check) — **[OPS]** Production smoke check: `curl` of the live URL → **200**, all six SPEC-035 security headers served and matching `public/_headers` exactly (CSP, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `Cache-Control`); HTML is CSP-clean (external module script + CSS, empty `#root`, zero inline); `/assets/*` serve 200 with the immutable rule. Minor nit: Workers Assets **appends** the `/*` `no-cache` onto `/assets/*` (`no-cache, …, immutable`) rather than letting the specific rule win — harmless on content-hashed assets; optional `_headers` tidy. Game bundle is byte-identical to the tested local build (same asset hashes). **[S]**
 
-**Count:** 3 shipped (all [REPO]) / 3 pending — all 3×[OPS] (1×M, 2×S) handoff. No L;
-within the 3–8 range. **All three [REPO] specs are shipped (3/3); the agent has
-reached the credential boundary and handed off the three [OPS] specs to the operator.**
-STAGE-006 ships as a unit once the [OPS] specs are done (needs the operator's
-Cloudflare account/DNS).
+**Count:** 3 shipped [REPO] + 2 [OPS] done (deploy live + smoke check) / 1 [OPS]
+pending — custom sub-domain + HSTS (needs the operator's DNS/zone). STAGE-006 is
+functionally deployed; the sub-domain/HSTS binding is the only remaining item and
+is optional for a working `*.workers.dev` deploy.
 
 ## Design Notes
 
