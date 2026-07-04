@@ -100,6 +100,25 @@ export function PaytableSheet() {
             </div>
 
             <p className="paytable__note">× total bet</p>
+
+            {/* About — app identity + build id (SPEC: version display). */}
+            <section className="paytable__about" aria-label="About">
+              <h3 className="paytable__about-title">About</h3>
+              <p className="paytable__about-text">
+                Zany Animal Slots — play-money only. No real money, no wagering, no payouts.
+              </p>
+              <p className="paytable__about-version" data-testid="app-version">
+                v{__APP_VERSION__} · {__BUILD_SHA__} · {__BUILD_DATE__}
+              </p>
+              <a
+                className="paytable__about-link"
+                href="https://github.com/jysf/zany-animal-slots"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Source &amp; security policy
+              </a>
+            </section>
           </div>
         </>
       )}
