@@ -4,7 +4,7 @@
 
 project:
   id: PROJ-001
-  status: active
+  status: shipped
   priority: high
   target_ship: null                 # play/dogfood project — no hard external date
 
@@ -12,7 +12,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-06-18
-shipped_at: null
+shipped_at: 2026-07-03
 
 # Business value. Testable claim, not marketing copy.
 value:
@@ -228,9 +228,9 @@ fires nothing):
 - [x] STAGE-003 (shipped 2026-06-26) — Reels UI & spin flow (wire engine to UI; grid, spin button, bet controls, auto-spin; idle → spinning → stopped with reel-stop bounce).
 - [x] STAGE-004 (shipped 2026-06-27) — Win celebration & juice (small/big/jackpot states, payline trail, particles, wolf jackpot moment, balance count-up, tier-scaled win jingle + mute).
 - [x] STAGE-005 (shipped 2026-06-28) — Audio suite, a11y, polish (full audio suite, prefers-reduced-motion, contrast/44px audit, colorblind-safe shapes, perf pass).
-- [ ] STAGE-006 (active) — Release & deploy (Cloudflare Pages deploy via CI on merge, security headers/CSP, dependency+license audit gate, SECURITY.md, prod smoke check).
+- [x] STAGE-006 (shipped 2026-07-03) — Release & deploy (Cloudflare **Workers Static Assets** deploy via auto-build on merge — DEC-014 superseded the Pages plan; security headers/CSP + HSTS, dependency+license audit gate, SECURITY.md, prod smoke check; live at `zany-animal-slots.jysf.org`).
 
-**Count:** 5 shipped / 1 active / 0 pending
+**Count:** 6 shipped / 0 active / 0 pending — all stages shipped.
 
 ## Dependencies
 
@@ -244,10 +244,51 @@ fires nothing):
 
 ## Project-Level Reflection
 
-*To be filled in when this project ships.*
+*Shipped 2026-07-03. Drafted via Prompt 1e (Project Ship).*
 
-- **Did we deliver the outcome in "What This Project Is"?** <not yet>
-- **How many stages did it actually take?** <not yet>
-- **What changed between starting and shipping?** <not yet>
-- **Lessons that should update AGENTS.md, templates, or constraints?** <not yet>
-- **What did we defer to the next project?** <not yet>
+**Success criteria — all met.** All five game states are reachable and visually
+distinct; the engine is fully unit-tested with zero React/DOM imports and
+deterministic seeded spins (enforced by the engine-boundary test, and frozen since
+SPEC-011); the spin→win→reset cycle animates transform/opacity only (perf pass
+SPEC-034 + a perf contract test) for a 60fps path; many specs completed the full
+design→build→verify→ship loop cleanly; the dogfood feedback log surfaced **15**
+concrete template findings; and the game is deployed and publicly playable at a URL
+with verified security headers and automated deploy — via Cloudflare Workers Static
+Assets rather than Pages (the one criterion whose *mechanism* changed; outcome met).
+
+- **Did we deliver the outcome in "What This Project Is"?** Yes — a fully playable,
+  juiced 5×3 play-money slot with the engine cleanly separated from presentation,
+  now live in front of players. The thesis held strongly: the engine froze at
+  SPEC-011 and never needed a change through 26 more specs of UI/audio/juice/deploy
+  work, which is the separability claim proven in practice.
+- **How many stages did it actually take?** Exactly the 6 planned (STAGE-001…006),
+  across **37 specs** (SPEC-001…037), plus a handful of post-launch fixes done
+  directly on `main` (win-banner reposition, version/About, HSTS-in-`_headers`,
+  asset-cache tidy, and the Workers deploy config). 14 decisions (DEC-001…014).
+- **What changed between starting and shipping?** The scope stayed remarkably stable
+  — no feature creep, no engine churn. The real evolution was at the edges: (a) the
+  deploy target moved Cloudflare **Pages → Workers Static Assets** (DEC-014
+  superseded DEC-008) because Cloudflare steers new projects to Workers, which also
+  forced an explicit `wrangler.jsonc` to dodge a Vite-6 auto-config failure; (b) two
+  hardening assumptions proved Worker-specific (zone HSTS doesn't reach a
+  Worker-owned custom domain → served from `_headers`; Workers merges `_headers`
+  rules → `no-cache` had to be scoped off `/*`). The count-up tween (DEC-012) and the
+  shared Tone.js audio graph (DEC-013) were the notable mid-project design calls.
+- **Lessons that should update AGENTS.md, templates, or constraints?** The dogfood
+  log (`feedback/2026-06-18-…`) captured 15; the highest-value for a non-CRUD/
+  animation project: (#12/#13) agents carry React-testing priors (exhaustive-deps
+  disables, `@testing-library/user-event`) that don't match a lean toolchain — fold
+  the repo's actual setup into UI build prompts; (#14) Agent-tool sub-agents share the
+  working tree and auto-background, so the orchestrator must not touch git/tree while
+  one runs; (#15) new `scripts/*.mjs` need a Node-globals ESLint block. Template-level:
+  the scaffold's generic `SECURITY.md` should be replaced at deploy time with the real
+  posture, and the `license-policy` constraint can move advisory→blocking now that
+  it's CI-enforced. "Juice" work resisted TDD less than feared — contract tests
+  (reduced-motion, perf, contrast, touch-target) turned subjective polish into
+  enforceable guards, which is the reusable win.
+- **What did we defer to the next project?** PROJ-002 (parked): fuller audio suite,
+  anticipation reel-slowdown, haptics, day/night sky, theme-swap (Arctic/Desert),
+  session stats. Small deferred hardening: `.well-known/security.txt`, HSTS
+  `includeSubDomains`/`preload` once the whole zone is HTTPS-only, and the
+  license-policy severity bump. **Recommendation:** mark PROJ-001 shipped; do **not**
+  auto-start PROJ-002 — promote it into a frame only if the demo gains momentum.

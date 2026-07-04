@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-006                     # stable, zero-padded within the project
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: high                    # critical | high | medium | low  (activated 2026-07-03)
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-06-18
-shipped_at: null
+shipped_at: 2026-07-03
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -186,4 +186,69 @@ STAGE-006 is ready to be shipped as a stage; PROJ-001 is ready for its Project S
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1d (Stage Ship) to draft.*
+*Shipped 2026-07-03. Drafted via Prompt 1d (Stage Ship).*
+
+### Success Criteria — all met
+
+- **Publicly reachable + all 5 states:** ✅ live at
+  `https://zany-animal-slots.jysf.org` (and the default `*.workers.dev`). Prod
+  smoke check confirmed HTTP 200, the app HTML (CSP-clean, external module script +
+  CSS), and reachable game states (idle → spinning → small/big/jackpot win → loss;
+  win badge verified in-app).
+- **Automated deploy, no secrets:** ✅ every push to `main` triggers a Cloudflare
+  build+deploy (verified twice by watching a commit go live in ~30–40s). No API
+  token or secret is committed — the only in-repo deploy artifact is `wrangler.jsonc`.
+- **Hardened, headers verified:** ✅ `curl` confirmed the full set on the custom
+  domain — a tight CSP (`default-src 'self'`), `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, HSTS, and the
+  cache split (`immutable` on `/assets/*`, `no-cache` on HTML).
+- **CI supply-chain gate:** ✅ SPEC-036 — `npm audit --omit=dev` + the
+  dependency-free permissive-only license check run as a `supply-chain` CI job.
+- **`SECURITY.md` accurate:** ✅ SPEC-037 — deployed posture (play-money, no PII, no
+  backend, client-only) + coordinated-disclosure policy, pinned by a contract test.
+
+### value_contribution check
+
+Every "delivers" bullet landed. One wording drift, not a gap: the stage was framed
+around **Cloudflare Pages**, but the actual deploy uses **Cloudflare Workers Static
+Assets** (DEC-014, supersedes DEC-008) — same outcome (edge-served static SPA, free,
+`_headers`-driven headers, custom domain), different product. The `explicitly_does_not`
+boundaries all held: no backend, no accounts, no real money, no new game features.
+
+### 3-sentence summary
+
+Built vs planned: all five success criteria delivered; the three [REPO] specs
+(headers, supply-chain gate, SECURITY.md) shipped exactly as framed, and the three
+[OPS] items (deploy, custom domain + HSTS, smoke check) were completed with the
+operator. Speed: the [REPO] specs were fast, near drop-in builds; the friction was
+entirely in the [OPS] half — Cloudflare steered us off Pages onto Workers Static
+Assets, which broke the first deploy (Vite-plugin auto-config needs Vite ≥6) and
+required an explicit `wrangler.jsonc`. Emergent behavior: two hardening assumptions
+turned out to be Worker-specific — zone-level HSTS never reaches a Worker-owned
+custom domain (moved HSTS into `_headers`), and Workers Static Assets **merges**
+`_headers` rules rather than letting the specific rule win (had to scope `no-cache`
+off `/*` so `/assets/*` stays cleanly immutable).
+
+### Reflection answers
+
+1. **What would we do differently?** — Pick the hosting *product* (Pages vs Workers
+   Static Assets) up front by checking what the target account actually offers, rather
+   than framing on Pages and discovering at deploy time that new projects are steered
+   to Workers. It would have avoided the Vite-6 failure and the DEC-008→DEC-014 churn.
+2. **Does the template/guidance need updating?** — Yes, two small things: (a) the
+   scaffold ships a generic local-tooling `SECURITY.md`; a deploy stage should replace
+   it with the deployed posture (now captured as a template note candidate); (b) the
+   `license-policy` constraint is now CI-enforced, so its severity could move
+   advisory→blocking in `guidance/constraints.yaml` (a one-line follow-up).
+3. **Follow-ups.** — Optional, all deferred: a `.well-known/security.txt` (RFC 9116)
+   pointing at the policy now that a domain is bound; `includeSubDomains`/`preload` on
+   HSTS once the whole `jysf.org` zone is HTTPS-only; and the constraint-severity bump.
+   None block the project ship.
+
+### Post-ship polish (after the stage's specs shipped)
+
+Two small UX/hardening items were done directly on `main` (not as formal specs) once
+the app was live: the win display moved below the title into a reserved banner band so
+it no longer covers the reels (#40), and a version + build-id "About" section was added
+to the Paytable sheet (#41) so the live commit is identifiable. Both are noted here for
+completeness; neither changes the engine (still frozen since SPEC-011).
