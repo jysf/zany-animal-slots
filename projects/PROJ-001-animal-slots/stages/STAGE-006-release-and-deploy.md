@@ -134,13 +134,14 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [x] SPEC-036 (shipped 2026-07-03) — **[REPO]** CI supply-chain gate: `npm audit --omit=dev` + a dependency-free permissive-only license check (`scripts/license-check.mjs`; 1 exception: caniuse-lite CC-BY-4.0), as `just license-check`/`audit` recipes + a `supply-chain` GitHub Actions job; passes on the current dep set (incl. `tone`). **[M]**
 - [x] SPEC-037 (shipped 2026-07-03) — **[REPO]** `SECURITY.md`: replaced the scaffold default with the deployed posture (play-money, no PII, no backend, client-only) + coordinated-disclosure policy; documents the headers/HSTS split (headers in `_headers`/SPEC-035, HSTS at the Cloudflare zone); a root-level `SECURITY.contract.test.ts` (5 tests) asserts the required sections + posture/HSTS/reporting claims. **[S]**
 - [x] (done 2026-07-03, operator + agent) — **[OPS]** Cloudflare **Workers Static Assets** deploy (**DEC-014**, supersedes the Pages plan). The agent supplied `wrangler.jsonc` (`assets.directory: ./dist`, no Worker script); the operator's `npx wrangler deploy` now uploads the build cleanly. **LIVE at `https://zany-animal-slots.jyashinsky.workers.dev`.** **[M]**
-- [ ] (not yet written) — **[OPS]** Custom sub-domain binding: add `slots.<domain>` as a Cloudflare custom domain on the Worker + DNS `CNAME`, and set **HSTS** at the zone/edge; does **not** change the deploy config. **[S]**
+- [x] (done 2026-07-03, operator + agent) — **[OPS]** Custom sub-domain binding: **`zany-animal-slots.jysf.org`** bound as a Cloudflare custom domain on the Worker (proxied, auto-provisioned TLS). **HSTS** turned out NOT to reach a Worker-owned custom domain via the zone toggle, so it is now served from `_headers` (`Strict-Transport-Security: max-age=15552000`, PR #39; DEC-014). Verified live. **[S]**
 - [x] (done 2026-07-03, agent smoke check) — **[OPS]** Production smoke check: `curl` of the live URL → **200**, all six SPEC-035 security headers served and matching `public/_headers` exactly (CSP, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `Cache-Control`); HTML is CSP-clean (external module script + CSS, empty `#root`, zero inline); `/assets/*` serve 200 with the immutable rule. Minor nit: Workers Assets **appends** the `/*` `no-cache` onto `/assets/*` (`no-cache, …, immutable`) rather than letting the specific rule win — harmless on content-hashed assets; optional `_headers` tidy. Game bundle is byte-identical to the tested local build (same asset hashes). **[S]**
 
-**Count:** 3 shipped [REPO] + 2 [OPS] done (deploy live + smoke check) / 1 [OPS]
-pending — custom sub-domain + HSTS (needs the operator's DNS/zone). STAGE-006 is
-functionally deployed; the sub-domain/HSTS binding is the only remaining item and
-is optional for a working `*.workers.dev` deploy.
+**Count:** 3 shipped [REPO] + 3 [OPS] done (deploy live + smoke check + custom
+domain/HSTS) = **6/6 complete**. The game is live at
+**`https://zany-animal-slots.jysf.org`** (and `*.workers.dev`), auto-deploying on
+push to `main`, with all seven security headers (incl. HSTS) verified served.
+STAGE-006 is ready to be shipped as a stage; PROJ-001 is ready for its Project Ship.
 
 ## Design Notes
 
