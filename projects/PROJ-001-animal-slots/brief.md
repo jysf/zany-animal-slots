@@ -238,9 +238,13 @@ fires nothing):
 - None. This is the first project in the repo.
 
 ### Enables
-- PROJ-002 (parked) — a fuller audio suite, anticipation reel-slowdown, haptics,
-  day/night sky, theme-swap (Arctic / Desert), session stats, and other polish.
-  Promote into a PROJ-002 frame only if this project gains momentum.
+- PROJ-002 (framed 2026-07-03, status: proposed) — **Machines & Metrics**:
+  config-driven machines (theme + music + math as data), a fun retune (bigger
+  jackpots / more ways to win / a real medium-win band), player session stats,
+  a help/how-to-play surface, and first-party traffic analytics. See
+  `projects/PROJ-002-machines-and-metrics/brief.md`. The parked polish (fuller
+  audio, anticipation slowdown, haptics, day/night sky) rolls forward into it or a
+  later PROJ-003.
 
 ## Project-Level Reflection
 
