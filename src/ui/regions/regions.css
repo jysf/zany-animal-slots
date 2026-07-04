@@ -69,6 +69,24 @@
   flex-shrink: 0;
 }
 
+/* ─── Win banner band (SPEC-019, repositioned) ──────────────────────────────── */
+
+/*
+ * A slim, always-present band directly under the header. On a win it holds the
+ * WinBadge ("WIN / BIG WIN / JACKPOT +N"); otherwise it is empty. Its height is
+ * reserved at all times so the win display never covers the reels and appearing
+ * causes no layout shift.
+ */
+.cabinet__winbanner {
+  background-color: var(--color-bg);
+  min-height: var(--space-7);       /* reserved height (~48px) — no layout shift */
+  padding-inline: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Positioning context is not needed — the badge is in-flow (centred here). */
+}
+
 /* ─── Game region ───────────────────────────────────────────────────────────── */
 
 .cabinet__game {

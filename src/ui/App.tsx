@@ -6,7 +6,9 @@
 // freeze and the reel animation plays during the spin phase.
 // SPEC-017: threads autoSpinning / toggleAutoSpin into Action for the Auto toggle.
 // SPEC-018: threads lineWins from the hook into Game so winning cells are highlighted.
-// SPEC-019: threads lastWin into Status (WIN readout) and Game (WinBadge overlay).
+// SPEC-019: threads lastWin into Status (WIN readout) and into the WinBadge, which
+// now sits in the .cabinet__winbanner band under the header (repositioned so the
+// win display no longer covers the reels) rather than overlaying the Game region.
 // SPEC-022: destructures celebration from useSlotMachine and passes it to Status
 // so the balance count-up fires on a win (driven by useCountUp inside Status).
 // SPEC-025: renders JackpotMoment overlay inside .cabinet for the jackpot tier.
@@ -19,6 +21,7 @@ import Header from './regions/Header';
 import Game from './regions/Game';
 import Status from './regions/Status';
 import Action from './regions/Action';
+import WinBadge from './reels/WinBadge';
 import JackpotMoment from './JackpotMoment';
 import { useSlotMachine } from './useSlotMachine';
 import { useAudio } from './audio/useAudio';
@@ -57,7 +60,10 @@ export default function App() {
     <div className="device-stage" data-testid="device-stage">
       <div className="cabinet">
         <Header muted={muted} onToggleMute={toggleMute} />
-        <Game grid={grid} spinning={isSpinning} lineWins={lineWins} lastWin={lastWin} celebration={celebration} />
+        <div className="cabinet__winbanner">
+          <WinBadge amount={lastWin} show={!isSpinning} tier={celebration?.tier} />
+        </div>
+        <Game grid={grid} spinning={isSpinning} lineWins={lineWins} celebration={celebration} />
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
         <Action
           onSpin={spin}

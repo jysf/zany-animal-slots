@@ -11,20 +11,18 @@
 /* ─── Pop-in keyframe ────────────────────────────────────────────────────────── */
 
 @keyframes win-badge-pop-in {
-  0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
-  60%  { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-  80%  { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+  0%   { transform: scale(0.6);  opacity: 0; }
+  60%  { transform: scale(1.1);  opacity: 1; }
+  80%  { transform: scale(0.95); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
 }
 
 /* ─── Badge element ──────────────────────────────────────────────────────────── */
 
 .win-badge {
-  /* Overlay: centred over the parent (cabinet__game, position: relative). */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  /* In-flow within the reserved win-banner band under the header (SPEC-019,
+     repositioned): the band holds its height whether or not a badge is present,
+     so the badge no longer covers the reels and there is no layout shift. */
   z-index: 10;
 
   /* Visual style — token-driven (DEC-010). Coin-gold text on a dark surface. */
@@ -61,8 +59,7 @@
 @media (prefers-reduced-motion: reduce) {
   .win-badge {
     animation: none;
-    /* Restore the final composed transform so position stays correct. */
-    transform: translate(-50%, -50%) scale(1);
+    transform: none;
     opacity: 1;
   }
 }
