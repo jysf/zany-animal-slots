@@ -4,7 +4,8 @@
 // DEC-001: pure engine — imports only spin and strips, no React/DOM.
 
 import type { Grid } from './spin';
-import { type SymbolId, type Tier, SYMBOL_TIER } from './strips';
+import { type SymbolId, type Tier } from './strips';
+import type { MachineMath } from './machine';
 
 /** The five fixed payline identifiers (DEC-003). */
 export type LineId = 'L1' | 'L2' | 'L3' | 'L4' | 'L5';
@@ -70,11 +71,15 @@ export function lineSymbols(grid: Grid, line: Payline): SymbolId[] {
  * LineWin with amount = floor(multiplier × totalBet). Returns the list of
  * winning lines and their sum.
  */
-export function evaluatePaylines(grid: Grid, totalBet: number): PaylineResult {
+export function evaluatePaylines(
+  grid: Grid,
+  totalBet: number,
+  math: MachineMath,
+): PaylineResult {
   const lineWins: LineWin[] = [];
   let totalWin = 0;
 
-  for (const line of PAYLINES) {
+  for (const line of math.paylines) {
     const symbols = lineSymbols(grid, line);
     const s0 = symbols[0];
 
@@ -91,8 +96,8 @@ export function evaluatePaylines(grid: Grid, totalBet: number): PaylineResult {
     if (run >= 3) {
       // run is in [3,4,5] on a 5-reel game — cast is safe.
       const count = run as 3 | 4 | 5;
-      const tier: Tier = SYMBOL_TIER[s0];
-      const multiplier = PAYTABLE[tier][count - 3];
+      const tier: Tier = math.symbolTier[s0];
+      const multiplier = math.paytable[tier][count - 3];
       const amount = Math.floor(multiplier * totalBet);
 
       lineWins.push({ line: line.id, symbol: s0, count, multiplier, amount });

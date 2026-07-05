@@ -17,7 +17,7 @@ Cycle prompts live in `prompts/SPEC-039-<cycle>.md`.
       mechanical call-site updates to spin.test/paylines.test/index.test (outcomes identical
       = the parity proof). Type-only `import type { MachineMath }` avoids the paylines↔machine
       runtime cycle. Build prompt written. No new DEC (DEC-015 covers it).
-- [ ] **build** — Sonnet sub-agent (local only): apply the drop-in signature changes + thread
+- [~] **build** — Sonnet sub-agent (local only): apply the drop-in signature changes + thread
       the machine; make the parity guard green; keep every pinned fixture byte-identical and
       tiers.ts unchanged.
 - [ ] **verify** — Sonnet sub-agent (cold review): full gate re-run + AC-by-AC + frozen-seed

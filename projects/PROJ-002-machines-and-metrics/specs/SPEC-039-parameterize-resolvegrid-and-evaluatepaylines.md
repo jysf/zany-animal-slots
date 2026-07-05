@@ -64,6 +64,14 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (parameterize resolveGrid + evaluatePaylines to consume the machine's math slice; spin() threads a defaulted machine; remove module-constant reads/defaults; write the frozen-seed parity failing test + update the existing engine unit-test call sites; build prompt). Riskiest spec — first engine signature change."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 20
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens. Build sub-agent (local only, no push/PR/gh/advance-cycle): applied the drop-in signature changes verbatim — resolveStops/resolveGrid read math.strips, evaluatePaylines reads math.paylines/symbolTier/paytable, spin() threads a defaulted machine param; type-only MachineMath imports in spin.ts + paylines.ts to avoid the paylines↔machine runtime cycle. Added spin-parity.test.ts (5 tests, frozen-seed guard + default-equals-explicit). Updated call sites in spin.test.ts/paylines.test.ts (outcomes unchanged) and added the jackpot case to index.test.ts. Full gate green (typecheck/lint/test 292 passed/build/validate); tiers.ts diff confirmed empty; no STRIPS/PAYLINES/PAYTABLE/SYMBOL_TIER reads left in the three parameterized function bodies."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -381,28 +389,47 @@ their **exact** expected values — that identity IS the parity proof.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-039-parameterize-grid-payline`
+- **PR (if applicable):** none — local-only build cycle per orchestrator instructions;
+  PR deferred to ship.
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (DEC-015 covers it, as anticipated)
 - **Deviations from spec:**
-  - [list]
+  - none. Implemented the drop-in code from the spec's Notes verbatim for
+    `spin.ts`, `paylines.ts`, and `index.ts`. `spin.test.ts` kept its
+    `STRIPS`-based "each grid column equals visibleCells" assertion (the spec
+    explicitly allowed either that or switching to
+    `WILD_AND_WHIMSICAL_MATH.strips[reel]` — both are the same reference), and
+    added `WILD_AND_WHIMSICAL_MATH` as the 3rd/2nd arg elsewhere as specified.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new — SPEC-040 (parameterize `classifyWin`) and SPEC-042 (UI/hook
+    threading) remain as already scheduled in the STAGE-007 backlog.
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the drop-in code blocks in the Notes section matched
+   the acceptance criteria and failing-test descriptions exactly, so this was a
+   mechanical, low-ambiguity build. The only judgment call (keep `STRIPS` import
+   in `spin.test.ts`'s visibleCells test vs. switch to
+   `WILD_AND_WHIMSICAL_MATH.strips`) was already pre-resolved by the spec as an
+   explicit either/or.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. The hard constraints (type-only `MachineMath` import to avoid the
+   paylines↔machine runtime cycle, tiers.ts byte-identical, no
+   STRIPS/PAYLINES/PAYTABLE/SYMBOL_TIER reads in the three function bodies) were
+   all called out explicitly and were sufficient to self-verify before finishing.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally; the mechanical regex substitution for
+   `evaluatePaylines(grid, N)` → `evaluatePaylines(grid, N, WILD_AND_WHIMSICAL_MATH)`
+   across `paylines.test.ts`'s 9 call sites was fast and safe since the pattern
+   was uniform. Would keep the same approach (scripted substitution + full-file
+   diff review) on future mechanical call-site updates.
 
 ---
 

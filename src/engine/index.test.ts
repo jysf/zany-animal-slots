@@ -60,6 +60,18 @@ describe('spin()', () => {
     expect(result.lineWins).toHaveLength(3);
   });
 
+  it('a jackpot spin credits 2000 and classifies jackpot', () => {
+    const result = spin({ seed: 407947, balance: 1000, bet: 10 });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.totalWin).toBe(2000);
+    expect(result.tier).toBe('jackpot');
+    // balance = 1000 − 10 + 2000 = 2990
+    expect(result.balance).toBe(2990);
+  });
+
   it('an unaffordable spin returns insufficient-balance without spinning', () => {
     const result = spin({ seed: 1, balance: 5, bet: 10 });
 

@@ -9,6 +9,7 @@ import {
   lineSymbols,
   evaluatePaylines,
 } from './paylines';
+import { WILD_AND_WHIMSICAL_MATH } from './machine';
 
 describe('PAYLINES', () => {
   it('PAYLINES matches DEC-003', () => {
@@ -57,7 +58,7 @@ describe('evaluatePaylines', () => {
       ['EAGLE', 'DEER',  'SQUIRREL'],
       ['FOX',   'OWL',   'BEAR'],
     ];
-    const result = evaluatePaylines(grid, 10);
+    const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
     expect(result.totalWin).toBe(0);
     expect(result.lineWins).toEqual([]);
   });
@@ -72,7 +73,7 @@ describe('evaluatePaylines', () => {
       ['OWL',      'BEAR',   'BISON'],     // reel 3
       ['DEER',     'EAGLE',  'OWL'],       // reel 4
     ];
-    const result = evaluatePaylines(G, 10);
+    const result = evaluatePaylines(G, 10, WILD_AND_WHIMSICAL_MATH);
     expect(result.totalWin).toBe(0);
     expect(result.lineWins).toEqual([]);
   });
@@ -86,7 +87,7 @@ describe('evaluatePaylines', () => {
       ['BEAR',     'DEER', 'EAGLE'],     // reel 3
       ['EAGLE',    'FOX',  'OWL'],       // reel 4
     ];
-    const result = evaluatePaylines(grid, 10);
+    const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
     expect(result.totalWin).toBe(10);
     expect(result.lineWins).toHaveLength(1);
     expect(result.lineWins[0]).toEqual({
@@ -107,7 +108,7 @@ describe('evaluatePaylines', () => {
       ['DEER', 'OWL',    'BISON'],
       ['DEER', 'BEAR',   'SQUIRREL'],
     ];
-    const result = evaluatePaylines(grid, 10);
+    const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
     expect(result.totalWin).toBe(50);
     expect(result.lineWins).toHaveLength(1);
     expect(result.lineWins[0]).toEqual({
@@ -128,7 +129,7 @@ describe('evaluatePaylines', () => {
       ['BEAR',     'BISON', 'EAGLE'],  // reel 3 row1 = BISON
       ['EAGLE',    'DEER',  'OWL'],    // reel 4 row1 = DEER  (run stops at 4)
     ];
-    const result = evaluatePaylines(grid, 10);
+    const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
     expect(result.totalWin).toBe(100);
     expect(result.lineWins).toHaveLength(1);
     expect(result.lineWins[0]).toEqual({
@@ -149,7 +150,7 @@ describe('evaluatePaylines', () => {
       ['WOLF', 'WOLF', 'WOLF'],
       ['WOLF', 'WOLF', 'WOLF'],
     ];
-    const result = evaluatePaylines(grid, 10);
+    const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
     // 5 lines × floor(200 × 10) = 5 × 2000 = 10000
     expect(result.totalWin).toBe(10000);
     expect(result.lineWins).toHaveLength(5);
@@ -174,11 +175,11 @@ describe('evaluatePaylines', () => {
       ['DEER',     'EAGLE','SQUIRREL'],  // reel 4
     ];
     // totalBet 10: L1 mid 3 = floor(1 × 10) = 10; L3 low 3 = floor(0.5 × 10) = 5; total = 15
-    const r10 = evaluatePaylines(grid, 10);
+    const r10 = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
     expect(r10.totalWin).toBe(15);
 
     // totalBet 25: L1 mid 3 = floor(1 × 25) = 25; L3 low 3 = floor(0.5 × 25) = 12; total = 37
-    const r25 = evaluatePaylines(grid, 25);
+    const r25 = evaluatePaylines(grid, 25, WILD_AND_WHIMSICAL_MATH);
     expect(r25.totalWin).toBe(37);
   });
 
@@ -192,7 +193,7 @@ describe('evaluatePaylines', () => {
       ['FOX',    'DEER',  'EAGLE'],
       ['EAGLE',  'FOX',   'OWL'],
     ];
-    const result = evaluatePaylines(grid, 25);
+    const result = evaluatePaylines(grid, 25, WILD_AND_WHIMSICAL_MATH);
     expect(result.lineWins).toHaveLength(1);
     expect(result.lineWins[0].amount).toBe(12);
     expect(result.totalWin).toBe(12);
