@@ -17,11 +17,13 @@ export type { Grid } from './spin';
 export type { LineId, Payline, LineWin } from './paylines';
 export type { WinTier } from './tiers';
 export type { BetLevel } from './balance';
+export type { MachineMath, JackpotRule, TierBoundaries } from './machine';
 
 // ── Re-exports: values ───────────────────────────────────────────────────────
 export { SYMBOLS, SYMBOL_TIER } from './strips';
 export { PAYLINES, PAYTABLE } from './paylines';
 export { BET_LEVELS, DEFAULT_BET, STARTING_BALANCE, nextBet, prevBet, canAfford } from './balance';
+export { WILD_AND_WHIMSICAL_MATH } from './machine';
 
 // ── SpinResult / SpinOutcome ─────────────────────────────────────────────────
 

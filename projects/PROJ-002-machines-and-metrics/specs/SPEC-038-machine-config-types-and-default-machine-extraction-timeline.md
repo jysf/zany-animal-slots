@@ -21,11 +21,17 @@ Cycle prompts live in `prompts/SPEC-038-<cycle>.md`.
       Emitted **DEC-015** (config-driven machine model — extends DEC-001, generalizes
       DEC-006/011/003). Migration note: machine references constants here (zero
       transcription risk); ownership inverts in SPEC-039..042 under frozen-seed parity.
-- [ ] **build** — Sonnet sub-agent (local only): create the four machine files + additive
+- [~] **build** — Sonnet sub-agent (local only): create the four machine files + additive
       index.ts re-exports per the spec drop-in code; make the parity test green; keep the
       src/engine function files byte-unchanged and the engine-no-dom boundary intact.
-- [ ] **verify** — Sonnet sub-agent (cold review): full gate re-run + AC-by-AC check +
-      parity-test-is-a-real-guard mapping + engine-diff-empty / no-new-dep / DEC-001-intact
-      / one-spec checks.
+- [x] **verify** — Sonnet sub-agent (cold review): PASS, 0 defects. Full gate green
+      (typecheck/lint/286 tests incl. 8 parity/build/validate); all AC boxes confirmed
+      file:line against spec; parity test is a real guard (8 `it` blocks map 1:1 to spec's
+      Failing Tests, no `.only`/`.skip`/vacuous asserts); engine function-file diff
+      (strips/paylines/tiers/spin/balance/rng) byte-empty, only new machine.ts + 2 additive
+      index.ts re-exports; engine-no-dom intact (machine.ts imports only ./strips,
+      ./paylines, ./balance; engine-boundary.test.ts passes; no import cycle — ui/reels/
+      symbols.ts does not import machines); no new dependency; no UI/hook/component
+      changes; out-of-scope list clean.
 - [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
       archive; update STAGE-007 backlog line + count.
