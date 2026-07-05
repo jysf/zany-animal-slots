@@ -7,7 +7,7 @@
 task:
   id: SPEC-045
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -51,10 +51,62 @@ cost:
         Design authored on the main Opus orchestrator loop (un-metered). Includes iterative
         tuning + a property check (300 random weightsets, 0 count failures) run via vite-node
         to lock the fractional-rank algorithm and pin the exact example output.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 74214   # from Agent result subagent_tokens
+      estimated_usd: 0.49   # 74214 tok × $6.6/M (Sonnet)
+      duration_minutes: 6.0 # 359508 ms
+      note: >-
+        Build ran as a metered subagent (Sonnet); orchestrator to fill tokens_total from
+        subagent_tokens and duration_minutes from duration_ms per AGENTS §4. Implemented
+        stripBuilder.ts + stripBuilder.test.ts verbatim from the spec Notes; all 7 tests
+        passed first try (pinned example matched with no adjustment); full gate
+        (typecheck/lint/test/build/validate) green; hard-guard diff against
+        machine/production files confirmed empty.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 662   # from Agent result subagent_tokens — SEE CAVEAT: unreliable/truncated
+      estimated_usd: 0.00 # from 662 tok; materially undercounts (see caveat)
+      duration_minutes: 72.6 # 4355174 ms — INCLUDES idle wait on the session-limit reset, not active work
+      caveat: >-
+        The verify subagent's session hit the 5-hour usage-window limit at the very end (after it
+        had committed its verify bookkeeping). The reported subagent_tokens (662) is a truncated/
+        unreliable metric — 40 tool-uses + a full cold gate + an 8-profile independent reproduction
+        + 2 adversarial mutations cannot cost 662 tokens; true spend is materially higher (likely
+        comparable to SPEC-044's verify, ~77k tok / ~$0.5). Recorded the reported value honestly
+        rather than fabricate; the totals below therefore UNDERCOUNT verify. duration_minutes is
+        also inflated (mostly idle wait on the limit reset, not active work).
+      note: >-
+        Cold verify (Sonnet subagent). Full gate green (54 files/320
+        tests, stripBuilder.test.ts 7/7; build + validate clean). Confirmed spec conformance
+        byte-for-byte (fractional keys, sort + tie-break, adjacency-fix loop; type-only
+        SymbolId import; no RNG; not re-exported from engine/index.ts). Independently
+        reproduced count-exactness (8 self-chosen weight profiles via vite-node, outside the
+        test file) and the pinned example. Adversarial mutation (a) (k+0.5 -> k+1.5) failed
+        the pinned-example test as expected; cleanly reverted. Adversarial mutation (b)
+        (removing the `|| a.ord - b.ord` tie-break) did NOT fail any test (0/320) — root
+        cause: native Array.sort is stable and item-insertion order already tracks the
+        `symbols` iteration order, so the explicit tie-break is redundant with stable sort
+        given this construction and the prescribed mutation has no observable effect;
+        cleanly reverted. Flagged as a test-strength gap (not a functional defect) —
+        verify marked [?]. Hard guard (machine/production + package.json/lock diff)
+        confirmed EMPTY.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 15
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Also resolved the verify [?]
+        (documented the tie-break redundancy — not a defect), reconciled both sub-agents against
+        git/disk, re-gated, PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 74876   # build 74214 + verify 662 (verify UNDERCOUNTS — see verify caveat)
+    estimated_usd: 0.49   # build $0.49 + verify ~$0.00 (undercount; true ~$1.0)
+    session_count: 5
 ---
 
 # SPEC-045: deterministic strip builder
@@ -269,3 +321,76 @@ temporarily break the builder (e.g. change `(k + 0.5)` to `(k + 1.5)` so the key
 or drop the final `items.push`) and confirm a test FAILS, then revert. Also confirm the
 pinned-example test fails if the tie-break `|| a.ord - b.ord` is removed (ordering becomes
 unstable), then revert.
+
+## Build Completion
+
+Implemented `src/engine/stripBuilder.ts` and `src/engine/stripBuilder.test.ts` verbatim
+from the spec's Notes (drop-in algorithm + `counts` helper), with no deviation. All 7
+specified tests written and passing on the first run — the pinned example
+(`buildStrip(SYMBOLS, { DEER: 3, FOX: 2, WOLF: 1 })` → `['DEER','FOX','DEER','WOLF','FOX','DEER']`)
+matched immediately, confirming the algorithm was copied faithfully (fractional keys
+`(k + 0.5) / c`, sort `a.key - b.key || a.ord - b.ord`, the adjacency-fix loop). No other
+file touched. No new dependency. No new DEC.
+
+Gate results (all exit 0):
+- `just typecheck` — clean, no errors.
+- `just lint` — clean, no errors.
+- `just test` — 54 test files, 320 tests passed, including the new
+  `src/engine/stripBuilder.test.ts` (7/7 passed).
+- `just build` — production build succeeded (tsc --noEmit + vite build).
+- `just validate` — 45 specs valid front-matter, passed.
+
+Hard guard confirmed EMPTY: `git diff main..HEAD -- src/machines/ src/engine/strips.ts
+src/engine/paylines.ts src/engine/machine.ts src/engine/spin.ts src/engine/index.ts`
+produced no output. Only files changed: the two new `src/engine/stripBuilder.{ts,test.ts}`
+files (added) and this spec + its timeline (documentation).
+
+### Reflection
+
+1. **Did anything in the spec's Implementation Context turn out to be wrong or
+   incomplete?** No. The drop-in code, the `counts` helper, and the pinned-example
+   walkthrough (fractional keys, tie-break by canonical order) were complete and accurate —
+   the pinned test passed on the very first run with zero adjustment, which is the clearest
+   possible signal the Notes were correct and sufficient.
+2. **What would have made this build faster or safer?** Nothing meaningful — this was
+   about as low-friction as a build gets: fully-specified drop-in code, a fully-specified
+   test list, and a hard, mechanically-checkable guard (the empty git diff) instead of a
+   prose "don't touch other files" instruction. The only manual judgment call was profile
+   selection for the "several weight profiles" test (all-equal / low-heavy / sparse), which
+   the spec left as illustrative examples rather than exact literals.
+3. **Any deviation from the spec, and why?** None. `stripBuilder.ts` is byte-for-byte the
+   Notes' drop-in (with the file-header comment retained), and the test file implements
+   exactly the 7 named tests using the given `counts` helper. The hard guard diff came back
+   empty, confirming no production/machine file was touched.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused, distinct from the process-focused
+build reflection above.*
+
+1. **What would I do differently next time?**
+   — Choose adversarial guard-mutations that an input can actually distinguish. The spec's
+   Notes prescribed mutating `(k+0.5)` (real teeth — a test failed) *and* removing the
+   `|| a.ord - b.ord` tie-break (no teeth — a no-op, because ES2019 stable sort + insertion in
+   `symbols` order make the tie-break redundant). The verify agent correctly caught that the
+   second mutation proves nothing and flagged it [?]. Resolution: kept the explicit tie-break
+   (defensive) and documented the redundancy in a code comment — the [?] was a mutation-design
+   artifact, not a defect. Next time, before prescribing a "revert-and-confirm-it-fails" check,
+   confirm the mutated code is behavior-distinguishing.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No template/constraint change. Logged a LESSON to the PROJ-002 signals set:
+   **adversarial-mutation checks must target code whose behavior some input can distinguish** —
+   mutating code that's redundant with a language guarantee (here, stable sort) is a no-op by
+   construction and reads as a false "test-strength gap." A good adversarial mutation changes an
+   observable output; if you can't construct an input that reveals the mutation, the code is
+   provably-redundant, not under-tested.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. SPEC-046 (the retune) is next and consumes `buildStrip` directly — it wires
+   `WILD_AND_WHIMSICAL_MATH.strips = buildStrip(SYMBOLS, tunedWeights)`, applies the tuned
+   paytable + 20 paylines, and re-baselines the frozen-seed contract + metrics baseline once.
+   All the exact pins (the 42-symbol tuned strip, frozen-seed outcomes, representative seeds
+   1/6/68357/2, the RTP-93.8% metrics baseline) were computed this session and are ready.
