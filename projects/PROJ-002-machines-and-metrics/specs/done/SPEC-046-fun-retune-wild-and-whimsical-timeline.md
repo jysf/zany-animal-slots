@@ -59,4 +59,12 @@ Cycle prompts live in `prompts/SPEC-046-<cycle>.md`.
       supersession (mechanics unchanged, only specifics superseded for W&W). Working-tree diff
       at verify start was exactly the expected orchestrator cycle-flip (build→verify) in the
       spec front-matter — included in this verify commit.
-- [ ] **ship**
+- [x] **ship** — completed 2026-07-05 (Opus): reconciled both sub-agents against git/disk,
+      independently re-ran the gate (321 tests) AND the simulator (RTP 93.79% / hit 34.43%),
+      confirmed engine-logic diff EMPTY. Squash-merged PR #56 (CI CLEAN — all 7 checks SUCCESS),
+      synced main. **Preview-verified the UI** (first user-visible STAGE-008 change): the paytable
+      sheet renders all 20 payline diagrams (Line 1–20) + the retuned multipliers (Jackpot 250× /
+      High 55× / Mid 18× / Low 7×) + "20 fixed lines" copy, no console errors. Cost filled: build
+      196411 tok / $1.30; verify 110308 tok / $0.73; totals 306719 tok / $2.03 / 5 sessions. The
+      behavior-changing centerpiece shipped (3/10) — Wild & Whimsical is now generous (13%→94% RTP,
+      10%→34% hit, never→~1-in-25k jackpot). DEC-016 emitted. 0 defects.

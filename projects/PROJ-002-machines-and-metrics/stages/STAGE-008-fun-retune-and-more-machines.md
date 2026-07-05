@@ -153,14 +153,13 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       mechanism SPEC-046's "generate strips from weights" retune consumes (the user's chosen
       tuning knob). 0 functional defects (a verify [?] on a redundant-with-stable-sort tie-break
       resolved as a mutation-design artifact, documented in a comment). **[M]**
-- [~] SPEC-046 (build) — **Fun-retune Wild & Whimsical (in place)**: retune the
-      default's weights + paytable + **paylines (5 → 20, the "more ways to win")** + jackpot/
-      tier to the generous target, with `strips` now GENERATED from the tuned weights via
-      SPEC-045's `buildStrip`; measured RTP **~94%** / hit **~34%** / jackpot ~1-in-25k
-      (simulator). **Recompute + re-pin the frozen-seed contract, the metrics baseline, and
-      all parity tests** (machine-parity.contract, metrics, spin-parity, index, tiers,
-      useSlotMachine) to the new outcomes; emit the **retune DEC** (DEC-016). A changed fixture
-      here is INTENDED. **[L]**
+- [x] SPEC-046 (shipped 2026-07-05, PR #56) — **Fun-retune Wild & Whimsical (in place)**: retuned
+      the default's weights + paytable + **paylines (5 → 20, the "more ways to win")** to the
+      generous target, `strips` GENERATED from the tuned weights via SPEC-045's `buildStrip`;
+      **measured RTP 93.8% / hit 34.4% / jackpot ~1-in-25k** (was 13% / 10% / never). Re-baselined
+      the frozen-seed contract + metrics baseline + 12 test files to the tuned outcomes (a changed
+      fixture INTENDED); emitted **DEC-016**. Preview-verified (20 line diagrams + retuned paytable).
+      0 defects. **[L]**
 - [ ] (not yet written) SPEC-047 — **Parameterize residual engine reads**: bet-level
       stepping (`nextBet`/`prevBet`) and the paytable view's math source read the active
       machine instead of engine constants (deferred STAGE-007); adversarial guard-mutation
@@ -183,7 +182,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 2 shipped / 0 active / 8 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 3 shipped / 0 active / 7 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs
