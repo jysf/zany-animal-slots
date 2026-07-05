@@ -1,36 +1,34 @@
 // Win-tier classification for the slot engine.
-// DEC-003: jackpot = five Wolves on a payline (outranks amount-based tiers).
-// DEC-001: pure engine — imports only paylines (LineWin) and strips (WOLF symbol name).
-
+// DEC-015: the jackpot rule + big-win boundary are read from the machine's math slice.
+// DEC-001: pure engine — imports only types (LineWin + the machine math types).
 import type { LineWin } from './paylines';
+import type { MachineMath, JackpotRule } from './machine';
 
-/** The celebration class of a resolved spin, as pure data (AGENTS §14). */
 export type WinTier = 'none' | 'small' | 'big' | 'jackpot';
 
-/**
- * True iff at least one line win is five Wolves — the jackpot condition (DEC-003).
- * A 3- or 4-Wolf line, or any non-Wolf line, is not a jackpot.
- */
-export function isJackpot(lineWins: LineWin[]): boolean {
-  return lineWins.some(w => w.symbol === 'WOLF' && w.count === 5);
+/** True iff some line win matches the machine's jackpot rule (symbol × count). */
+export function isJackpot(lineWins: LineWin[], jackpot: JackpotRule): boolean {
+  return lineWins.some(
+    (w) => w.symbol === jackpot.symbol && w.count === jackpot.count,
+  );
 }
 
 /**
- * Classify a resolved spin into a WinTier.
- *
- * Order of precedence (jackpot checked first):
- *   1. jackpot — isJackpot is true (outranks amount tiers even when win is large)
+ * Classify a resolved spin into a WinTier, using the machine's jackpot rule and
+ * big-win boundary. Precedence: jackpot → none → small → big.
+ *   1. jackpot — isJackpot(lineWins, math.jackpot)
  *   2. none    — totalWin <= 0
- *   3. small   — 0 < totalWin < 5 × totalBet
- *   4. big     — totalWin >= 5 × totalBet (the 5× boundary is 'big')
+ *   3. small   — 0 < totalWin < math.tiers.bigMultiple × totalBet
+ *   4. big     — totalWin >= math.tiers.bigMultiple × totalBet
  */
 export function classifyWin(
   totalWin: number,
   totalBet: number,
   lineWins: LineWin[],
+  math: MachineMath,
 ): WinTier {
-  if (isJackpot(lineWins)) return 'jackpot';
+  if (isJackpot(lineWins, math.jackpot)) return 'jackpot';
   if (totalWin <= 0) return 'none';
-  if (totalWin < 5 * totalBet) return 'small';
+  if (totalWin < math.tiers.bigMultiple * totalBet) return 'small';
   return 'big';
 }

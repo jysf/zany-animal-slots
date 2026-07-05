@@ -15,9 +15,12 @@ Cycle prompts live in `prompts/SPEC-040-<cycle>.md`.
       variant-machine guard proving the rule is genuinely data-driven (jackpot {BISON,5} +
       bigMultiple 3 classify differently). tiers.test.ts call sites updated (outcomes identical).
       Type-only MachineMath/JackpotRule import. Build prompt written. No new DEC (DEC-015 covers).
-- [ ] **build** — Sonnet sub-agent (local only): apply the drop-in tiers.ts + the index.ts
-      classifyWin one-liner + tiers.test.ts updates; keep spin-parity green + pinned fixtures
-      identical; only tiers.ts/index.ts change among engine source.
+- [x] **build** — completed 2026-07-04 (Sonnet, local-only): applied the drop-in tiers.ts +
+      the index.ts classifyWin one-liner + tiers.test.ts updates verbatim from the spec Notes.
+      Full gate green (typecheck/lint/test [294 passed]/build); just validate green; 5-file
+      engine diff guard empty; WOLF/5-boundary grep guard empty; spin-parity.test.ts green
+      unchanged; all pre-existing tiers.test.ts values byte-identical. Branch
+      feat/spec-040-parameterize-tier-jackpot, committed locally (no push/PR).
 - [ ] **verify** — Sonnet sub-agent (cold review): full gate + AC-by-AC + frozen-seed tier
       parity + variant-machine-guard-is-real + no-hard-coded-WOLF/5 + engine-diff-scope +
       DEC-001 checks.

@@ -62,6 +62,14 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (parameterize classifyWin + isJackpot to read the machine's jackpot rule + bigMultiple; spin() threads the machine into classifyWin; update tiers.test.ts call sites; add a variant-machine guard proving the rule is machine-driven; build prompt). Completes the engine parameterization — after this no engine fn reads a hard-coded tier/jackpot constant."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens (AGENTS §4); build cycle run as a metered sub-agent — applied the spec's drop-in tiers.ts (isJackpot/classifyWin parameterized on JackpotRule/MachineMath), the index.ts classifyWin one-liner, and the tiers.test.ts call-site updates + new variant-machine describe block, verbatim from the spec Notes. Full gate green (typecheck/lint/test/build), just validate green, 5-file engine diff guard empty, WOLF/5-boundary grep guard empty, spin-parity.test.ts green unchanged, all pre-existing tiers.test.ts expected values byte-identical."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -296,28 +304,33 @@ rule is data-driven.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-040-parameterize-tier-jackpot`
+- **PR (if applicable):** not opened — build cycle is local-only per this run's scope; ship cycle opens the PR.
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (DEC-015 already covers this)
 - **Deviations from spec:**
-  - [list]
+  - none — the drop-in code for `tiers.ts`, the `index.ts` one-liner, and the `tiers.test.ts`
+    updates were used verbatim from the spec Notes.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new; SPEC-041 (presentation) and SPEC-042 (UI/hook wiring) remain as already scoped
+    out of this spec.
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing; the spec's Notes section had complete drop-in code for all three files, so this
+   was closer to careful transcription + verification than open-ended implementation.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No, the constraint list (5-file diff guard, grep guard, type-only import, byte-identical
+   fixtures) was exhaustive and directly checkable.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally different; the spec's precision (drop-in code + explicit self-check
+   commands) made this a very low-risk, mechanical build.
 
 ---
 

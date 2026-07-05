@@ -92,7 +92,7 @@ export function spin(args: {
   const newBalance = credit(d.balance, totalWin);
 
   // 5. Classify win tier
-  const tier = classifyWin(totalWin, bet, lineWins);   // unchanged — SPEC-040 parameterizes
+  const tier = classifyWin(totalWin, bet, lineWins, machine);
 
   return { ok: true, grid, lineWins, totalWin, balance: newBalance, tier, bet };
 }
