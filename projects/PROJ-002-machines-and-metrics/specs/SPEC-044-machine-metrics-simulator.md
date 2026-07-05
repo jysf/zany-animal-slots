@@ -51,6 +51,24 @@ cost:
       note: >-
         Design authored on the main Opus orchestrator loop (un-metered). Includes a
         real baseline measurement run via vite-node to pin exact expected values.
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-05
+      notes: >-
+        Sonnet sub-agent build (local only, no push/PR/gh/advance-cycle). Implemented
+        src/engine/metrics.ts, src/engine/metrics.test.ts, and scripts/simulate.ts
+        verbatim from the spec's Notes drop-in code, plus the justfile `simulate` recipe.
+        The pinned Wild & Whimsical baseline (50 000 spins, seed 20260705, bet 10)
+        reproduced exactly on the first test run — no deviation from the drop-in
+        algorithm was needed. Full gate green (typecheck/lint/test 313 passed incl. the
+        6 new metrics.test.ts cases/build/validate). `just simulate` and `just simulate
+        wild-and-whimsical` both printed reports and exited 0. Production-file diff
+        guard (`git diff main..HEAD` on engine/machine production files) confirmed
+        empty; no new dependency; no new DEC.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -397,3 +415,73 @@ simulate *ARGS:
 temporarily bump one `REEL_WEIGHTS` value (e.g. `WOLF: 1 → 5`) and confirm the pinned
 baseline test **fails** (the numbers move), then revert. This proves the baseline pins
 the actual math, not a tautology.
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:** `feat/spec-044-machine-metrics-simulator`
+- **PR (if applicable):** none — local-only build cycle per orchestrator instructions;
+  PR deferred to ship.
+- **All acceptance criteria met?** yes
+  - `simulateMachine(math, opts?)` runs seeded spins through the engine's public `spin()`
+    and returns the full `MachineMetrics` shape (spins, bet, totalWagered, totalReturned,
+    rtp, hits, hitFrequency, tierCounts, tierFrequency, maxWin, jackpots, jackpotRate).
+  - Deterministic: same `(math, opts)` → deep-equal metrics; different seed → not
+    deep-equal (both covered by tests, both pass).
+  - Exact RTP proven on the synthetic `allWin` (rtp 5 / hitFrequency 1 / none 0 /
+    jackpots 0 / maxWin 50) and `coldWin` (rtp 0 / hits 0 / none === spins) machines.
+  - `tierCounts` sums to `spins`; `tierFrequency` sums to ~1; `hitFrequency === hits/spins`.
+  - The pinned W&W baseline (50 000 spins, seed 20260705, bet 10) reproduced exactly on
+    the first run of the drop-in algorithm: rtp≈0.1295, hitFrequency≈0.0999, tierCounts
+    `{none:45003, small:4786, big:211, jackpot:0}`, jackpots 0, maxWin 500,
+    totalWagered 500000 — no deviation needed.
+  - `just simulate` prints a report for all registered machines and exits 0;
+    `just simulate wild-and-whimsical` limits to that one machine.
+  - `just typecheck && just lint && just test && just build` all exit 0 (313 tests
+    passed, including the 6 new `metrics.test.ts` cases). `just validate` passes.
+- **New decisions emitted:**
+  - none (DEC-001/002/015 already cover the shape; no new judgment calls required).
+- **Deviations from spec:**
+  - none. `src/engine/metrics.ts`, `src/engine/metrics.test.ts`'s synthetic machines,
+    `scripts/simulate.ts`, and the `justfile` recipe were implemented verbatim from the
+    spec's Notes. The only addition beyond a literal copy-paste was routine test-file
+    scaffolding (the `describe`/`it` wrapper and imports) around the six specified
+    assertions, which the Failing Tests section described in prose rather than as a
+    literal test-file drop-in.
+- **Follow-up work identified:**
+  - none new — SPEC-045 (the retune that consumes this simulator) is already scheduled
+    next in the STAGE-008 backlog, as anticipated by this spec's Context section.
+
+### Build-phase reflection (3 questions, short answers)
+
+Process-focused: how did the build go? What friction did the spec create?
+
+1. **What was unclear in the spec that slowed you down?**
+   — Nothing. The Notes section provided complete, verbatim drop-in code for all three
+   new files plus the justfile recipe, and the Failing Tests section spelled out each of
+   the six assertions precisely enough that writing the test file was mechanical
+   transcription, not design. Cross-checking the synthetic `allWin`/`coldWin` machines
+   against the real `MachineMath` shape (`strips.ts`, `paylines.ts`, `tiers.ts`,
+   `balance.ts`) confirmed the spread-and-override pattern type-checks cleanly with no
+   surprises.
+
+2. **Was there a constraint or decision that should have been listed but wasn't?**
+   — No. The hard constraints (pure engine-no-dom import boundary, no production/machine
+   file changes, no new dependency, no new DEC, verbatim algorithm to reproduce the pinned
+   baseline) were all explicit and were sufficient to self-verify before finishing. The
+   `git diff main..HEAD` production-file guard came back completely empty on the first
+   check.
+
+3. **If you did this task again, what would you do differently?**
+   — Nothing procedurally. The pinned baseline reproduced exactly on the first `just test`
+   run with zero iteration, which is the strongest possible signal the drop-in algorithm
+   was transcribed correctly (seed-stream derivation, `spin()` call shape, `DEFAULT_SEED`
+   all matched). I did attempt the Notes' suggested adversarial "bump a REEL_WEIGHTS value
+   and confirm the baseline test fails" check as an extra sanity pass, but discovered that
+   constant only documents the strip *composition* — the actual pinned `REEL_STRIP` array
+   is a separate literal, so editing `REEL_WEIGHTS` alone doesn't move the simulated
+   numbers. That adversarial check is explicitly scoped to the verify cycle in the spec's
+   Notes, so I reverted the experimental edit (clean diff) and left the real adversarial
+   proof (editing `REEL_STRIP` or an actual paytable/strip value) for the verify agent,
+   per the spec's own cycle boundary.

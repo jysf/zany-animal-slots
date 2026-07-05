@@ -19,6 +19,16 @@ Cycle prompts live in `prompts/SPEC-044-<cycle>.md`.
       the quantified "too hard to win". Complete drop-in code + exact pins in the spec
       Notes; synthetic cases validated (all-win rtp=5, cold rtp=0). No production game
       behavior change; no new dep (vite-node bundled). No new DEC. Build prompt written.
-- [ ] **build**
+- [x] **build** — completed 2026-07-05 (Sonnet sub-agent, local only): implemented
+      `src/engine/metrics.ts` (`simulateMachine`) + `src/engine/metrics.test.ts` (6 tests)
+      + `scripts/simulate.ts` verbatim from the spec's Notes drop-in code, plus the
+      justfile `simulate` recipe. Pinned W&W baseline (50 000 spins, seed 20260705, bet 10)
+      reproduced exactly on the first run — rtp 0.1295 / hitFreq 0.0999 / tierCounts
+      {none:45003, small:4786, big:211, jackpot:0} / jackpots 0 / maxWin 500 — no deviation
+      from the drop-in algorithm needed. Full gate green (typecheck/lint/test 313
+      passed/build); `just simulate` and `just simulate wild-and-whimsical` both exit 0;
+      `just validate` passes. Production-file diff guard (engine/machine files vs main)
+      confirmed empty; no new dependency; no new DEC. Branch
+      feat/spec-044-machine-metrics-simulator.
 - [ ] **verify**
 - [ ] **ship**
