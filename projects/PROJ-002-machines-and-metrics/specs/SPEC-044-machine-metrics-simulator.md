@@ -54,9 +54,9 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 104934   # from Agent result subagent_tokens
+      estimated_usd: 0.69    # 104934 tok × $6.6/M (Sonnet)
+      duration_minutes: 19.8 # 1190164 ms
       recorded_at: 2026-07-05
       notes: >-
         Sonnet sub-agent build (local only, no push/PR/gh/advance-cycle). Implemented
@@ -72,9 +72,9 @@ cost:
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
-      estimated_usd: null
-      duration_minutes: null
+      tokens_total: 76759    # from Agent result subagent_tokens
+      estimated_usd: 0.51    # 76759 tok × $6.6/M (Sonnet)
+      duration_minutes: 25.4 # 1523432 ms
       recorded_at: 2026-07-05
       notes: >-
         Sonnet sub-agent COLD verify (local only, no push/PR/gh/advance-cycle). Full gate
@@ -93,10 +93,21 @@ cost:
         `git diff main..HEAD` on all production engine/machine files and
         package.json/package-lock.json is EMPTY. `just simulate` and `just simulate
         wild-and-whimsical` both exit 0 and print reports. Verdict: PASS, 0 defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-07-05
+      notes: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate
+        reconcile of both sub-agents against git/disk + PR + CI-poll + squash-merge +
+        cost totals + STAGE-008 backlog rollup + archive). First STAGE-008 spec shipped.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 181693
+    estimated_usd: 1.20
+    session_count: 5
 ---
 
 # SPEC-044: machine metrics simulator
@@ -509,3 +520,35 @@ Process-focused: how did the build go? What friction did the spec create?
    Notes, so I reverted the experimental edit (clean diff) and left the real adversarial
    proof (editing `REEL_STRIP` or an actual paytable/strip value) for the verify agent,
    per the spec's own cycle boundary.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused, distinct from the process-focused
+build reflection above.*
+
+1. **What would I do differently next time?**
+   — Almost nothing — measure-before-tune paid off immediately. Running the real
+   measurement *during design* (via `vite-node`, the exact pinned algorithm) meant the
+   failing-test baseline was a reproduced fact, not an invented fixture, so the build
+   reproduced it on the first run with zero iteration. The one thing worth flagging for
+   the next spec: the design assumed `reelWeights` drove hit-frequency, but it's actually
+   **documentation-only** — `resolveGrid` draws from the `REEL_STRIP` literal array, and
+   `reelWeights` is consumed by no engine logic. The build agent surfaced this when the
+   adversarial `REEL_WEIGHTS` mutation moved nothing; verify then proved teeth by mutating
+   the real drivers (`REEL_STRIP` and `PAYTABLE`). This is the single most important
+   carry-forward for SPEC-045.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No template/constraint change. But **SPEC-045's design must encode the `reelWeights`
+   finding**: retuning hit-frequency/RTP means editing the **strip composition** (and/or
+   paytable/jackpot placement), not `reelWeights` — or, better, deciding whether SPEC-045
+   should make `strips` *generated from* `reelWeights` so the weights become a live tuning
+   knob (a determinism-affecting design choice, to be recorded in the retune DEC). Logged
+   to the PROJ-002 signals set.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec — SPEC-045 (the fun-retune) is already next in the STAGE-008 backlog and
+   is the direct consumer of this simulator. The simulator's `just simulate` loop + the
+   pinned baseline are exactly the measure→tune→re-measure→re-pin machinery SPEC-045 needs.
