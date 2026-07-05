@@ -139,10 +139,12 @@ regression.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
-- [ ] (not yet written) SPEC-044 — **Machine-metrics simulator**: a seeded Monte-Carlo
-      harness (script + `just` recipe) reporting RTP, hit-frequency, and win-tier
-      distribution for a machine's math slice; baseline-measures today's Wild & Whimsical
-      so the retune has a before/after number. Test-covered, no production behavior change. **[M]**
+- [~] SPEC-044 (build) — **Machine-metrics simulator**: a seeded Monte-Carlo
+      harness (`src/engine/metrics.ts` + `scripts/simulate.ts` + `just simulate`) reporting
+      RTP, hit-frequency, and win-tier distribution for a machine's math slice; pins
+      today's Wild & Whimsical baseline (measured: RTP **0.13** / hitFreq **0.10** /
+      jackpotRate **0** — the quantified "too hard to win") as the retune's before-number.
+      Test-covered, no production game-behavior change. **[M]**
 - [ ] (not yet written) SPEC-045 — **Fun-retune Wild & Whimsical (in place)**: retune the
       default's weights/strip/paytable/jackpot/tier to the generous target (measured by
       SPEC-044); **recompute + re-pin the frozen-seed contract** and all parity tests
