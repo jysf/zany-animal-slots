@@ -7,7 +7,7 @@
 task:
   id: SPEC-045
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -63,6 +63,27 @@ cost:
         passed first try (pinned example matched with no adjustment); full gate
         (typecheck/lint/test/build/validate) green; hard-guard diff against
         machine/production files confirmed empty.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      duration_minutes: null   # orchestrator to fill from Agent result duration_ms
+      note: >-
+        Cold verify (Sonnet subagent); orchestrator to fill tokens_total from subagent_tokens
+        and duration_minutes from duration_ms per AGENTS §4. Full gate green (54 files/320
+        tests, stripBuilder.test.ts 7/7; build + validate clean). Confirmed spec conformance
+        byte-for-byte (fractional keys, sort + tie-break, adjacency-fix loop; type-only
+        SymbolId import; no RNG; not re-exported from engine/index.ts). Independently
+        reproduced count-exactness (8 self-chosen weight profiles via vite-node, outside the
+        test file) and the pinned example. Adversarial mutation (a) (k+0.5 -> k+1.5) failed
+        the pinned-example test as expected; cleanly reverted. Adversarial mutation (b)
+        (removing the `|| a.ord - b.ord` tie-break) did NOT fail any test (0/320) — root
+        cause: native Array.sort is stable and item-insertion order already tracks the
+        `symbols` iteration order, so the explicit tie-break is redundant with stable sort
+        given this construction and the prescribed mutation has no observable effect;
+        cleanly reverted. Flagged as a test-strength gap (not a functional defect) —
+        verify marked [?]. Hard guard (machine/production + package.json/lock diff)
+        confirmed EMPTY.
   totals:
     tokens_total: 0
     estimated_usd: 0
