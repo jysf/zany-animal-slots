@@ -149,26 +149,26 @@ de-risks the tuning loop that PROJ-001 flagged as awkward.
   + the generic HTTP-endpoint contract (runtime-agnostic, self-hostable, no Cloudflare),
   and which reference sink(s) to ship. On Cloudflare, the sink is a Worker route
   alongside the assets binding (not a Pages Function, per DEC-014). Default OFF is
-  confirmed; decide at the STAGE-011 frame whether to ship a `/stats` view and for
+  confirmed; decide at the STAGE-005 frame whether to ship a `/stats` view and for
   which sink(s).
 
 ## Stage Plan
 
 Ordered; the config spine comes first so fun/variety become data changes. A project
-typically has 2–5 stages — this is at the top of that range; STAGE-011 (analytics)
+typically has 2–5 stages — this is at the top of that range; STAGE-005 (analytics)
 is the most separable and could be deferred or split off if the wave runs long.
 
-- [ ] STAGE-007 (not yet framed) — **Config-driven machine model**: parameterize the
+- [ ] STAGE-001 (not yet framed) — **Config-driven machine model**: parameterize the
       engine; a machine = config; migrate the current game to the first machine,
       behavior-preserving. Foundation for everything else.
-- [ ] STAGE-008 (not yet framed) — **Fun retune + more machines**: tune the default
+- [ ] STAGE-002 (not yet framed) — **Fun retune + more machines**: tune the default
       for fun (hit-rate, medium band, jackpots, more ways to win) to a target RTP;
       ship 2–3 machines with theme+music+math; machine selector + persistence.
-- [ ] STAGE-009 (not yet framed) — **Player session stats**: client-side
+- [ ] STAGE-003 (not yet framed) — **Player session stats**: client-side
       winnings-over-time, biggest win, cash-ins, spins; in-app panel.
-- [ ] STAGE-010 (not yet framed) — **Help / how-to-play**: onboarding surface that
+- [ ] STAGE-004 (not yet framed) — **Help / how-to-play**: onboarding surface that
       fixes the tester-comprehension failure.
-- [ ] STAGE-011 (not yet framed) — **Configurable usage analytics (default OFF)**: a
+- [ ] STAGE-005 (not yet framed) — **Configurable usage analytics (default OFF)**: a
       provider-agnostic usage beacon + config; a generic HTTP-endpoint sink
       (self-hostable, no Cloudflare) + a reference Cloudflare Worker+KV sink; optional
       private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
@@ -182,7 +182,7 @@ is the most separable and could be deferred or split off if the wave runs long.
 - **PROJ-001 (shipped):** the pure-TS engine, the React/CSS presentation + token
   system, the Tone.js audio graph (DEC-013), the deploy on Cloudflare Workers Static
   Assets (DEC-014), and the contract-test guard pattern.
-- **External (STAGE-011, only if the Cloudflare sink is enabled):** a Cloudflare **KV**
+- **External (STAGE-005, only if the Cloudflare sink is enabled):** a Cloudflare **KV**
   namespace binding — an operator step. The default-off build and the generic
   HTTP-endpoint sink need no Cloudflare and no operator step.
 
