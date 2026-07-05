@@ -51,6 +51,18 @@ cost:
         Design authored on the main Opus orchestrator loop (un-metered). Includes iterative
         tuning + a property check (300 random weightsets, 0 count failures) run via vite-node
         to lock the fractional-rank algorithm and pin the exact example output.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      duration_minutes: null   # orchestrator to fill from Agent result duration_ms
+      note: >-
+        Build ran as a metered subagent (Sonnet); orchestrator to fill tokens_total from
+        subagent_tokens and duration_minutes from duration_ms per AGENTS §4. Implemented
+        stripBuilder.ts + stripBuilder.test.ts verbatim from the spec Notes; all 7 tests
+        passed first try (pinned example matched with no adjustment); full gate
+        (typecheck/lint/test/build/validate) green; hard-guard diff against
+        machine/production files confirmed empty.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -269,3 +281,44 @@ temporarily break the builder (e.g. change `(k + 0.5)` to `(k + 1.5)` so the key
 or drop the final `items.push`) and confirm a test FAILS, then revert. Also confirm the
 pinned-example test fails if the tie-break `|| a.ord - b.ord` is removed (ordering becomes
 unstable), then revert.
+
+## Build Completion
+
+Implemented `src/engine/stripBuilder.ts` and `src/engine/stripBuilder.test.ts` verbatim
+from the spec's Notes (drop-in algorithm + `counts` helper), with no deviation. All 7
+specified tests written and passing on the first run — the pinned example
+(`buildStrip(SYMBOLS, { DEER: 3, FOX: 2, WOLF: 1 })` → `['DEER','FOX','DEER','WOLF','FOX','DEER']`)
+matched immediately, confirming the algorithm was copied faithfully (fractional keys
+`(k + 0.5) / c`, sort `a.key - b.key || a.ord - b.ord`, the adjacency-fix loop). No other
+file touched. No new dependency. No new DEC.
+
+Gate results (all exit 0):
+- `just typecheck` — clean, no errors.
+- `just lint` — clean, no errors.
+- `just test` — 54 test files, 320 tests passed, including the new
+  `src/engine/stripBuilder.test.ts` (7/7 passed).
+- `just build` — production build succeeded (tsc --noEmit + vite build).
+- `just validate` — 45 specs valid front-matter, passed.
+
+Hard guard confirmed EMPTY: `git diff main..HEAD -- src/machines/ src/engine/strips.ts
+src/engine/paylines.ts src/engine/machine.ts src/engine/spin.ts src/engine/index.ts`
+produced no output. Only files changed: the two new `src/engine/stripBuilder.{ts,test.ts}`
+files (added) and this spec + its timeline (documentation).
+
+### Reflection
+
+1. **Did anything in the spec's Implementation Context turn out to be wrong or
+   incomplete?** No. The drop-in code, the `counts` helper, and the pinned-example
+   walkthrough (fractional keys, tie-break by canonical order) were complete and accurate —
+   the pinned test passed on the very first run with zero adjustment, which is the clearest
+   possible signal the Notes were correct and sufficient.
+2. **What would have made this build faster or safer?** Nothing meaningful — this was
+   about as low-friction as a build gets: fully-specified drop-in code, a fully-specified
+   test list, and a hard, mechanically-checkable guard (the empty git diff) instead of a
+   prose "don't touch other files" instruction. The only manual judgment call was profile
+   selection for the "several weight profiles" test (all-equal / low-heavy / sparse), which
+   the spec left as illustrative examples rather than exact literals.
+3. **Any deviation from the spec, and why?** None. `stripBuilder.ts` is byte-for-byte the
+   Notes' drop-in (with the file-header comment retained), and the test file implements
+   exactly the 7 named tests using the given `counts` helper. The hard guard diff came back
+   empty, confirming no production/machine file was touched.

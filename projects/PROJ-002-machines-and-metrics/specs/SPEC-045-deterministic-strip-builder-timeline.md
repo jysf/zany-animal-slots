@@ -17,6 +17,7 @@ Cycle prompts live in `prompts/SPEC-045-<cycle>.md`.
       NO behavior change, NO frozen-seed re-baseline (that's SPEC-046). Complete drop-in code +
       the exact pinned example (`{DEER:3,FOX:2,WOLF:1}` → `[DEER,FOX,DEER,WOLF,FOX,DEER]`) in
       the spec Notes; 7 failing tests specified. No new dep, no new DEC. Build prompt written.
-- [ ] **build**
+- [~] **build** — in progress 2026-07-05 (Sonnet): implementing `stripBuilder.ts` +
+      `stripBuilder.test.ts` verbatim from the spec Notes.
 - [ ] **verify**
 - [ ] **ship**
