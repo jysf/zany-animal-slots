@@ -4,7 +4,7 @@
 
 project:
   id: PROJ-002
-  status: proposed                  # proposed | active | shipped | cancelled
+  status: active                    # proposed | active | shipped | cancelled
   priority: medium
   target_ship: null                 # play/dogfood project — no hard external date
 
@@ -158,9 +158,9 @@ Ordered; the config spine comes first so fun/variety become data changes. A proj
 typically has 2–5 stages — this is at the top of that range; STAGE-011 (analytics)
 is the most separable and could be deferred or split off if the wave runs long.
 
-- [ ] STAGE-007 (not yet framed) — **Config-driven machine model**: parameterize the
-      engine; a machine = config; migrate the current game to the first machine,
-      behavior-preserving. Foundation for everything else.
+- [~] STAGE-007 (active, framed 2026-07-04) — **Config-driven machine model**:
+      parameterize the engine; a machine = config; migrate the current game to the
+      first machine, behavior-preserving. Foundation for everything else.
 - [ ] STAGE-008 (not yet framed) — **Fun retune + more machines**: tune the default
       for fun (hit-rate, medium band, jackpots, more ways to win) to a target RTP;
       ship 2–3 machines with theme+music+math; machine selector + persistence.
@@ -174,7 +174,7 @@ is the most separable and could be deferred or split off if the wave runs long.
       private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
       apply ONLY when a remote sink is enabled.
 
-**Count:** 0 shipped / 0 active / 5 pending.
+**Count:** 0 shipped / 1 active / 4 pending.
 
 ## Dependencies
 
