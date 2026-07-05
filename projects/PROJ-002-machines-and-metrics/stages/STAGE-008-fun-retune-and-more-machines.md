@@ -153,14 +153,14 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       mechanism SPEC-046's "generate strips from weights" retune consumes (the user's chosen
       tuning knob). 0 functional defects (a verify [?] on a redundant-with-stable-sort tie-break
       resolved as a mutation-design artifact, documented in a comment). **[M]**
-- [ ] (not yet written) SPEC-046 — **Fun-retune Wild & Whimsical (in place)**: retune the
+- [~] SPEC-046 (build) — **Fun-retune Wild & Whimsical (in place)**: retune the
       default's weights + paytable + **paylines (5 → 20, the "more ways to win")** + jackpot/
       tier to the generous target, with `strips` now GENERATED from the tuned weights via
       SPEC-045's `buildStrip`; measured RTP **~94%** / hit **~34%** / jackpot ~1-in-25k
       (simulator). **Recompute + re-pin the frozen-seed contract, the metrics baseline, and
       all parity tests** (machine-parity.contract, metrics, spin-parity, index, tiers,
-      useSlotMachine) to the new outcomes; emit the **retune DEC**. A changed fixture here is
-      INTENDED. **[L]**
+      useSlotMachine) to the new outcomes; emit the **retune DEC** (DEC-016). A changed fixture
+      here is INTENDED. **[L]**
 - [ ] (not yet written) SPEC-047 — **Parameterize residual engine reads**: bet-level
       stepping (`nextBet`/`prevBet`) and the paytable view's math source read the active
       machine instead of engine constants (deferred STAGE-007); adversarial guard-mutation
