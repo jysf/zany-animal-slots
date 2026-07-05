@@ -146,12 +146,13 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       jackpotRate **0** — the quantified "too hard to win") as the retune's before-number.
       Test-covered, no production game-behavior change; 0 defects. **Finding:** `reelWeights`
       is documentation-only — SPEC-045 must retune the strip/paytable, not the weights. **[M]**
-- [~] SPEC-045 (build) — **Deterministic strip-builder**: a pure
+- [x] SPEC-045 (shipped 2026-07-05, PR #55) — **Deterministic strip-builder**: a pure
       `buildStrip(symbols, weights)` (fractional-rank interleave → **provably count-exact**,
       + an adjacency-fix pass → no linear adjacent duplicates) + unit tests. Pure additive
       engine infra — does NOT touch any machine, **no behavior change, no re-baseline**. The
       mechanism SPEC-046's "generate strips from weights" retune consumes (the user's chosen
-      tuning knob). **[M]**
+      tuning knob). 0 functional defects (a verify [?] on a redundant-with-stable-sort tie-break
+      resolved as a mutation-design artifact, documented in a comment). **[M]**
 - [ ] (not yet written) SPEC-046 — **Fun-retune Wild & Whimsical (in place)**: retune the
       default's weights + paytable + **paylines (5 → 20, the "more ways to win")** + jackpot/
       tier to the generous target, with `strips` now GENERATED from the tuned weights via
@@ -182,7 +183,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 1 shipped / 0 active / 9 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 2 shipped / 0 active / 8 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs

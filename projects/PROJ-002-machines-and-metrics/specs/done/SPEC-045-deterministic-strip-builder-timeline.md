@@ -70,4 +70,10 @@ Cycle prompts live in `prompts/SPEC-045-<cycle>.md`.
       teeth. Lesson logged to the PROJ-002 signals set: adversarial-mutation checks must target
       code whose behavior an input can actually distinguish; a mutation on stable-sort-redundant
       code is a no-op by construction, not a test-strength failure.
-- [ ] **ship**
+- [x] **ship** — completed 2026-07-05 (Opus): resolved the verify [?] (tie-break redundancy
+      documented — not a defect), reconciled both sub-agents against git/disk, re-gated green
+      (320 tests), squash-merged PR #55 (CI CLEAN — all 7 checks SUCCESS), synced main. Cost
+      filled: build 74214 tok / $0.49; verify metering truncated by a session-limit interruption
+      (reported 662 tok recorded with a caveat — undercount, true ~$0.5); totals 74876 tok /
+      $0.49 / 5 sessions. Second STAGE-008 spec shipped (2/10). No behavior change; no new dep;
+      no new DEC. `buildStrip` ready for SPEC-046's retune to consume.
