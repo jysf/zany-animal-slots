@@ -7,7 +7,7 @@
 task:
   id: SPEC-044
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -51,10 +51,63 @@ cost:
       note: >-
         Design authored on the main Opus orchestrator loop (un-metered). Includes a
         real baseline measurement run via vite-node to pin exact expected values.
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 104934   # from Agent result subagent_tokens
+      estimated_usd: 0.69    # 104934 tok × $6.6/M (Sonnet)
+      duration_minutes: 19.8 # 1190164 ms
+      recorded_at: 2026-07-05
+      notes: >-
+        Sonnet sub-agent build (local only, no push/PR/gh/advance-cycle). Implemented
+        src/engine/metrics.ts, src/engine/metrics.test.ts, and scripts/simulate.ts
+        verbatim from the spec's Notes drop-in code, plus the justfile `simulate` recipe.
+        The pinned Wild & Whimsical baseline (50 000 spins, seed 20260705, bet 10)
+        reproduced exactly on the first test run — no deviation from the drop-in
+        algorithm was needed. Full gate green (typecheck/lint/test 313 passed incl. the
+        6 new metrics.test.ts cases/build/validate). `just simulate` and `just simulate
+        wild-and-whimsical` both printed reports and exited 0. Production-file diff
+        guard (`git diff main..HEAD` on engine/machine production files) confirmed
+        empty; no new dependency; no new DEC.
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 76759    # from Agent result subagent_tokens
+      estimated_usd: 0.51    # 76759 tok × $6.6/M (Sonnet)
+      duration_minutes: 25.4 # 1523432 ms
+      recorded_at: 2026-07-05
+      notes: >-
+        Sonnet sub-agent COLD verify (local only, no push/PR/gh/advance-cycle). Full gate
+        green: typecheck/lint/test/build/validate all exit 0 (313 tests, 53 files, incl.
+        the 6 metrics.test.ts cases; validate confirms 44 specs with valid front-matter).
+        Confirmed metrics.ts matches the spec's drop-in algorithm verbatim (seed
+        derivation, spin() call shape, DEFAULT_SEED/DEFAULT_SPINS), full MachineMetrics
+        field set, engine-no-dom import boundary (only ./index + ./rng), not re-exported
+        from src/engine/index.ts. Confirmed no .skip/.only/xit and that the synthetic and
+        pinned-baseline tests genuinely assert the specified exact values. Ran the
+        adversarial guard-mutation per spec Notes: (a) mutated REEL_STRIP in strips.ts
+        (DEER->WOLF) — baseline test failed (rtp 0.1295 -> 0.12541) as required, reverted
+        clean; (b) mutated PAYTABLE.low[2] in paylines.ts (5->50) — baseline test failed
+        (rtp -> 0.30054) as required, reverted clean. Both mutations proved the pinned
+        baseline guards the real outcome-drivers, not a tautology. Confirmed
+        `git diff main..HEAD` on all production engine/machine files and
+        package.json/package-lock.json is EMPTY. `just simulate` and `just simulate
+        wild-and-whimsical` both exit 0 and print reports. Verdict: PASS, 0 defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-07-05
+      notes: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate
+        reconcile of both sub-agents against git/disk + PR + CI-poll + squash-merge +
+        cost totals + STAGE-008 backlog rollup + archive). First STAGE-008 spec shipped.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 181693
+    estimated_usd: 1.20
+    session_count: 5
 ---
 
 # SPEC-044: machine metrics simulator
@@ -397,3 +450,105 @@ simulate *ARGS:
 temporarily bump one `REEL_WEIGHTS` value (e.g. `WOLF: 1 → 5`) and confirm the pinned
 baseline test **fails** (the numbers move), then revert. This proves the baseline pins
 the actual math, not a tautology.
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:** `feat/spec-044-machine-metrics-simulator`
+- **PR (if applicable):** none — local-only build cycle per orchestrator instructions;
+  PR deferred to ship.
+- **All acceptance criteria met?** yes
+  - `simulateMachine(math, opts?)` runs seeded spins through the engine's public `spin()`
+    and returns the full `MachineMetrics` shape (spins, bet, totalWagered, totalReturned,
+    rtp, hits, hitFrequency, tierCounts, tierFrequency, maxWin, jackpots, jackpotRate).
+  - Deterministic: same `(math, opts)` → deep-equal metrics; different seed → not
+    deep-equal (both covered by tests, both pass).
+  - Exact RTP proven on the synthetic `allWin` (rtp 5 / hitFrequency 1 / none 0 /
+    jackpots 0 / maxWin 50) and `coldWin` (rtp 0 / hits 0 / none === spins) machines.
+  - `tierCounts` sums to `spins`; `tierFrequency` sums to ~1; `hitFrequency === hits/spins`.
+  - The pinned W&W baseline (50 000 spins, seed 20260705, bet 10) reproduced exactly on
+    the first run of the drop-in algorithm: rtp≈0.1295, hitFrequency≈0.0999, tierCounts
+    `{none:45003, small:4786, big:211, jackpot:0}`, jackpots 0, maxWin 500,
+    totalWagered 500000 — no deviation needed.
+  - `just simulate` prints a report for all registered machines and exits 0;
+    `just simulate wild-and-whimsical` limits to that one machine.
+  - `just typecheck && just lint && just test && just build` all exit 0 (313 tests
+    passed, including the 6 new `metrics.test.ts` cases). `just validate` passes.
+- **New decisions emitted:**
+  - none (DEC-001/002/015 already cover the shape; no new judgment calls required).
+- **Deviations from spec:**
+  - none. `src/engine/metrics.ts`, `src/engine/metrics.test.ts`'s synthetic machines,
+    `scripts/simulate.ts`, and the `justfile` recipe were implemented verbatim from the
+    spec's Notes. The only addition beyond a literal copy-paste was routine test-file
+    scaffolding (the `describe`/`it` wrapper and imports) around the six specified
+    assertions, which the Failing Tests section described in prose rather than as a
+    literal test-file drop-in.
+- **Follow-up work identified:**
+  - none new — SPEC-045 (the retune that consumes this simulator) is already scheduled
+    next in the STAGE-008 backlog, as anticipated by this spec's Context section.
+
+### Build-phase reflection (3 questions, short answers)
+
+Process-focused: how did the build go? What friction did the spec create?
+
+1. **What was unclear in the spec that slowed you down?**
+   — Nothing. The Notes section provided complete, verbatim drop-in code for all three
+   new files plus the justfile recipe, and the Failing Tests section spelled out each of
+   the six assertions precisely enough that writing the test file was mechanical
+   transcription, not design. Cross-checking the synthetic `allWin`/`coldWin` machines
+   against the real `MachineMath` shape (`strips.ts`, `paylines.ts`, `tiers.ts`,
+   `balance.ts`) confirmed the spread-and-override pattern type-checks cleanly with no
+   surprises.
+
+2. **Was there a constraint or decision that should have been listed but wasn't?**
+   — No. The hard constraints (pure engine-no-dom import boundary, no production/machine
+   file changes, no new dependency, no new DEC, verbatim algorithm to reproduce the pinned
+   baseline) were all explicit and were sufficient to self-verify before finishing. The
+   `git diff main..HEAD` production-file guard came back completely empty on the first
+   check.
+
+3. **If you did this task again, what would you do differently?**
+   — Nothing procedurally. The pinned baseline reproduced exactly on the first `just test`
+   run with zero iteration, which is the strongest possible signal the drop-in algorithm
+   was transcribed correctly (seed-stream derivation, `spin()` call shape, `DEFAULT_SEED`
+   all matched). I did attempt the Notes' suggested adversarial "bump a REEL_WEIGHTS value
+   and confirm the baseline test fails" check as an extra sanity pass, but discovered that
+   constant only documents the strip *composition* — the actual pinned `REEL_STRIP` array
+   is a separate literal, so editing `REEL_WEIGHTS` alone doesn't move the simulated
+   numbers. That adversarial check is explicitly scoped to the verify cycle in the spec's
+   Notes, so I reverted the experimental edit (clean diff) and left the real adversarial
+   proof (editing `REEL_STRIP` or an actual paytable/strip value) for the verify agent,
+   per the spec's own cycle boundary.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused, distinct from the process-focused
+build reflection above.*
+
+1. **What would I do differently next time?**
+   — Almost nothing — measure-before-tune paid off immediately. Running the real
+   measurement *during design* (via `vite-node`, the exact pinned algorithm) meant the
+   failing-test baseline was a reproduced fact, not an invented fixture, so the build
+   reproduced it on the first run with zero iteration. The one thing worth flagging for
+   the next spec: the design assumed `reelWeights` drove hit-frequency, but it's actually
+   **documentation-only** — `resolveGrid` draws from the `REEL_STRIP` literal array, and
+   `reelWeights` is consumed by no engine logic. The build agent surfaced this when the
+   adversarial `REEL_WEIGHTS` mutation moved nothing; verify then proved teeth by mutating
+   the real drivers (`REEL_STRIP` and `PAYTABLE`). This is the single most important
+   carry-forward for SPEC-045.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No template/constraint change. But **SPEC-045's design must encode the `reelWeights`
+   finding**: retuning hit-frequency/RTP means editing the **strip composition** (and/or
+   paytable/jackpot placement), not `reelWeights` — or, better, deciding whether SPEC-045
+   should make `strips` *generated from* `reelWeights` so the weights become a live tuning
+   knob (a determinism-affecting design choice, to be recorded in the retune DEC). Logged
+   to the PROJ-002 signals set.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec — SPEC-045 (the fun-retune) is already next in the STAGE-008 backlog and
+   is the direct consumer of this simulator. The simulator's `just simulate` loop + the
+   pinned baseline are exactly the measure→tune→re-measure→re-pin machinery SPEC-045 needs.

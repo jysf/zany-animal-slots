@@ -211,6 +211,11 @@ typecheck:
 build:
     @npm run build
 
+# Simulate machine metrics (RTP / hit-frequency / tier distribution) for tuning.
+# Usage: just simulate [machine-id] [--spins N] [--seed S]
+simulate *ARGS:
+    @node_modules/.bin/vite-node scripts/simulate.ts {{ARGS}}
+
 # Supply-chain gates (same as the CI supply-chain job).
 license-check:
     @node scripts/license-check.mjs
