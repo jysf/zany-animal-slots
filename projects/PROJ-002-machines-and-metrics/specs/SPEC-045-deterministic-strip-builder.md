@@ -54,8 +54,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
-      duration_minutes: null   # orchestrator to fill from Agent result duration_ms
+      tokens_total: 74214   # from Agent result subagent_tokens
+      estimated_usd: 0.49   # 74214 tok × $6.6/M (Sonnet)
+      duration_minutes: 6.0 # 359508 ms
       note: >-
         Build ran as a metered subagent (Sonnet); orchestrator to fill tokens_total from
         subagent_tokens and duration_minutes from duration_ms per AGENTS §4. Implemented
@@ -66,11 +67,19 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
-      duration_minutes: null   # orchestrator to fill from Agent result duration_ms
+      tokens_total: 662   # from Agent result subagent_tokens — SEE CAVEAT: unreliable/truncated
+      estimated_usd: 0.00 # from 662 tok; materially undercounts (see caveat)
+      duration_minutes: 72.6 # 4355174 ms — INCLUDES idle wait on the session-limit reset, not active work
+      caveat: >-
+        The verify subagent's session hit the 5-hour usage-window limit at the very end (after it
+        had committed its verify bookkeeping). The reported subagent_tokens (662) is a truncated/
+        unreliable metric — 40 tool-uses + a full cold gate + an 8-profile independent reproduction
+        + 2 adversarial mutations cannot cost 662 tokens; true spend is materially higher (likely
+        comparable to SPEC-044's verify, ~77k tok / ~$0.5). Recorded the reported value honestly
+        rather than fabricate; the totals below therefore UNDERCOUNT verify. duration_minutes is
+        also inflated (mostly idle wait on the limit reset, not active work).
       note: >-
-        Cold verify (Sonnet subagent); orchestrator to fill tokens_total from subagent_tokens
-        and duration_minutes from duration_ms per AGENTS §4. Full gate green (54 files/320
+        Cold verify (Sonnet subagent). Full gate green (54 files/320
         tests, stripBuilder.test.ts 7/7; build + validate clean). Confirmed spec conformance
         byte-for-byte (fractional keys, sort + tie-break, adjacency-fix loop; type-only
         SymbolId import; no RNG; not re-exported from engine/index.ts). Independently
@@ -84,10 +93,20 @@ cost:
         cleanly reverted. Flagged as a test-strength gap (not a functional defect) —
         verify marked [?]. Hard guard (machine/production + package.json/lock diff)
         confirmed EMPTY.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 15
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Also resolved the verify [?]
+        (documented the tie-break redundancy — not a defect), reconciled both sub-agents against
+        git/disk, re-gated, PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 74876   # build 74214 + verify 662 (verify UNDERCOUNTS — see verify caveat)
+    estimated_usd: 0.49   # build $0.49 + verify ~$0.00 (undercount; true ~$1.0)
+    session_count: 5
 ---
 
 # SPEC-045: deterministic strip builder
@@ -343,3 +362,35 @@ files (added) and this spec + its timeline (documentation).
    Notes' drop-in (with the file-header comment retained), and the test file implements
    exactly the 7 named tests using the given `counts` helper. The hard guard diff came back
    empty, confirming no production/machine file was touched.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused, distinct from the process-focused
+build reflection above.*
+
+1. **What would I do differently next time?**
+   — Choose adversarial guard-mutations that an input can actually distinguish. The spec's
+   Notes prescribed mutating `(k+0.5)` (real teeth — a test failed) *and* removing the
+   `|| a.ord - b.ord` tie-break (no teeth — a no-op, because ES2019 stable sort + insertion in
+   `symbols` order make the tie-break redundant). The verify agent correctly caught that the
+   second mutation proves nothing and flagged it [?]. Resolution: kept the explicit tie-break
+   (defensive) and documented the redundancy in a code comment — the [?] was a mutation-design
+   artifact, not a defect. Next time, before prescribing a "revert-and-confirm-it-fails" check,
+   confirm the mutated code is behavior-distinguishing.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No template/constraint change. Logged a LESSON to the PROJ-002 signals set:
+   **adversarial-mutation checks must target code whose behavior some input can distinguish** —
+   mutating code that's redundant with a language guarantee (here, stable sort) is a no-op by
+   construction and reads as a false "test-strength gap." A good adversarial mutation changes an
+   observable output; if you can't construct an input that reveals the mutation, the code is
+   provably-redundant, not under-tested.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. SPEC-046 (the retune) is next and consumes `buildStrip` directly — it wires
+   `WILD_AND_WHIMSICAL_MATH.strips = buildStrip(SYMBOLS, tunedWeights)`, applies the tuned
+   paytable + 20 paylines, and re-baselines the frozen-seed contract + metrics baseline once.
+   All the exact pins (the 42-symbol tuned strip, frozen-seed outcomes, representative seeds
+   1/6/68357/2, the RTP-93.8% metrics baseline) were computed this session and are ready.
