@@ -66,15 +66,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
+      tokens_total: 61920
+      estimated_usd: 0.41
+      duration_minutes: 3.2
+      recorded_at: 2026-07-04
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=61920, 194s). Created src/engine/machine.ts, src/machines/types.ts, src/machines/wildAndWhimsical.ts, src/machines/wildAndWhimsical.parity.test.ts; added additive re-exports to src/engine/index.ts. All 286 tests pass (8 new parity tests); typecheck/lint/build/validate green; engine function-file diff empty. estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 74852
+      estimated_usd: 0.49
+      duration_minutes: 4.1
+      recorded_at: 2026-07-04
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=74852, 244s). Cold adversarial review: re-ran typecheck/lint/test(286 passed, incl. 8 parity tests)/build/validate — all green. Verified all AC boxes file:line, confirmed engine function-file diff (strips/paylines/tiers/spin/balance/rng) is byte-empty, only src/engine change is machine.ts + 2 additive index.ts re-export lines. Confirmed no eslint-disable/`.only`/`.skip` in new files, engine-boundary.test.ts passes, no machines->engine->ui import cycle (ui/reels/symbols.ts imports only engine/index, not machines). No new dependency; no UI/hook/component changes. VERDICT: PASS, 0 defects. estimated_usd ~= tokens x $6.6/M Sonnet blended, no cache discount (order-of-magnitude, AGENTS §4)."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
       tokens_total: null
       estimated_usd: null
       duration_minutes: 10
       recorded_at: 2026-07-04
-      notes: "orchestrator to fill tokens_total from subagent_tokens (AGENTS §4). Created src/engine/machine.ts, src/machines/types.ts, src/machines/wildAndWhimsical.ts, src/machines/wildAndWhimsical.parity.test.ts; added additive re-exports to src/engine/index.ts. All 286 tests pass (8 new parity tests); typecheck/lint/build/validate green; engine function-file diff empty."
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate reconcile + PR + CI-poll + squash-merge + cost totals + STAGE-007 bookkeeping + archive)."
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 136772
+    estimated_usd: 0.90
+    session_count: 5
 ---
 
 # SPEC-038: machine config types and default machine extraction
@@ -503,10 +519,27 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Little. The keystone strategy — have the default machine *reference* the existing
+   engine constants rather than copy them — was the right call: it made SPEC-038 a
+   zero-transcription-risk, behavior-preserving step (build + cold verify both PASS, 0
+   defects, engine function files byte-unchanged) and pushed the actual re-homing into
+   SPEC-039..042 where each move is guarded by frozen seeds. The one honest caveat is
+   that this makes the SPEC-038 data-parity test partly reference-identity rather than a
+   deep transcription check; that's acceptable because its job is to pin the *shape* and
+   completeness, and SPEC-043's frozen-seed parity is the durable behavioral guard.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint change needed. DEC-015 is emitted and captures the model.
+   One forward note for the stage: as SPEC-039..042 re-home literal data into the machine
+   and retire the engine constants, the assertions in `wildAndWhimsical.parity.test.ts`
+   that compare against a now-deleted constant must be updated or folded into SPEC-043's
+   frozen-seed parity — this is already flagged in the spec's Notes ("Migration strategy")
+   and DEC-015's Consequences, so it should not surprise a later builder.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec — SPEC-039 (parameterize resolveGrid + evaluatePaylines) is the next
+   backlog item and is already framed. It is the riskiest spec of the stage (it is the
+   first to change an engine *signature* to consume `machine.math`), so its design must
+   thread `WILD_AND_WHIMSICAL_MATH` through `resolveGrid`/`evaluatePaylines` behind a
+   default and lead with the four frozen seeds (407947/12345/276/12) as the failing-test
+   guard before any signature change.
