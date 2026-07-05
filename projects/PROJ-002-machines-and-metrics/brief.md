@@ -162,13 +162,18 @@ is the most separable and could be deferred or split off if the wave runs long.
       parameterized the engine + presentation; a machine = config; migrated the current
       game to the default machine "Wild & Whimsical", behavior-preserving (frozen-seed
       contract). 6 specs (SPEC-038–043), 0 defects. Foundation for everything else.
-- [ ] STAGE-008 (not yet framed) — **Fun retune + more machines**: tune the default
-      for fun (hit-rate, medium band, jackpots, more ways to win) to a target RTP;
-      ship 2–3 machines with theme+music+math; machine selector + persistence. **Absorbs
-      the per-machine theme-token + audio-param wiring deferred from STAGE-007/SPEC-041**
-      (the runtime-application mechanism pays off here, where a distinct themed variant
-      exists) — extend the `MachinePresentation` slice with `theme` + `audio` and wire the
-      UI/audio engine to read the active machine.
+- [~] STAGE-008 (active, framed 2026-07-05) — **Fun retune + more machines**: tune the
+      default (Wild & Whimsical, **in place**) for fun (hit-rate, medium band, jackpots)
+      to a **measured** target (~94% RTP / ~40% hit-freq, via a new machine-metrics
+      simulator), **re-baselining** the frozen-seed contract to the retuned numbers under
+      a retune DEC; ship **4 machines** (tuned W&W + Arctic + Desert + Ocean) with
+      theme+music+math; machine selector + persistence (React Context + localStorage).
+      **Absorbs the per-machine theme-token + audio-param wiring deferred from STAGE-007/
+      SPEC-041** (the runtime-application mechanism pays off here, where distinct themed
+      variants exist) — extend the `MachinePresentation` slice with `theme` + `audio` and
+      wire the UI/audio engine to read the active machine — plus the bet-level-stepping +
+      paytable-math-source deferrals. Food & Drink machines parked as a future fast-follow.
+      9-spec backlog (SPEC-044–052). See the STAGE-008 stage file.
 - [ ] STAGE-009 (not yet framed) — **Player session stats**: client-side
       winnings-over-time, biggest win, cash-ins, spins; in-app panel.
 - [ ] STAGE-010 (not yet framed) — **Help / how-to-play**: onboarding surface that
@@ -179,7 +184,7 @@ is the most separable and could be deferred or split off if the wave runs long.
       private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
       apply ONLY when a remote sink is enabled.
 
-**Count:** 1 shipped / 0 active / 4 pending.
+**Count:** 1 shipped / 1 active (STAGE-008) / 3 pending.
 
 ## Dependencies
 
