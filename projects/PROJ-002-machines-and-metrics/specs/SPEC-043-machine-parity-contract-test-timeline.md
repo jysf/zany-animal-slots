@@ -16,8 +16,11 @@ Cycle prompts live in `prompts/SPEC-043-<cycle>.md`.
       change; complete drop-in in the spec Notes. All pinned values already established (frozen-seed
       contract + index.test.ts) — a red run is a real regression, not a fixture bug. Build prompt
       written. No new DEC.
-- [ ] **build** — Sonnet sub-agent (local only): add the contract test verbatim; keep it .ts;
-      `git diff -- src/engine/ src/ui/` EMPTY (no production change); full gate green.
+- [x] **build** — completed 2026-07-05 (Sonnet, local only): added
+      `src/machines/machine-parity.contract.test.ts` verbatim from the spec's drop-in — 6 new
+      tests, all green (no regression). Full gate green (typecheck, lint, test [307 passed],
+      build); `just validate` passed; `git diff main..HEAD -- src/engine/ src/ui/` confirmed
+      EMPTY. No production change, no new dep, no new DEC.
 - [ ] **verify** — Sonnet sub-agent (cold review): full gate + confirm the contract asserts the
       frozen values (not vacuous), the diff is test-only, and the pinned values match the
       established contract; check nothing in production changed.

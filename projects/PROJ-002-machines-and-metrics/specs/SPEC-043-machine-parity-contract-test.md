@@ -59,6 +59,14 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (the stage's frozen-seed machine-parity CONTRACT test — the four seeds through getActiveMachine() pin grid-shape/lineWins/totalWin/tier/balance + registry==explicit-default; consolidates 039's spin-parity into the durable named guard. Test-only, no production change; final STAGE-007 spec). Pinned only the values already established by the frozen-seed contract + existing tests to avoid inventing fixtures."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 15
+      recorded_at: 2026-07-05
+      notes: "orchestrator to fill tokens_total from subagent_tokens. Created src/machines/machine-parity.contract.test.ts verbatim from the spec's Notes drop-in (no edits). Cross-checked all frozen-seed values against spin-parity.test.ts and index.test.ts before running — all matched, no regression. Full gate green (typecheck, lint, test [307 passed, 52 files], build); just validate passed; git diff main..HEAD -- src/engine/ src/ui/ confirmed empty. No production code touched."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -275,28 +283,35 @@ deliverable. All pinned values below are already established (SPEC-039 spin-pari
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-043-machine-parity-contract`
+- **PR (if applicable):** none (local-only build cycle; PR opened at ship)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none — the drop-in test file in the spec's Notes was used verbatim, byte-for-byte.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new; this is the last STAGE-007 spec (the backlog rollup happens at ship).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing. The spec's Notes contained the complete drop-in test, and the pinned values
+   were cross-checked against `spin-parity.test.ts` and `index.test.ts` before writing —
+   both matched exactly, so there was no ambiguity to resolve.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `DEC-002` (frozen seeds) and `DEC-015` (default machine as contract subject) fully
+   covered the rationale; the hard constraints (diff guard, no new deps, don't touch
+   `spin-parity.test.ts`) were explicit and sufficient.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally different. This was a clean, low-risk build: copy the verbatim
+   drop-in, run the gate, confirm the diff guard. The only judgment call was double-checking
+   the frozen values against existing tests before running anything, which paid off by
+   giving confidence the run would be green rather than a regression finding.
 
 ---
 
