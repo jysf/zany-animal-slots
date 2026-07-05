@@ -29,6 +29,10 @@ export function buildStrip(
     const c = weights[s] ?? 0;
     for (let k = 0; k < c; k++) items.push({ s, key: (k + 0.5) / c, ord });
   });
+  // Sort by fractional position; break ties by canonical `symbols` order. The `|| a.ord - b.ord`
+  // tie-break is explicit-but-defensive: items are pushed in `symbols` order, and Array.sort is
+  // stable (ES2019+), so equal-key ties already resolve in ord order — the explicit tie-break
+  // keeps determinism from silently depending on sort stability if the insertion order ever changes.
   items.sort((a, b) => a.key - b.key || a.ord - b.ord);
   const out = items.map((it) => it.s);
 

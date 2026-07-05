@@ -20,7 +20,8 @@ Cycle prompts live in `prompts/SPEC-045-<cycle>.md`.
 - [x] **build** — gate green (54 files / 320 tests, +7); `stripBuilder.ts` +
       `stripBuilder.test.ts` implemented verbatim from the spec Notes; pinned example matched
       first try; hard guard (machine/production diff) empty.
-- [?] **verify** — 2026-07-05 (Sonnet, cold review). Gate green: `just typecheck` clean,
+- [x] **verify** — 2026-07-05 (Sonnet, cold review; **[?] finding resolved by Opus — not a
+      defect**). Gate green: `just typecheck` clean,
       `just lint` clean, `just test` 54 files/320 tests passed (stripBuilder.test.ts 7/7),
       `just build` succeeded, `just validate` 45/45 specs valid. Code matches the spec's
       drop-in byte-for-byte (fractional keys `(k+0.5)/c`, sort `a.key-b.key || a.ord-b.ord`,
@@ -58,4 +59,15 @@ Cycle prompts live in `prompts/SPEC-045-<cycle>.md`.
       current `items` construction, since insertion always follows `symbols` order) —
       most practically, this may simply not be testable as constructed, in which case the
       spec's Notes should stop asserting this mutation "confirms" anything.
+- [x] **verify-resolution** — 2026-07-05 (Opus). Confirmed the [?] is **not a functional
+      defect and not a genuine test gap**: the tie-break IS redundant with the ES2019 stable-sort
+      guarantee given insertion-in-`symbols`-order, so no input can distinguish its presence from
+      its absence — the code is correct and the property is simply not observable, so it is not
+      testable. Resolution: kept the explicit tie-break (defensive — keeps determinism from
+      silently relying on sort stability) and added a code comment documenting exactly this, so
+      the redundancy reads as deliberate. Re-gated: `just typecheck`/`lint`/`test` (54 files /
+      320 tests) / `build` / `validate` all green after the comment. Mutation (a) retains real
+      teeth. Lesson logged to the PROJ-002 signals set: adversarial-mutation checks must target
+      code whose behavior an input can actually distinguish; a mutation on stable-sort-redundant
+      code is a no-op by construction, not a test-strength failure.
 - [ ] **ship**
