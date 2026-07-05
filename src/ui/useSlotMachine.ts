@@ -22,16 +22,14 @@
 // SPEC-021: celebration is a one-shot signal — an object { id, tier, totalWin, lineWins }
 // with a monotonically incrementing id set at spin resolve on a win; null on no-win or
 // after reset(). Consumers key useEffect on celebration?.id to fire exactly once per win.
+// SPEC-042: the hook resolves the ACTIVE machine (opts.machine ?? getActiveMachine()) and
+// threads it into the engine + its own balance/bet init + reset (DEC-015). The default
+// machine's math is today's STARTING_BALANCE/DEFAULT_BET, so behavior is unchanged.
 import { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  spin as engineSpin,
-  STARTING_BALANCE,
-  DEFAULT_BET,
-  canAfford,
-  nextBet,
-  prevBet,
-} from '../engine/index';
+import { spin as engineSpin, canAfford, nextBet, prevBet } from '../engine/index';
 import type { Grid, BetLevel, LineWin, WinTier } from '../engine/index';
+import { getActiveMachine } from '../machines/registry';
+import type { Machine } from '../machines/types';
 import { INITIAL_GRID } from './reels/symbols';
 import { readBalance, writeBalance } from './storage';
 
@@ -86,22 +84,27 @@ export interface UseSlotMachineResult {
   /** One-shot win signal (see Celebration). null until a win resolves; id
    *  strictly increases so useEffect([celebration?.id]) fires exactly once per win. SPEC-021. */
   celebration: Celebration | null;
+  /** The active machine driving this hook instance (opts.machine ?? getActiveMachine()). SPEC-042. */
+  machine: Machine;
 }
 
 export interface UseSlotMachineOpts {
   initialBalance?: number;
   nextSeed?: () => number;
+  /** Override the active machine (tests only, for now — no selector UI yet). SPEC-042. */
+  machine?: Machine;
 }
 
 export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult {
   const nextSeed = opts?.nextSeed ?? _defaultNextSeed;
+  const machine = opts?.machine ?? getActiveMachine();
 
   const [grid, setGrid] = useState<Grid>(INITIAL_GRID);
-  // Init: explicit opts.initialBalance (used in tests) → persisted value → default.
+  // Init: explicit opts.initialBalance (used in tests) → persisted value → machine default.
   const [balance, setBalance] = useState<number>(
-    () => opts?.initialBalance ?? readBalance() ?? STARTING_BALANCE,
+    () => opts?.initialBalance ?? readBalance() ?? machine.math.startingBalance,
   );
-  const [bet, setBet] = useState<BetLevel>(DEFAULT_BET);
+  const [bet, setBet] = useState<BetLevel>(machine.math.defaultBet);
   const [lineWins, setLineWins] = useState<LineWin[]>([]);
   const [tier, setTier] = useState<WinTier>('none');
   const [status, setStatus] = useState<'idle' | 'spinning' | 'resolved'>('idle');
@@ -149,10 +152,10 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   }, [balance]);
 
   const reset = useCallback(() => {
-    setBalance(STARTING_BALANCE);
+    setBalance(machine.math.startingBalance);
     setLastWin(0);
     setCelebration(null); // SPEC-021: clear the win signal on reset (id ref stays monotonic).
-  }, []);
+  }, [machine]);
 
   // canSpin: false while spinning (status guard) or when balance can't cover the bet.
   const isSpinable = status !== 'spinning' && canAfford(balance, bet);
@@ -172,7 +175,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
 
     // Compute the full engine outcome immediately (the engine owns the result;
     // the UI only delays the reveal — DEC-001).
-    const outcome = engineSpin({ seed: nextSeed(), balance, bet });
+    const outcome = engineSpin({ seed: nextSeed(), balance, bet, machine: machine.math });
     if (!outcome.ok) return;
 
     // Enter the spinning state now — controls freeze, animation starts.
@@ -225,7 +228,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
         }
       }
     }, SPIN_DURATION_MS);
-  }, [balance, bet, nextSeed, status]);
+  }, [balance, bet, nextSeed, status, machine]);
 
   // Keep spinRef pointing at the latest spin closure so scheduled continuations
   // always call the version that sees the current balance/bet/status.
@@ -284,5 +287,6 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     toggleAutoSpin,
     lastWin,
     celebration,
+    machine,
   };
 }

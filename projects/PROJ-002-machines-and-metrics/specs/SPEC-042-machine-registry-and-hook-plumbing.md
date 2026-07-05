@@ -62,10 +62,34 @@ cost:
       duration_minutes: 40
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (introduce src/machines/registry.ts as the single source of the active machine; useSlotMachine takes/defaults a machine, threads machine.math into spin, inits balance/bet + reset from the machine, returns the active machine; Game + PaytableSheet source symbolDisplay from getActiveMachine() instead of the direct WILD_AND_WHIMSICAL import. End-to-end behavior-preserving; a 'supplied machine' hook guard proves it's machine-driven; preview check at ship. Bet-level stepping + paytable math source left on engine constants — noted as STAGE-008 follow-ups)."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 110656
+      estimated_usd: 0.73
+      duration_minutes: 3.8
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens; build cycle: created src/machines/registry.ts + registry.test.ts (3 cases); threaded opts.machine ?? getActiveMachine() through useSlotMachine (balance/bet init, reset, spin's engineSpin call, exposed machine on the result); swapped Game.tsx/PaytableSheet.tsx off the direct WILD_AND_WHIMSICAL import onto getActiveMachine(); added the supplied-machine guard test + a default-machine frozen-seed re-confirmation to useSlotMachine.test.tsx (pure additions, zero existing assertions changed). Full gate green (typecheck/lint/test 301 passed/build); just validate passed; src/engine diff empty; no WILD_AND_WHIMSICAL in the three target files. No new dependency, no new DEC, no selector UI."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 89413
+      estimated_usd: 0.59
+      duration_minutes: 7.3
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens; cold independent review on feat/spec-042-machine-registry-hook: full gate green (typecheck/lint/test 301 passed incl. registry.test.ts + useSlotMachine.test.tsx/build); just validate green. Confirmed useSlotMachine.test.tsx diff vs main is additive-only (28 insertions, 0 deletions) — every pinned-seed/balance assertion byte-identical. Adversarially reverted the hook's balance init to module STARTING_BALANCE: the supplied-machine guard test failed as expected (expected 1000 to be 5000), proving the guard is real, then restored the file clean via git checkout. Walked every AC PASS with file:line. src/engine diff empty; no WILD_AND_WHIMSICAL import in Game.tsx/PaytableSheet.tsx/useSlotMachine.ts. Confirmed no selector UI, no persistence, no 2nd machine, App.tsx/package.json/lockfile unchanged, bet-stepping + paytable math source still on engine constants (scoped follow-ups), engine-boundary.test.ts passed, Machine/MachineMath/MachinePresentation are plain data (DEC-001 intact). No re-render/reset churn risk found. VERDICT: PASS, 0 defects."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-07-04
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate reconcile + preview play check [UI spec] + PR + CI-poll + squash-merge + cost totals + STAGE-007 bookkeeping + archive)."
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 200069
+    estimated_usd: 1.32
+    session_count: 5
 ---
 
 # SPEC-042: machine registry and hook plumbing
@@ -320,28 +344,46 @@ byte-identical (that identity is the parity proof); new cases prove the machine-
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
-- **Deviations from spec:**
-  - [list]
+- **Branch:** `feat/spec-042-machine-registry-hook`
+- **PR (if applicable):** not opened (local-only build cycle; orchestrator ships)
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (DEC-015 covers it, as anticipated)
+- **Deviations from spec:** none. Implemented the registry + hook/UI changes verbatim
+  from the Notes drop-in code. Added one extra test beyond the spec's minimum
+  ("defaults to the active machine and preserves the frozen seeds", re-asserting the
+  407947 jackpot seed through the no-`machine`-opt path) — purely additive, not a
+  substitute for any required case, to make the "defaults to active machine" AC
+  independently visible in the diff rather than relying only on the pre-existing
+  pinned-seed tests staying green.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - (already noted in the spec) STAGE-008: bet-level stepping per machine
+    (`nextBet`/`prevBet` still read the engine's `BET_LEVELS` constant).
+  - (already noted in the spec) STAGE-008: paytable math source per machine
+    (`paytableRows` still reads engine `SYMBOLS`/`SYMBOL_TIER`/`PAYTABLE` constants).
+  - (already noted in the spec) cleanup: `spin`'s `machine` param default
+    (`WILD_AND_WHIMSICAL_MATH`) is now redundant since the hook always passes it
+    explicitly — harmless, left as-is per the spec's "out of scope."
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the Notes section's drop-in code for the registry and the
+   exact hook edits (imports, opts/result type additions, init/reset/spin lines, useCallback
+   deps) mapped onto the actual source almost line-for-line. Zero back-and-forth needed.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-015/DEC-005/DEC-001/DEC-002 fully covered the rationale; the "out of scope"
+   list pre-empted the two follow-up-tempting expansions (bet-level stepping, paytable
+   math source) before I could second-guess whether to touch them.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally different. The one judgment call — adding a second SPEC-042
+   test beyond the required supplied-machine guard — was low-risk (additive, doesn't
+   touch existing assertions) and made the "defaults to active machine" acceptance
+   criterion have its own dedicated test rather than being implied only by the untouched
+   legacy pinned-seed tests staying green.
 
 ---
 
@@ -351,10 +393,29 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Little. The registry-as-single-source design (rather than prop-drilling the machine
+   from the hook through App→Header→PaytableSheet) kept the diff small and avoided polluting
+   intermediate components — `getActiveMachine()` is the one seam, consumed by both the hook
+   (engine) and the two UI sites (presentation). The honest tradeoff, noted in the spec: for
+   STAGE-007 (default-only, no runtime change) a module-level `getActiveMachine()` is fine,
+   but STAGE-008's selector must make active-machine selection *reactive* (a store/context the
+   hook and UI subscribe to) so switching re-renders both — a module const won't. Flagging
+   that clearly now saves STAGE-008 from discovering it mid-build.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No change needed. DEC-015 covers the registry/threading. Two residuals are deliberately
+   deferred and recorded in the spec's Out-of-scope so STAGE-008 inherits them cleanly: (a)
+   bet-level stepping still uses the engine's `BET_LEVELS` (equal to `machine.math.betLevels`)
+   — parameterize when a machine has different bet levels; (b) the paytable's *math* source
+   (`SYMBOLS`/`SYMBOL_TIER`/`PAYTABLE`) is still engine-sourced — only the emoji is
+   machine-driven — parameterize when a variant has a different paytable. Both only matter with
+   a second machine, so STAGE-008 is the right home.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec — SPEC-043 (the machine-parity contract test) is the last STAGE-007 spec and
+   is already framed. It's the durable regression guard: the four frozen seeds
+   (407947/12345/276/12) run through the default machine end-to-end and assert identical
+   grids / lineWins / totalWin / tier — consolidating the per-spec parity assertions
+   accumulated across 039–042 into one contract test that any future machine change must keep
+   green. After it ships, STAGE-007 is done and I run the Stage Ship (reflection + status →
+   shipped) before STAGE-008.

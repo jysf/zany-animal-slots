@@ -20,6 +20,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useSlotMachine, SPIN_DURATION_MS, AUTO_SPIN_COUNT, AUTO_SPIN_DELAY_MS } from './useSlotMachine';
 import { INITIAL_GRID } from './reels/symbols';
 import { writeBalance, readBalance } from './storage';
+import { WILD_AND_WHIMSICAL } from '../machines/wildAndWhimsical';
 
 describe('useSlotMachine', () => {
   beforeEach(() => {
@@ -185,6 +186,33 @@ describe('useSlotMachine', () => {
     act(() => { result.current.reset(); }); // balance → 1000
     expect(result.current.balance).toBe(1000);
     expect(readBalance()).toBe(1000);
+  });
+
+  // ── SPEC-042: machine registry threading ────────────────────────────────────
+
+  it('is machine-driven: a supplied machine sets the starting balance', () => {
+    localStorage.clear();
+    const variant = {
+      ...WILD_AND_WHIMSICAL,
+      math: { ...WILD_AND_WHIMSICAL.math, startingBalance: 5000 },
+    };
+    const { result } = renderHook(() => useSlotMachine({ machine: variant }));
+    expect(result.current.balance).toBe(5000);
+    expect(result.current.machine).toBe(variant);
+  });
+
+  it('defaults to the active machine and preserves the frozen seeds', () => {
+    // No `machine` opt — the hook falls back to getActiveMachine(). Re-confirms the
+    // 407947 jackpot seed still resolves through the default machine (SPEC-042 parity).
+    const { result } = renderHook(() =>
+      useSlotMachine({ nextSeed: () => 407947 }),
+    );
+    expect(result.current.machine).toBe(WILD_AND_WHIMSICAL);
+    act(() => { result.current.spin(); });
+    act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
+    expect(result.current.lastWin).toBe(2000);
+    expect(result.current.tier).toBe('jackpot');
+    expect(result.current.balance).toBe(2990);
   });
 
   // ── SPEC-016: timed spin flow ───────────────────────────────────────────────
