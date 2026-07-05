@@ -18,10 +18,15 @@ Cycle prompts live in `prompts/SPEC-042-<cycle>.md`.
       startingBalance 5000 → initial balance 5000) proves it's machine-driven; preview play-check
       at ship. Bet-level stepping + paytable math-source left on engine constants (STAGE-008
       follow-ups, noted). Build prompt written. No new DEC.
-- [ ] **build** — Sonnet sub-agent (local only): create the registry + tests; thread the machine
-      through the hook + init/reset; swap the two UI sources to getActiveMachine(); keep every
-      pinned-seed/balance expectation identical; src/engine diff empty; no WILD_AND_WHIMSICAL in
-      the three files.
+- [x] **build** — completed 2026-07-04 (Sonnet, local only): created `src/machines/registry.ts`
+      (MACHINES/DEFAULT_MACHINE_ID/getMachine/getActiveMachine) + `registry.test.ts` (3 cases);
+      threaded `opts.machine ?? getActiveMachine()` through `useSlotMachine` (balance/bet init,
+      reset, spin's `engineSpin` call, exposed `machine` on the result); swapped `Game.tsx` /
+      `PaytableSheet.tsx` off the direct `WILD_AND_WHIMSICAL` import onto `getActiveMachine()`;
+      added the supplied-machine guard test + a default-machine frozen-seed re-confirmation.
+      Full gate green (301 tests passed); `just validate` green; `src/engine` diff empty; no
+      `WILD_AND_WHIMSICAL` in the three target files; every pre-existing pinned-seed/balance
+      assertion untouched (pure additions in the test diff). No new dependency, no new DEC.
 - [ ] **verify** — Sonnet sub-agent (cold review): full gate + AC-by-AC + frozen-seed/balance
       parity + supplied-machine-guard-is-real + engine-untouched + no-selector/persistence +
       no-direct-WILD import checks.

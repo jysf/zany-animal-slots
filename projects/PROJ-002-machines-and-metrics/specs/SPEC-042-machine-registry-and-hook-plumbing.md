@@ -62,6 +62,14 @@ cost:
       duration_minutes: 40
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (introduce src/machines/registry.ts as the single source of the active machine; useSlotMachine takes/defaults a machine, threads machine.math into spin, inits balance/bet + reset from the machine, returns the active machine; Game + PaytableSheet source symbolDisplay from getActiveMachine() instead of the direct WILD_AND_WHIMSICAL import. End-to-end behavior-preserving; a 'supplied machine' hook guard proves it's machine-driven; preview check at ship. Bet-level stepping + paytable math source left on engine constants — noted as STAGE-008 follow-ups)."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens; build cycle: created src/machines/registry.ts + registry.test.ts (3 cases); threaded opts.machine ?? getActiveMachine() through useSlotMachine (balance/bet init, reset, spin's engineSpin call, exposed machine on the result); swapped Game.tsx/PaytableSheet.tsx off the direct WILD_AND_WHIMSICAL import onto getActiveMachine(); added the supplied-machine guard test + a default-machine frozen-seed re-confirmation to useSlotMachine.test.tsx (pure additions, zero existing assertions changed). Full gate green (typecheck/lint/test 301 passed/build); just validate passed; src/engine diff empty; no WILD_AND_WHIMSICAL in the three target files. No new dependency, no new DEC, no selector UI."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -320,28 +328,46 @@ byte-identical (that identity is the parity proof); new cases prove the machine-
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
-- **Deviations from spec:**
-  - [list]
+- **Branch:** `feat/spec-042-machine-registry-hook`
+- **PR (if applicable):** not opened (local-only build cycle; orchestrator ships)
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (DEC-015 covers it, as anticipated)
+- **Deviations from spec:** none. Implemented the registry + hook/UI changes verbatim
+  from the Notes drop-in code. Added one extra test beyond the spec's minimum
+  ("defaults to the active machine and preserves the frozen seeds", re-asserting the
+  407947 jackpot seed through the no-`machine`-opt path) — purely additive, not a
+  substitute for any required case, to make the "defaults to active machine" AC
+  independently visible in the diff rather than relying only on the pre-existing
+  pinned-seed tests staying green.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - (already noted in the spec) STAGE-008: bet-level stepping per machine
+    (`nextBet`/`prevBet` still read the engine's `BET_LEVELS` constant).
+  - (already noted in the spec) STAGE-008: paytable math source per machine
+    (`paytableRows` still reads engine `SYMBOLS`/`SYMBOL_TIER`/`PAYTABLE` constants).
+  - (already noted in the spec) cleanup: `spin`'s `machine` param default
+    (`WILD_AND_WHIMSICAL_MATH`) is now redundant since the hook always passes it
+    explicitly — harmless, left as-is per the spec's "out of scope."
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the Notes section's drop-in code for the registry and the
+   exact hook edits (imports, opts/result type additions, init/reset/spin lines, useCallback
+   deps) mapped onto the actual source almost line-for-line. Zero back-and-forth needed.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-015/DEC-005/DEC-001/DEC-002 fully covered the rationale; the "out of scope"
+   list pre-empted the two follow-up-tempting expansions (bet-level stepping, paytable
+   math source) before I could second-guess whether to touch them.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally different. The one judgment call — adding a second SPEC-042
+   test beyond the required supplied-machine guard — was low-risk (additive, doesn't
+   touch existing assertions) and made the "defaults to active machine" acceptance
+   criterion have its own dedicated test rather than being implied only by the untouched
+   legacy pinned-seed tests staying green.
 
 ---
 

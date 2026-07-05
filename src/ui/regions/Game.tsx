@@ -10,9 +10,11 @@
 // SPEC-023: accepts celebration and passes trailKey to ReelGrid for paw-print trail.
 // SPEC-024: renders ParticleBurst overlay — leaves/acorns erupt on a win, count scaled by tier.
 // SPEC-041: supplies ReelGrid's symbolDisplay from the default machine's presentation slice.
+// SPEC-042: sources the active machine from the registry instead of importing the default
+// machine directly — the seam STAGE-008's selector plugs into.
 import type { Grid, LineWin } from '../../engine/index';
 import type { Celebration } from '../useSlotMachine';
-import { WILD_AND_WHIMSICAL } from '../../machines/wildAndWhimsical';
+import { getActiveMachine } from '../../machines/registry';
 import ReelGrid from '../reels/ReelGrid';
 import ParticleBurst from '../reels/ParticleBurst';
 
@@ -25,6 +27,8 @@ interface Props {
 }
 
 export default function Game({ grid, spinning = false, lineWins = [], celebration }: Props) {
+  const machine = getActiveMachine();
+
   return (
     <main className="cabinet__game">
       <ReelGrid
@@ -32,7 +36,7 @@ export default function Game({ grid, spinning = false, lineWins = [], celebratio
         spinning={spinning}
         lineWins={lineWins}
         trailKey={celebration?.id ?? null}
-        symbolDisplay={WILD_AND_WHIMSICAL.presentation.symbolDisplay}
+        symbolDisplay={machine.presentation.symbolDisplay}
       />
       <ParticleBurst celebration={celebration} />
     </main>
