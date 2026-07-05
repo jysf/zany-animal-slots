@@ -158,9 +158,10 @@ Ordered; the config spine comes first so fun/variety become data changes. A proj
 typically has 2–5 stages — this is at the top of that range; STAGE-011 (analytics)
 is the most separable and could be deferred or split off if the wave runs long.
 
-- [~] STAGE-007 (active, framed 2026-07-04) — **Config-driven machine model**:
-      parameterize the engine; a machine = config; migrate the current game to the
-      first machine, behavior-preserving. Foundation for everything else.
+- [x] STAGE-007 (shipped 2026-07-05) — **Config-driven machine model**:
+      parameterized the engine + presentation; a machine = config; migrated the current
+      game to the default machine "Wild & Whimsical", behavior-preserving (frozen-seed
+      contract). 6 specs (SPEC-038–043), 0 defects. Foundation for everything else.
 - [ ] STAGE-008 (not yet framed) — **Fun retune + more machines**: tune the default
       for fun (hit-rate, medium band, jackpots, more ways to win) to a target RTP;
       ship 2–3 machines with theme+music+math; machine selector + persistence. **Absorbs
@@ -178,7 +179,7 @@ is the most separable and could be deferred or split off if the wave runs long.
       private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
       apply ONLY when a remote sink is enabled.
 
-**Count:** 0 shipped / 1 active / 4 pending.
+**Count:** 1 shipped / 0 active / 4 pending.
 
 ## Dependencies
 

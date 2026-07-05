@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-007                     # stable, zero-padded, continuous across the repo
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-04
-shipped_at: null
+shipped_at: 2026-07-05
 
 # What part of the project's value thesis this stage advances.
 # If you can't articulate value_contribution, the stage may be
@@ -129,17 +129,17 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       PaytableSheet source presentation from `getActiveMachine()`. Default machine only,
       no selector UI; end-to-end parity + a supplied-machine guard (preview-verified).
       Config-driven loop closed. PR #52. **[M]**
-- [~] SPEC-043 (build) — **Machine-parity contract test**: the four frozen
+- [x] SPEC-043 (shipped) — **Machine-parity contract test**: the four frozen
       seeds through the registry-resolved default machine (`getActiveMachine()`) pin the
       full outcome (grid/lineWins/totalWin/tier/balance) — the stage's durable regression
-      guard; consolidates SPEC-039's spin-parity. Test-only, no production change. **[S]**
+      guard; consolidates SPEC-039's spin-parity. Test-only, no production change. PR #53. **[S]**
 
-**Count:** 5 shipped / 1 active / 0 pending — 4×M, 1×S–M, 1×S. No L (the engine
+**Count:** 6 shipped / 0 active / 0 pending — 4×M, 1×S–M, 1×S. No L (the engine
 parameterization was split into 039+040 to keep the riskiest work bounded). Within
-the 3–8 range. Engine parameterization (038–040) complete; presentation symbolDisplay
-(041) + registry/hook (042) shipped — the config-driven loop is closed; 043 (the
-frozen-seed parity contract test) is the last spec, in build. Per-machine theme + audio
-deferred to STAGE-008 (see Design Notes).
+the 3–8 range. **STAGE-007 complete** — the config-driven machine model is done: the
+engine + presentation are data-driven, one active machine drives both via the registry,
+guarded by the frozen-seed contract test. Per-machine theme + audio deferred to STAGE-008
+(see Design Notes).
 
 ## Design Notes
 
@@ -193,13 +193,40 @@ deferred to STAGE-008 (see Design Notes).
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1c (Stage Ship) in
-FIRST_SESSION_PROMPTS.md to draft this.*
+*Filled in when status moves to shipped (2026-07-05).*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes.** A "machine" is now pure
+  data — a math slice the engine consumes and a presentation slice the UI consumes — and one
+  active machine (the registry's default "Wild & Whimsical") drives both the engine and the
+  reels/paytable. The app plays **byte-identically** to pre-STAGE-007, proven by the frozen
+  seeds (407947/12345/276/12) staying green through every change and consolidated into
+  `machine-parity.contract.test.ts`. No engine function reads a hard-coded symbol/weight/
+  strip/payline/paytable/tier constant anymore. The engine was successfully unfrozen (untouched
+  since SPEC-011) and re-frozen behind the parity contract.
+- **How many specs did it actually take?** **6, exactly as planned** (SPEC-038–043). The
+  riskiest work (engine parameterization) was deliberately split 039 (grid+payline) / 040
+  (tier+jackpot) to bound it; both landed with 0 defects.
+- **What changed between starting and shipping?** One scope re-carve: SPEC-041's frame bundled
+  emoji + theme + audio, but per-machine **theme + audio wiring was deferred to STAGE-008**
+  (invasive runtime work with no payoff until a genuinely distinct machine exists) — 041
+  shipped just the `symbolDisplay` wiring. Two smaller residuals (bet-level stepping + the
+  paytable's math source still read engine constants) were likewise deferred to STAGE-008.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - **No AGENTS/constraint change needed.** The contract-tests-as-guards pattern carried the
+    whole stage. Candidate template note (low priority): a behavior-preserving refactor stage
+    benefits from *two* guard layers — per-spec change-scoped parity assertions **plus** one
+    consolidated end-to-end contract test at the close (the durable named guard). The overlap
+    is intentional defense-in-depth. (Logged in the PROJ-002 signals set.)
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - **Adversarial guard-mutation as a standard verify move.** For every "prove it's now
+    data-driven" spec (040 tier/jackpot, 041 presentation, 042 hook), the verify agent
+    reverted the source to the old hard-coded form and confirmed the new guard *fails* — proving
+    the guard has teeth, not just that it passes. This "revert-and-confirm-the-guard-fails"
+    check should be the default verify move for any parameterization spec.
+  - **The default-referencing keystone (SPEC-038).** Having the default machine *reference* the
+    existing constants (not copy them) made the keystone zero-transcription-risk and let the
+    literal data re-home incrementally under frozen-seed gates. Reusable for any "extract to
+    config" migration.
+  - **Deferred work must be recorded where the next reader hits it** — the STAGE-007 Design
+    Notes + the brief's STAGE-008 line + the relevant spec Out-of-scope, not just a commit
+    message. STAGE-008 inherits theme+audio, bet-levels, and paytable-math cleanly because of this.

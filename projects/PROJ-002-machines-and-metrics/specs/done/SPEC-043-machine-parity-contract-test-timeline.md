@@ -29,5 +29,7 @@ Cycle prompts live in `prompts/SPEC-043-<cycle>.md`.
       `getActiveMachine().math === WILD_AND_WHIMSICAL_MATH` check is a genuine identity (not
       tautological — `wildAndWhimsical.ts` references the same object), no `.skip`/`.only`/xit; no
       new dep, no new DEC.
-- [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
-      archive; update STAGE-007 backlog line + count → STAGE-007 complete, then run Stage Ship.
+- [x] **ship** — completed 2026-07-05 (Opus): squash-merged PR #53 (CI CLEAN — all 7 checks
+      SUCCESS), cost totals (136370 tok / $0.90 / 5 sessions), ship reflection, archived. Sixth
+      and final STAGE-007 spec shipped (6/6) — the config-driven machine model is complete, guarded
+      by the frozen-seed contract. Stage Ship next.
