@@ -108,9 +108,10 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       constants into the default machine "Wild & Whimsical", **no engine signature
       changes**; emitted DEC-015. Parity: extracted data == current constants (8-block
       contract test). PR #46. **[M]**
-- [ ] SPEC-039 (not yet written) — **Parameterize grid + payline evaluation**:
+- [~] SPEC-039 (build) — **Parameterize grid + payline evaluation**:
       `resolveGrid`/`evaluatePaylines` consume the machine's strips/paylines/paytable
-      instead of module constants; frozen-seed parity guard. **[M]** ← riskiest; watch.
+      instead of module constants; `spin()` threads the machine (defaulted); frozen-seed
+      parity guard (`spin-parity.test.ts`). **[M]** ← riskiest; watch.
 - [ ] SPEC-040 (not yet written) — **Parameterize win-tier + jackpot rule**: tier
       boundaries + jackpot symbol/count read from the machine (not hard-coded WOLF×5 /
       5× big); parity guard. **[S–M]**
@@ -124,7 +125,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       seeds through the default machine assert identical outcomes — the stage's
       regression guard. **[S]**
 
-**Count:** 1 shipped / 0 active / 5 pending — 4×M, 1×S–M, 1×S. No L (the engine
+**Count:** 1 shipped / 1 active / 4 pending — 4×M, 1×S–M, 1×S. No L (the engine
 parameterization was split into 039+040 to keep the riskiest work bounded). Within
 the 3–8 range.
 
