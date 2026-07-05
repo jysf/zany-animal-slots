@@ -31,5 +31,8 @@ Cycle prompts live in `prompts/SPEC-039-<cycle>.md`.
       STRIPS/PAYLINES/PAYTABLE/SYMBOL_TIER reads in resolveGrid/resolveStops/evaluatePaylines
       bodies; type-only MachineMath imports in both spin.ts/paylines.ts; tiers.ts diff empty;
       useSlotMachine.ts untouched; no new dep.
-- [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
-      archive; update STAGE-007 backlog line + count.
+- [x] **ship** — completed 2026-07-04 (Opus): squash-merged PR #47 (CI CLEAN — cost-capture,
+      app-checks, supply-chain, Workers build all green), cost totals (196210 tok / $1.29 /
+      5 sessions), ship reflection, archived. Second STAGE-007 spec shipped (2/6); the engine
+      now consumes the machine's math slice for grid + payline eval, all four frozen seeds
+      byte-identical. SPEC-040 (parameterize win-tier + jackpot rule) is next.
