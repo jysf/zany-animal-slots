@@ -27,8 +27,14 @@ Cycle prompts live in `prompts/SPEC-042-<cycle>.md`.
       Full gate green (301 tests passed); `just validate` green; `src/engine` diff empty; no
       `WILD_AND_WHIMSICAL` in the three target files; every pre-existing pinned-seed/balance
       assertion untouched (pure additions in the test diff). No new dependency, no new DEC.
-- [ ] **verify** — Sonnet sub-agent (cold review): full gate + AC-by-AC + frozen-seed/balance
-      parity + supplied-machine-guard-is-real + engine-untouched + no-selector/persistence +
-      no-direct-WILD import checks.
+- [x] **verify** — completed 2026-07-04 (Sonnet sub-agent, cold review): PASS, 0 defects. Full
+      gate green (301 tests incl. registry.test.ts + useSlotMachine.test.tsx); `just validate`
+      green; useSlotMachine.test.tsx diff confirmed additive-only (28 insertions, 0 deletions);
+      supplied-machine guard adversarially confirmed real (fails with `expected 1000 to be 5000`
+      when the hook's balance init is reverted to module `STARTING_BALANCE`, restored clean
+      after); all ACs PASS; `src/engine` diff empty; no `WILD_AND_WHIMSICAL` in the three target
+      files; no selector/persistence/2nd machine/new dependency/App.tsx change; bet-stepping +
+      paytable math source still on engine constants as scoped; engine-boundary.test.ts passed;
+      no re-render/reset churn risk (getActiveMachine() is a stable module-const reference).
 - [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, **preview play check** (UI
       spec), cost totals, bookkeeping, archive; update STAGE-007 backlog line + count.
