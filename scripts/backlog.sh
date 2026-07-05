@@ -78,38 +78,55 @@ get_spec_stage_id() {
 }
 
 # Extract un-promoted "(not yet written)" bullets from a stage's
-# ## Spec Backlog section. One bullet per line.
-# Convention: `- [ ] (not yet written) — <summary>` with optional
-# `[S]/[M]/[L]` complexity tag anywhere on the line.
+# ## Spec Backlog section. Emits ONE LOGICAL bullet per line: a bullet's
+# wrapped continuation lines (indented) are joined so the title and the
+# trailing `[S]/[M]/[L]` sizing (often on the last wrapped line) survive.
+# Convention: `- [ ] SPEC-NNN (not yet written) — **Title**: … **[X]**`.
 extract_unpromoted_bullets() {
     awk '
+        function flush() {
+            if (buf != "" && buf ~ /\(not yet written\)/) print buf
+            buf = ""
+        }
         /^## Spec Backlog/ { in_b = 1; next }
-        in_b && /^## / { in_b = 0 }
-        in_b && /\(not yet written\)/ { print }
+        in_b && /^## / { flush(); in_b = 0 }
+        !in_b { next }
+        /^[[:space:]]*-[[:space:]]*\[/ { flush(); buf = $0; next }   # new bullet
+        /^[[:space:]]+[^[:space:]]/ && buf != "" {                    # wrapped continuation
+            line = $0; sub(/^[[:space:]]+/, " ", line); buf = buf line; next
+        }
+        { flush() }                                                  # blank / other → flush
+        END { flush() }
     ' "$1"
 }
 
-# Trim a bullet line to "summary [complexity]" form. Strips the
-# leading `- [ ] (not yet written) — ` and surfaces a complexity
-# tag if present. Best-effort; the convention isn't enforced.
+# Render a (joined) bullet as "SPEC-NNN  [X]  <title>". Extracts the SPEC id,
+# the bracketed S/M/L sizing, and the first bold **title** (the concise name)
+# from the full logical bullet. Falls back gracefully when a piece is absent.
 format_unpromoted_bullet() {
     local line="$1"
-    local summary
-    summary=$(echo "$line" \
-        | sed -E 's/^[[:space:]]*-[[:space:]]*\[[ x~?]\][[:space:]]*//' \
-        | sed -E 's/\(not yet written\)[[:space:]]*—[[:space:]]*//' \
-        | sed -E 's/\(not yet written\)[[:space:]]*-[[:space:]]*//')
-    # Best-effort complexity extraction: a bracketed S/M/L token.
-    local complexity=""
-    if [[ "$summary" =~ \[([SML])\] ]]; then
-        complexity="${BASH_REMATCH[1]}"
-        summary=$(echo "$summary" | sed -E 's/[[:space:]]*\[[SML]\][[:space:]]*//')
+    local specid title complexity
+    specid=$(printf '%s' "$line" | grep -oE 'SPEC-[0-9]+' | head -n1)
+    # First bold segment = the concise title. Anchor at start so we grab the
+    # FIRST **…**, not the trailing **[X]** sizing token.
+    title=$(printf '%s' "$line" | sed -E 's/^[^*]*\*\*([^*]+)\*\*.*/\1/')
+    if [ "$title" = "$line" ]; then
+        # No bold title — fall back to the post-dash summary.
+        title=$(printf '%s' "$line" \
+            | sed -E 's/^[[:space:]]*-[[:space:]]*\[[ x~?]\][[:space:]]*//' \
+            | sed -E 's/SPEC-[0-9]+[[:space:]]*//' \
+            | sed -E 's/\(not yet written\)[[:space:]]*[—-][[:space:]]*//' \
+            | sed -E 's/[[:space:]]*\*\*\[[SML]\]\*\*.*$//' \
+            | sed -E 's/[[:space:]]+$//')
     fi
-    summary=$(echo "$summary" | sed -E 's/[[:space:]]+$//')
-    if [ -n "$complexity" ]; then
-        printf "%-50s [%s]\n" "$summary" "$complexity"
+    complexity=""
+    if [[ "$line" =~ \[([SML])\] ]]; then complexity="${BASH_REMATCH[1]}"; fi
+    local cx_col="—"
+    [ -n "$complexity" ] && cx_col="[$complexity]"
+    if [ -n "$specid" ]; then
+        printf "%-9s %-4s %s\n" "$specid" "$cx_col" "$title"
     else
-        printf "%s\n" "$summary"
+        printf "%-4s %s\n" "$cx_col" "$title"
     fi
 }
 
@@ -139,18 +156,23 @@ if [ "$JSON_OUT" = 1 ]; then
     fi
 
     # Append unpromoted-bullet objects for one stage to unpromoted_json (global).
+    # Emits a clean {spec_id, title, complexity} — title is the first bold **…**,
+    # matching the human-facing text output.
     emit_bullets_for() {
-        local sf="$1" sidp="$2" line summary complexity
+        local sf="$1" sidp="$2" line specid title complexity
         while IFS= read -r line; do
             [ -n "$line" ] || continue
-            summary=$(printf '%s' "$line" | sed -E 's/^[[:space:]]*-[[:space:]]*\[[ x~?]\][[:space:]]*//; s/\(not yet written\)[[:space:]]*[—-][[:space:]]*//')
-            complexity=null
-            if [[ "$summary" =~ \[([SML])\] ]]; then
-                complexity=$(json_qs "${BASH_REMATCH[1]}")
-                summary=$(printf '%s' "$summary" | sed -E 's/[[:space:]]*\[[SML]\][[:space:]]*//')
+            specid=$(printf '%s' "$line" | grep -oE 'SPEC-[0-9]+' | head -n1)
+            title=$(printf '%s' "$line" | sed -E 's/^[^*]*\*\*([^*]+)\*\*.*/\1/')
+            if [ "$title" = "$line" ]; then
+                title=$(printf '%s' "$line" \
+                    | sed -E 's/^[[:space:]]*-[[:space:]]*\[[ x~?]\][[:space:]]*//; s/SPEC-[0-9]+[[:space:]]*//; s/\(not yet written\)[[:space:]]*[^A-Za-z0-9*]*//; s/[[:space:]]*\*\*\[[SML]\]\*\*.*$//; s/[[:space:]]+$//')
             fi
-            summary=$(printf '%s' "$summary" | sed -E 's/[[:space:]]+$//')
-            unpromoted_json+=("$(json_obj "project.stage" "$(json_qs "$sidp")" summary "$(json_qs "$summary")" complexity "$complexity")")
+            complexity=null
+            if [[ "$line" =~ \[([SML])\] ]]; then complexity=$(json_qs "${BASH_REMATCH[1]}"); fi
+            unpromoted_json+=("$(json_obj "project.stage" "$(json_qs "$sidp")" \
+                spec_id "$([ -n "$specid" ] && json_qs "$specid" || printf null)" \
+                title "$(json_qs "$title")" complexity "$complexity")")
         done <<< "$(extract_unpromoted_bullets "$sf")"
     }
     if [ -d "$STAGES_DIR" ]; then
@@ -164,17 +186,25 @@ if [ "$JSON_OUT" = 1 ]; then
         fi
     fi
 
+    upcoming_ondisk=" "
     if [ -d "$STAGES_DIR" ]; then
         for s in "${STAGES_DIR}"/STAGE-*.md; do
             [ -f "$s" ] || continue
             sid=$(basename "$s" .md | sed -E 's/^(STAGE-[0-9]+).*/\1/')
+            upcoming_ondisk="${upcoming_ondisk}${sid} "
             [ "$sid" = "$ACTIVE_STAGE_ID" ] && continue
             status=$(get_stage_status "$s")
             { [ "$status" = shipped ] || [ "$status" = cancelled ]; } && continue
             cnt=$(count_unpromoted_bullets "$s")
-            upcoming_json+=("$(json_obj "project.stage" "$(json_qs "$sid")" backlog_count "$cnt")")
+            upcoming_json+=("$(json_obj "project.stage" "$(json_qs "$sid")" state "$(json_qs framed)" backlog_count "$cnt")")
         done
     fi
+    # Planned-but-unframed stages from the brief's Stage Plan.
+    while IFS='|' read -r pid ptitle; do
+        [ -n "$pid" ] || continue
+        case "$upcoming_ondisk" in *" $pid "*) continue ;; esac
+        upcoming_json+=("$(json_obj "project.stage" "$(json_qs "$pid")" state "$(json_qs planned)" title "$(json_qs "$ptitle")")")
+    done < <(list_planned_stages "$ACTIVE_DIR")
 
     mkarr() { if [ "$#" -gt 0 ] && [ -n "${1:-}" ]; then json_arr "$@"; else printf '[]'; fi; }
     data=$(json_obj \
@@ -283,22 +313,33 @@ else
 fi
 echo ""
 
-# 3) Upcoming-stage rollup --------------------------------------------
-echo "${BOLD}Upcoming stages (counts only)${RESET}"
+# 3) Upcoming stages --------------------------------------------------
+# Framed-but-not-active stages show a backlog count; planned-but-unframed
+# stages (from the brief's Stage Plan, no stage file yet) show their title.
+echo "${BOLD}Upcoming stages${RESET}"
 if [ -d "$STAGES_DIR" ]; then
     upcoming_any=0
+    upcoming_ondisk=" "
     for s in "${STAGES_DIR}"/STAGE-*.md; do
         [ -f "$s" ] || continue
         sid=$(basename "$s" .md | sed -E 's/^(STAGE-[0-9]+).*/\1/')
+        upcoming_ondisk="${upcoming_ondisk}${sid} "
         # Skip the active stage and shipped stages.
         if [ "$sid" = "$ACTIVE_STAGE_ID" ]; then continue; fi
         status=$(get_stage_status "$s")
         if [ "$status" = "shipped" ] || [ "$status" = "cancelled" ]; then continue; fi
         sname=$(basename "$s" .md)
         count=$(count_unpromoted_bullets "$s")
-        printf "  %-44s %d backlog item%s\n" "$sname" "$count" "$([ "$count" = "1" ] && echo "" || echo "s")"
+        printf "  %-40s framed    %d backlog item%s\n" "$sname" "$count" "$([ "$count" = "1" ] && echo "" || echo "s")"
         upcoming_any=1
     done
+    # Planned-but-unframed stages from the brief's Stage Plan.
+    while IFS='|' read -r pid ptitle; do
+        [ -n "$pid" ] || continue
+        case "$upcoming_ondisk" in *" $pid "*) continue ;; esac   # already framed → shown above
+        printf "  %-40s planned   %s\n" "$pid" "$ptitle"
+        upcoming_any=1
+    done < <(list_planned_stages "$ACTIVE_DIR")
     if [ "$upcoming_any" = "0" ]; then echo "  ${DIM}(no upcoming stages)${RESET}"; fi
 else
     echo "  ${DIM}(no stages/ directory yet)${RESET}"

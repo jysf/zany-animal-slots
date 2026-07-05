@@ -60,27 +60,8 @@ count_backlog_bullets() {
     ' "$f"
 }
 
-# List planned stages from the brief's "## Stage Plan" section, one per line as
-# "STAGE-NNN|Title". These are the stages the project knows it wants but has not
-# framed yet (no stage file on disk). The caller filters out any that already
-# have a file so the roadmap shows the full known arc — framed stages with their
-# spec backlog, plus the planned-but-unframed ones — for forward planning.
-list_planned_stages() {
-    local brief="${ACTIVE_DIR}/brief.md"
-    [ -f "$brief" ] || return 0
-    # Only checkbox bullets ("- [ ] STAGE-NNN …") are stage entries; prose in
-    # the section that merely mentions a STAGE id is skipped.
-    awk '
-        /^## Stage Plan/ { in_s = 1; next }
-        in_s && /^## / { in_s = 0 }
-        in_s && /^- \[.\] / && match($0, /STAGE-[0-9]+/) {
-            id = substr($0, RSTART, RLENGTH)
-            title = ""
-            if (match($0, /\*\*[^*]+\*\*/)) title = substr($0, RSTART + 2, RLENGTH - 4)
-            print id "|" title
-        }
-    ' "$brief"
-}
+# list_planned_stages (brief "## Stage Plan" → "STAGE-NNN|Title") lives in _lib.sh
+# so roadmap and backlog share one parser. Call it with the active project dir.
 
 # --- JSON output (DEC-001 §2) ------------------------------------------------
 if [ "$(has_json_flag "$@")" = 1 ]; then
@@ -124,7 +105,7 @@ if [ "$(has_json_flag "$@")" = 1 ]; then
             "project.stage" "$(json_qs "$pid")" \
             title "$(json_qs "$ptitle")" \
             bucket "$(json_qs planned)")")
-    done < <(list_planned_stages)
+    done < <(list_planned_stages "$ACTIVE_DIR")
     [ "${#planned_json[@]}" -gt 0 ] && planned_arr=$(json_arr "${planned_json[@]}") || planned_arr="[]"
     data=$(json_obj \
         active_project "$(json_qs "$ACTIVE_PROJECT")" \
@@ -224,7 +205,7 @@ while IFS='|' read -r pid ptitle; do
     any_stage=1
     printf "  %-36s %-10s %-22s %s\n" \
         "$pid" "planned" "not yet framed" "${ptitle}"
-done < <(list_planned_stages)
+done < <(list_planned_stages "$ACTIVE_DIR")
 
 if [ "$any_stage" = "0" ]; then
     echo "  ${DIM}(no stages yet)${RESET}"
