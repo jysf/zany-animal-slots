@@ -62,10 +62,34 @@ cost:
       duration_minutes: 25
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (parameterize classifyWin + isJackpot to read the machine's jackpot rule + bigMultiple; spin() threads the machine into classifyWin; update tiers.test.ts call sites; add a variant-machine guard proving the rule is machine-driven; build prompt). Completes the engine parameterization — after this no engine fn reads a hard-coded tier/jackpot constant."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 82858
+      estimated_usd: 0.55
+      duration_minutes: 4.8
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens (AGENTS §4); build cycle run as a metered sub-agent — applied the spec's drop-in tiers.ts (isJackpot/classifyWin parameterized on JackpotRule/MachineMath), the index.ts classifyWin one-liner, and the tiers.test.ts call-site updates + new variant-machine describe block, verbatim from the spec Notes. Full gate green (typecheck/lint/test/build), just validate green, 5-file engine diff guard empty, WOLF/5-boundary grep guard empty, spin-parity.test.ts green unchanged, all pre-existing tiers.test.ts expected values byte-identical."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 80182
+      estimated_usd: 0.53
+      duration_minutes: 5.8
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens (AGENTS §4); cold independent sub-agent review. Re-ran full gate (typecheck/lint/test [294 passed]/build) + just validate, both green. Read tiers.ts + tiers.test.ts in full; confirmed isJackpot/classifyWin use only jackpot.symbol/jackpot.count/math.tiers.bigMultiple with no literal WOLF/5 remaining. Ran an adversarial mutation test — temporarily swapped in a hard-coded isJackpot/classifyWin behind the unchanged machine-shaped signature — both new SPEC-040 variant assertions failed as expected, proving the variant-machine describe block genuinely detects a non-data-driven rule (not a vacuous test), then restored the real implementation and reconfirmed 12/12 green. Confirmed spin-parity.test.ts diff vs main is empty; tiers.test.ts diff is import + appended machine args + new describe block only, zero changed expected values on pre-existing cases. Confirmed 5-file engine freeze diff (spin/paylines/strips/balance/rng) empty; index.ts diff is only the classifyWin one-liner gaining the machine arg. Confirmed type-only MachineMath/JackpotRule import, no package.json/lockfile change, engine-boundary.test.ts green, useSlotMachine.ts untouched (still engineSpin({ seed, balance, bet })). Verdict: PASS, 0 defects."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-07-04
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate reconcile + PR + CI-poll + squash-merge + cost totals + STAGE-007 bookkeeping + archive)."
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 163040
+    estimated_usd: 1.08
+    session_count: 5
 ---
 
 # SPEC-040: parameterize win tier and jackpot rule
@@ -296,28 +320,33 @@ rule is data-driven.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-040-parameterize-tier-jackpot`
+- **PR (if applicable):** not opened — build cycle is local-only per this run's scope; ship cycle opens the PR.
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (DEC-015 already covers this)
 - **Deviations from spec:**
-  - [list]
+  - none — the drop-in code for `tiers.ts`, the `index.ts` one-liner, and the `tiers.test.ts`
+    updates were used verbatim from the spec Notes.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new; SPEC-041 (presentation) and SPEC-042 (UI/hook wiring) remain as already scoped
+    out of this spec.
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing; the spec's Notes section had complete drop-in code for all three files, so this
+   was closer to careful transcription + verification than open-ended implementation.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No, the constraint list (5-file diff guard, grep guard, type-only import, byte-identical
+   fixtures) was exhaustive and directly checkable.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally different; the spec's precision (drop-in code + explicit self-check
+   commands) made this a very low-risk, mechanical build.
 
 ---
 
@@ -327,10 +356,29 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing to change. The standout was the verify agent's **adversarial mutation test**:
+   it swapped in a hard-coded façade (same signatures, ignoring the `jackpot`/`math` args),
+   confirmed the two variant-machine tests failed against it, then restored — empirically
+   proving the guard discriminates data-driven behavior from a façade, not just that it
+   passes. That's the gold standard for "is this test real?" and worth making a default
+   move whenever a spec's whole point is that behavior became parameterized. The
+   variant-machine guard (asserting a *different* machine classifies differently) was the
+   right design instinct; the mutation test validated it.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint/decision change. This spec completes the engine
+   parameterization: with SPEC-038/039/040 shipped, **no engine function reads a hard-coded
+   symbol/weight/strip/payline/paytable/tier constant** — a STAGE-007 success criterion, now
+   met. The one reusable lesson (candidate for the PROJ-002 signals set): for a
+   "prove-it's-parameterized" spec, pair a variant-config test with an adversarial
+   façade-mutation check in verify — it's cheap and catches the failure mode where a test
+   would pass even against still-hard-coded logic.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec — SPEC-041 (presentation config per machine) is next and already framed.
+   It shifts from engine math to the presentation slice: move emoji/`SYMBOL_DISPLAY` +
+   theme tokens + audio params into the machine's `presentation` slice (extending the type
+   pinned in SPEC-038) and have the UI read the active machine. It's the first STAGE-007
+   spec to touch UI/presentation code, so its parity is visual/aural (the default machine
+   must look and sound identical), not the frozen seeds — a different guard shape worth
+   designing carefully.
