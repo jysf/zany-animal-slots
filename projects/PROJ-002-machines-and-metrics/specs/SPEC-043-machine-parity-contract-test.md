@@ -59,10 +59,34 @@ cost:
       duration_minutes: 20
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (the stage's frozen-seed machine-parity CONTRACT test — the four seeds through getActiveMachine() pin grid-shape/lineWins/totalWin/tier/balance + registry==explicit-default; consolidates 039's spin-parity into the durable named guard. Test-only, no production change; final STAGE-007 spec). Pinned only the values already established by the frozen-seed contract + existing tests to avoid inventing fixtures."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 68646
+      estimated_usd: 0.45
+      duration_minutes: 4.7
+      recorded_at: 2026-07-05
+      notes: "orchestrator to fill tokens_total from subagent_tokens. Created src/machines/machine-parity.contract.test.ts verbatim from the spec's Notes drop-in (no edits). Cross-checked all frozen-seed values against spin-parity.test.ts and index.test.ts before running — all matched, no regression. Full gate green (typecheck, lint, test [307 passed, 52 files], build); just validate passed; git diff main..HEAD -- src/engine/ src/ui/ confirmed empty. No production code touched."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 67724
+      estimated_usd: 0.45
+      duration_minutes: 1.9
+      recorded_at: 2026-07-05
+      notes: "orchestrator to fill tokens_total from subagent_tokens. Cold independent review. Re-ran full gate green (typecheck, lint, test [307 passed, 52 files, incl. the 6 new machine-parity.contract.test.ts cases], build); just validate passed (43 specs valid front-matter). Confirmed git diff main..HEAD -- src/engine/ src/ui/ is EMPTY; only src/machines/machine-parity.contract.test.ts added among non-doc files; registry.ts/wildAndWhimsical.ts/types.ts/spin-parity.test.ts all unchanged. Read the contract test in full: genuinely exercises spin() through getActiveMachine(), pinned scalars for all four frozen seeds (407947/12345/276/12) cross-checked exactly against spin-parity.test.ts + index.test.ts — no mismatch; getActiveMachine().math===WILD_AND_WHIMSICAL_MATH is a real identity check (wildAndWhimsical.ts's math field references the same const); no .skip/.only/xit; no commented-out expects. All AC checkboxes PASS. No new dependency, no new DEC, plain .ts (no JSX). VERDICT: PASS, 0 defects."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-07-04
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate reconcile + PR + CI-poll + squash-merge + cost totals + STAGE-007 bookkeeping + archive + Stage Ship)."
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 136370
+    estimated_usd: 0.90
+    session_count: 5
 ---
 
 # SPEC-043: machine parity contract test
@@ -275,28 +299,35 @@ deliverable. All pinned values below are already established (SPEC-039 spin-pari
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-043-machine-parity-contract`
+- **PR (if applicable):** none (local-only build cycle; PR opened at ship)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none
 - **Deviations from spec:**
-  - [list]
+  - none — the drop-in test file in the spec's Notes was used verbatim, byte-for-byte.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new; this is the last STAGE-007 spec (the backlog rollup happens at ship).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing. The spec's Notes contained the complete drop-in test, and the pinned values
+   were cross-checked against `spin-parity.test.ts` and `index.test.ts` before writing —
+   both matched exactly, so there was no ambiguity to resolve.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. `DEC-002` (frozen seeds) and `DEC-015` (default machine as contract subject) fully
+   covered the rationale; the hard constraints (diff guard, no new deps, don't touch
+   `spin-parity.test.ts`) were explicit and sufficient.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally different. This was a clean, low-risk build: copy the verbatim
+   drop-in, run the gate, confirm the diff guard. The only judgment call was double-checking
+   the frozen values against existing tests before running anything, which paid off by
+   giving confidence the run would be green rather than a regression finding.
 
 ---
 
@@ -306,10 +337,26 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. Closing an "unfreeze the engine" stage with a single named contract test that
+   runs the frozen seeds through the fully-assembled pipeline (registry → spin) is the right
+   capstone — it turns the scattered per-spec parity assertions into one durable guard any
+   future machine/engine change must keep green. Pinning only values already established by
+   the existing fixtures (rather than inventing grids) meant a green run was a real parity
+   confirmation, not a self-fulfilling fixture — and the build/verify both cross-checked them,
+   so the guard has real teeth. This "one consolidated contract test as the stage capstone"
+   is a pattern worth reusing for any behavior-preserving refactor stage.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint/decision change. This is a stage-level lesson (for the PROJ-002
+   signals set + the STAGE-007 reflection): a behavior-preserving refactor stage benefits from
+   two guard layers — per-spec change-scoped parity assertions (catch the regression at the
+   spec that caused it) PLUS one consolidated end-to-end contract test at the close (the
+   durable guard). The overlap is intentional defense-in-depth, not redundancy.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No — STAGE-007 is complete (6/6). The next step is the **Stage Ship**: fill the STAGE-007
+   Stage-Level Reflection, flip its status to shipped, and roll the PROJ-002 project count.
+   Then STAGE-008 (fun retune + more machines) gets framed in a fresh session — it inherits the
+   deferred per-machine theme + audio wiring (STAGE-007 Design Notes), the bet-level/paytable-
+   math parameterization follow-ups (SPEC-042 reflection), and the open product questions
+   (target RTP, machine count, cash-in semantics) from the brief.
