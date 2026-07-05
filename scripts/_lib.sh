@@ -60,24 +60,74 @@ get_variant() {
 # Find the active project directory. Default heuristic: the lexically first
 # project folder that doesn't start with PROJ-ZZZZ-archive or similar.
 # Users can override by setting ACTIVE_PROJECT env var.
+# Read `project.status` from a project brief (active | proposed | shipped | …).
+get_project_status() {
+    awk '
+        /^---$/ { fm = !fm; next }
+        !fm { exit }
+        /^project:/ { in_p = 1; next }
+        in_p && /^[a-zA-Z_]/ { in_p = 0 }
+        in_p && /^[[:space:]]+status:/ { print $2; exit }
+    ' "$1"
+}
+
 get_active_project() {
     if [ -n "${ACTIVE_PROJECT:-}" ]; then
         echo "${ACTIVE_PROJECT}"
         return
     fi
-    # Look for the first PROJ-* directory that isn't the example.
-    local first
-    first=$(find "${REPO_ROOT}/projects" -maxdepth 1 -type d -name "PROJ-*" 2>/dev/null \
-            | grep -v "example" | sort | head -n1)
-    if [ -z "$first" ]; then
-        # Fall back to the example if nothing else exists.
-        first=$(find "${REPO_ROOT}/projects" -maxdepth 1 -type d -name "PROJ-*" 2>/dev/null \
-                | sort | head -n1)
+    # Candidate PROJ-* dirs (non-example), sorted; fall back to example only if nothing else.
+    local list
+    list=$(find "${REPO_ROOT}/projects" -maxdepth 1 -type d -name "PROJ-*" 2>/dev/null \
+           | grep -v "example" | sort)
+    if [ -z "$list" ]; then
+        list=$(find "${REPO_ROOT}/projects" -maxdepth 1 -type d -name "PROJ-*" 2>/dev/null | sort)
     fi
-    if [ -z "$first" ]; then
+    if [ -z "$list" ]; then
         die "No projects found in ./projects/. Create one by copying projects/_templates/project-brief.md into projects/PROJ-NNN-<slug>/brief.md (see GETTING_STARTED.md)."
     fi
-    basename "$first"
+    # Prefer the unique project whose brief status is 'active'. This is the wave
+    # actually in progress — the lowest-numbered dir is often a shipped earlier
+    # project. Only auto-pick when EXACTLY one project is active; with zero or
+    # several active, fall back to lowest-numbered (deterministic, prior behavior).
+    # `ACTIVE_PROJECT` always overrides (handled above).
+    local d b n=0 active_one=""
+    while IFS= read -r d; do
+        [ -n "$d" ] || continue
+        b="$d/brief.md"
+        [ -f "$b" ] || continue
+        if [ "$(get_project_status "$b")" = "active" ]; then
+            n=$((n + 1))
+            active_one="$d"
+        fi
+    done <<EOF
+$list
+EOF
+    if [ "$n" -eq 1 ]; then
+        basename "$active_one"
+        return
+    fi
+    basename "$(echo "$list" | head -n1)"
+}
+
+# List planned stages from a project's brief "## Stage Plan" section, one per
+# line as "STAGE-NNN|Title". These are stages the project knows it wants but may
+# not have framed yet (no stage file). Callers filter out any that already have a
+# stage file. Only checkbox bullets ("- [ ] STAGE-NNN …") count — prose in the
+# section that merely mentions a STAGE id is skipped. Arg: the project dir.
+list_planned_stages() {
+    local brief="$1/brief.md"
+    [ -f "$brief" ] || return 0
+    awk '
+        /^## Stage Plan/ { in_s = 1; next }
+        in_s && /^## / { in_s = 0 }
+        in_s && /^- \[.\] / && match($0, /STAGE-[0-9]+/) {
+            id = substr($0, RSTART, RLENGTH)
+            title = ""
+            if (match($0, /\*\*[^*]+\*\*/)) title = substr($0, RSTART + 2, RLENGTH - 4)
+            print id "|" title
+        }
+    ' "$brief"
 }
 
 # Return the next ID for a given prefix (SPEC, STAGE, PROJ, DEC, HANDOFF)
