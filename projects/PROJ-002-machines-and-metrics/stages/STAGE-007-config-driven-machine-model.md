@@ -117,11 +117,12 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       5× big); frozen-seed tier parity + a variant-machine guard (verified genuinely
       data-driven via a façade-mutation test). Completes the engine parameterization —
       no engine fn reads a hard-coded tier/jackpot constant. PR #49. **[S–M]**
-- [~] SPEC-041 (build) — **Presentation symbol-display per machine**: the presentation-
+- [x] SPEC-041 (shipped) — **Presentation symbol-display per machine**: the presentation-
       consuming UI (ReelGrid, paytable) reads `symbolDisplay` (emoji/label) from the
       machine's presentation slice instead of importing the module-level `SYMBOL_DISPLAY`;
-      threaded from the default machine via props/params; visual parity. **Theme tokens +
-      audio params per machine are DEFERRED to STAGE-008** (see Design Note). **[M]**
+      threaded from the default machine via props/params; visual parity (preview-verified).
+      **Theme tokens + audio params per machine DEFERRED to STAGE-008** (see Design Note).
+      PR #51. **[M]**
 - [ ] SPEC-042 (not yet written) — **Machine registry + hook plumbing**: a registry
       (default only) and `useSlotMachine` threads the active machine into engine +
       presentation; **default machine only, no selector UI**; end-to-end parity. **[M]**
@@ -129,10 +130,10 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       seeds through the default machine assert identical outcomes — the stage's
       regression guard. **[S]**
 
-**Count:** 3 shipped / 1 active / 2 pending — 4×M, 1×S–M, 1×S. No L (the engine
+**Count:** 4 shipped / 0 active / 2 pending — 4×M, 1×S–M, 1×S. No L (the engine
 parameterization was split into 039+040 to keep the riskiest work bounded). Within
-the 3–8 range. Engine parameterization (038–040) complete; 041 (presentation
-symbolDisplay) active; 042 (registry + hook) + 043 (parity test) pending. Per-machine
+the 3–8 range. Engine parameterization (038–040) complete; presentation symbolDisplay
+(041) shipped; 042 (registry + hook) + 043 (parity test) pending. Per-machine
 theme + audio deferred to STAGE-008 (see Design Notes).
 
 ## Design Notes

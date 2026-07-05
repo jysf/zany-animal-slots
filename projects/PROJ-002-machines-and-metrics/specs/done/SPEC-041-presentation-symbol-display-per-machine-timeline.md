@@ -37,5 +37,10 @@ Cycle prompts live in `prompts/SPEC-041-<cycle>.md`.
       no `SYMBOL_DISPLAY` in consumers, `symbols.ts` still exports it; `src/engine` diff empty;
       tokens.css/audioEngine/mixer/registry/useSlotMachine untouched; no theme/audio fields
       added; no new dep; `decisions-audit` clean (only pre-existing unrelated scope warnings).
-- [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, **preview visual check** (UI
-      spec), cost totals, bookkeeping, archive; update STAGE-007 backlog line + count.
+- [x] **ship** — completed 2026-07-04 (Opus): squash-merged PR #51 (CI CLEAN — all 7 checks
+      SUCCESS). **Preview visual check** (UI spec): started the dev server, confirmed the reels
+      render all 8 animal emoji + a11y labels and the paytable renders JACKPOT 🐺 / HIGH 🦬 /
+      MID 🐻🦅🦉 / LOW 🦌🦊🐿️ with identical multipliers — no console errors, build id a254239.
+      Cost totals (196342 tok / $1.30 / 5 sessions), ship reflection, archived. Fourth STAGE-007
+      spec shipped (4/6); the presentation symbolDisplay is now data. SPEC-042 (registry + hook)
+      is next.
