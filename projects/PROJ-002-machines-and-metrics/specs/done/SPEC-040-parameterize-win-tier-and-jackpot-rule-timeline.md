@@ -31,5 +31,9 @@ Cycle prompts live in `prompts/SPEC-040-<cycle>.md`.
       freeze diff (spin/paylines/strips/balance/rng) empty; index.ts diff is only the
       classifyWin one-liner. Grep guard clean; type-only import confirmed; no dep changes;
       useSlotMachine.ts untouched (still `engineSpin({ seed, balance, bet })`).
-- [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
-      archive; update STAGE-007 backlog line + count.
+- [x] **ship** — completed 2026-07-04 (Opus): squash-merged PR #49 (CI CLEAN — all 7 checks
+      SUCCESS), cost totals (163040 tok / $1.08 / 5 sessions), ship reflection, archived. Third
+      STAGE-007 spec shipped (3/6) — **completes the engine parameterization**: no engine
+      function reads a hard-coded symbol/weight/strip/payline/paytable/tier constant. Verify ran
+      an adversarial façade-mutation test proving the variant-machine guard is genuinely
+      data-driven. SPEC-041 (presentation config) is next — the first UI-touching STAGE-007 spec.

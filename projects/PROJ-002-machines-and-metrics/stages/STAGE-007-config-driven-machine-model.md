@@ -112,10 +112,11 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       `resolveGrid`/`evaluatePaylines` consume the machine's strips/paylines/paytable
       instead of module constants; `spin()` threads the machine (defaulted); frozen-seed
       parity guard (`spin-parity.test.ts`). PR #47. **[M]** ← riskiest; landed clean, 0 defects.
-- [~] SPEC-040 (build) — **Parameterize win-tier + jackpot rule**: tier
+- [x] SPEC-040 (shipped) — **Parameterize win-tier + jackpot rule**: tier
       boundaries + jackpot symbol/count read from the machine (not hard-coded WOLF×5 /
-      5× big); frozen-seed tier parity + a variant-machine guard. Completes the engine
-      parameterization (no engine fn reads a hard-coded tier/jackpot constant after this). **[S–M]**
+      5× big); frozen-seed tier parity + a variant-machine guard (verified genuinely
+      data-driven via a façade-mutation test). Completes the engine parameterization —
+      no engine fn reads a hard-coded tier/jackpot constant. PR #49. **[S–M]**
 - [ ] SPEC-041 (not yet written) — **Presentation config per machine**: emoji /
       symbol-display + theme tokens + audio params move into the machine; the UI reads
       the active machine; visual + audio parity. **[M]**
@@ -126,9 +127,10 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       seeds through the default machine assert identical outcomes — the stage's
       regression guard. **[S]**
 
-**Count:** 2 shipped / 1 active / 3 pending — 4×M, 1×S–M, 1×S. No L (the engine
+**Count:** 3 shipped / 0 active / 3 pending — 4×M, 1×S–M, 1×S. No L (the engine
 parameterization was split into 039+040 to keep the riskiest work bounded). Within
-the 3–8 range.
+the 3–8 range. Engine parameterization (038–040) complete; 041–043 are presentation
++ registry + the parity contract test.
 
 ## Design Notes
 
