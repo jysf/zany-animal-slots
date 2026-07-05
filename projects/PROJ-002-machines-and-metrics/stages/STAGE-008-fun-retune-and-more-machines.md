@@ -146,72 +146,89 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       jackpotRate **0** — the quantified "too hard to win") as the retune's before-number.
       Test-covered, no production game-behavior change; 0 defects. **Finding:** `reelWeights`
       is documentation-only — SPEC-045 must retune the strip/paytable, not the weights. **[M]**
-- [ ] (not yet written) SPEC-045 — **Fun-retune Wild & Whimsical (in place)**: retune the
-      default's weights/strip/paytable/jackpot/tier to the generous target (measured by
-      SPEC-044); **recompute + re-pin the frozen-seed contract** and all parity tests
-      (machine-parity.contract, spin-parity, index, tiers, useSlotMachine) to the new
-      outcomes; emit the **retune DEC**. A changed fixture here is INTENDED. **[L]**
-- [ ] (not yet written) SPEC-046 — **Parameterize residual engine reads**: bet-level
+- [~] SPEC-045 (build) — **Deterministic strip-builder**: a pure
+      `buildStrip(symbols, weights)` (fractional-rank interleave → **provably count-exact**,
+      + an adjacency-fix pass → no linear adjacent duplicates) + unit tests. Pure additive
+      engine infra — does NOT touch any machine, **no behavior change, no re-baseline**. The
+      mechanism SPEC-046's "generate strips from weights" retune consumes (the user's chosen
+      tuning knob). **[M]**
+- [ ] (not yet written) SPEC-046 — **Fun-retune Wild & Whimsical (in place)**: retune the
+      default's weights + paytable + **paylines (5 → 20, the "more ways to win")** + jackpot/
+      tier to the generous target, with `strips` now GENERATED from the tuned weights via
+      SPEC-045's `buildStrip`; measured RTP **~94%** / hit **~34%** / jackpot ~1-in-25k
+      (simulator). **Recompute + re-pin the frozen-seed contract, the metrics baseline, and
+      all parity tests** (machine-parity.contract, metrics, spin-parity, index, tiers,
+      useSlotMachine) to the new outcomes; emit the **retune DEC**. A changed fixture here is
+      INTENDED. **[L]**
+- [ ] (not yet written) SPEC-047 — **Parameterize residual engine reads**: bet-level
       stepping (`nextBet`/`prevBet`) and the paytable view's math source read the active
       machine instead of engine constants (deferred STAGE-007); adversarial guard-mutation
       proves it's data-driven. **[S–M]**
-- [ ] (not yet written) SPEC-047 — **Per-machine theme + audio slice**: extend
+- [ ] (not yet written) SPEC-048 — **Per-machine theme + audio slice**: extend
       `MachinePresentation` with `theme` (token overrides applied at runtime as CSS vars)
       + `audio` (channel gains / mix / music params); wire the UI + the audio singleton
       (`audioEngine.ts`, `mixer.ts`) to the active machine (deferred STAGE-007/SPEC-041). **[L]**
-- [ ] (not yet written) SPEC-048 — **Reactive active-machine context**: lift the active
+- [ ] (not yet written) SPEC-049 — **Reactive active-machine context**: lift the active
       machine into a React Context backed by localStorage; `useSlotMachine` + presentation
       subscribe; `getActiveMachine` is no longer a module const. Persisted choice survives
       reload. **[M]**
-- [ ] (not yet written) SPEC-049 — **Machine-selector UI**: an in-app control to switch
+- [ ] (not yet written) SPEC-050 — **Machine-selector UI**: an in-app control to switch
       machines; switching re-renders reels + paytable + theme + audio together
       (preview-verified). **[M]**
-- [ ] (not yet written) SPEC-050 — **Arctic machine**: theme + music + math as data + a
+- [ ] (not yet written) SPEC-051 — **Arctic machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test; selectable via the registry. **[M]**
-- [ ] (not yet written) SPEC-051 — **Desert machine**: theme + music + math as data + a
+- [ ] (not yet written) SPEC-052 — **Desert machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. **[M]**
-- [ ] (not yet written) SPEC-052 — **Ocean machine**: theme + music + math as data + a
+- [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 1 shipped / 0 active / 8 pending — 2×L, 6×M, 1×S–M. **At the top of the 3–8
-range (9 specs).** Deliberately so: this stage does the retune, absorbs three STAGE-007
-deferrals, and ships four machines. The three themed-machine specs (050–052) are cheap
-DATA specs once the theme/audio/selector infra (047–049) lands; if the wave runs long,
-**Ocean (SPEC-052) is the natural boundary to defer** (ship 3 machines, fast-follow the
-4th) — same deferral logic the brief applies to STAGE-011.
+**Count:** 1 shipped / 0 active / 9 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+3–8 typical range** — the "generate strips from weights" decision split the retune into a
+tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
+absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs
+(051–053) are cheap DATA specs once the theme/audio/selector infra (048–050) lands; if the
+wave runs long, **Ocean (SPEC-053) is the natural boundary to defer** (ship 3 machines,
+fast-follow the 4th) — same deferral logic the brief applies to STAGE-011.
 
 ## Design Notes
 
 - **⚠ BEHAVIOR-CHANGING — the inverse of STAGE-007.** STAGE-007's rule was "a changed
-  frozen-seed fixture is a regression." STAGE-008's retune (SPEC-045) **deliberately
+  frozen-seed fixture is a regression." STAGE-008's retune (SPEC-046) **deliberately
   changes** those outcomes. So the contract tests are **RE-BASELINED, not held fixed**:
   the frozen seeds stay a *determinism* guard (same seed → same result), but their
   EXPECTED VALUES are recomputed to the retuned numbers and pinned under the retune DEC.
-  Every retune spec must **recompute-then-pin**, and the spec + PR must state explicitly
-  that the changed fixture is INTENDED. The tests to re-baseline:
-  `src/machines/machine-parity.contract.test.ts`, `src/engine/spin-parity.test.ts`,
-  `src/engine/index.test.ts`, `src/engine/tiers.test.ts`, `src/ui/useSlotMachine.test.tsx`
-  (plus `src/machines/wildAndWhimsical.parity.test.ts`, which pins extracted-data ==
-  constants — it stays green because the retune edits the *constants*, so the reference
-  equality holds; confirm it, don't assume).
+  SPEC-045 (the strip-builder) is pure additive infra and does NOT re-baseline — only
+  SPEC-046 (which wires the builder into W&W + retunes) does. The retune spec must
+  **recompute-then-pin**, and the spec + PR must state explicitly that the changed fixture
+  is INTENDED. The tests to re-baseline in SPEC-046:
+  `src/machines/machine-parity.contract.test.ts`, `src/engine/metrics.test.ts` (the pinned
+  W&W baseline from SPEC-044), `src/engine/spin-parity.test.ts`, `src/engine/index.test.ts`,
+  `src/engine/tiers.test.ts`, `src/ui/useSlotMachine.test.tsx` (plus
+  `src/machines/wildAndWhimsical.parity.test.ts`, which pins extracted-data == constants —
+  it stays green because the retune edits the *constants*, so the reference equality holds;
+  confirm it, don't assume).
 - **Measure before you tune (SPEC-044 first).** The brief names "'more fun' is
   subjective — retuning is guesswork without a proxy metric" as a risk. The simulator is
   that proxy: retune = edit data → `just simulate <machine>` → read RTP/hit-freq/tiers →
   adjust → re-run → pin. The retune DEC records the **measured** target band, and the
   tool makes re-hitting or changing it repeatable (the user's "can it be tuned?" ask).
-- **Retune knobs (SPEC-045).** All in the math slice: `reelWeights` + the `strips`
-  arrangement (hit-frequency + which symbols land), `paytable` multipliers (win sizes +
-  the medium band), `jackpot` reachability (via WOLF weight / strip placement, not by
-  changing the WOLF×5 rule unless a DEC says so), `tiers.bigMultiple` (the small/big
-  boundary). Keep the 8-symbol vocabulary + 5-payline / 5×3 shape for the default unless
-  a measured reason forces otherwise — retune the numbers, not the structure, to keep the
-  change legible.
-- **Presentation slice grows (SPEC-047).** STAGE-007 shipped only `symbolDisplay`. Add
+- **The locked retune config (measured during SPEC-045/046 design).** Target hit at
+  **RTP ~94% / hit-freq ~34% / jackpot ~1-in-25k / big-band ~4.5%** (up from 13%/10%/never/
+  0.4%): `reelWeights` DEER 9, FOX 8, SQUIRREL 7, BEAR 5, EAGLE 4, OWL 3, BISON 3, WOLF 3
+  (sum 42); `paytable` low [1,3,7] · mid [2,6,18] · high [4,14,55] · jackpot [10,50,250];
+  **paylines 5 → 20** (the brief's "more ways to win" — the structural lever, since 5 lines
+  cap hit-freq at ~11% no matter the weights); jackpot WOLF×5 and `tiers.bigMultiple` 5
+  unchanged; `strips` GENERATED from the tuned weights via SPEC-045's `buildStrip` (the
+  user's "generate strips from weights" decision — weights become the live knob). Structure
+  otherwise preserved (8 symbols, 5×3). Representative re-baselined seeds under the tuned
+  machine: 1→small, 6→big, **68357→jackpot (2500)**, 2→loss. These numbers are re-tunable —
+  re-run `just simulate` after any edit.
+- **Presentation slice grows (SPEC-048).** STAGE-007 shipped only `symbolDisplay`. Add
   `theme` (a token-override map applied at runtime — set CSS custom properties on a root
   element from the active machine, since `tokens.css` is static) and `audio`
   (per-machine `CHANNEL_GAINS` / `MIX` / music params the singleton reads). DEC-001 stays
   clean: these live in the **presentation** slice; the engine never sees them.
-- **Reactive seam (SPEC-048) is the keystone for variety.** `getActiveMachine()` is a
+- **Reactive seam (SPEC-049) is the keystone for variety.** `getActiveMachine()` is a
   module const today — a switch wouldn't re-render. Lift it into a React Context (backed
   by localStorage) that `useSlotMachine` and the presentation read; a module-const can't
   drive a live switch. Persist the chosen id; fall back to the default for an unknown id
