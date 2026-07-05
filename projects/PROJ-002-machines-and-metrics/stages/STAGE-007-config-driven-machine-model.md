@@ -103,10 +103,10 @@ and freshly frozen is far cheaper than after more behavior accretes.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
-- [ ] SPEC-038 (not yet written) — **Machine config types + default-machine data
-      extraction**: define the `Machine` type (math + presentation slices) and extract
-      today's constants into the default machine, **no engine signature changes yet**;
-      emit the config-model DEC. Parity: extracted data == current constants. **[M]**
+- [~] SPEC-038 (build) — **Machine config types + default-machine data extraction**:
+      define the `Machine` type (math + presentation slices) and extract today's
+      constants into the default machine "Wild & Whimsical", **no engine signature
+      changes yet**; emitted DEC-015. Parity: extracted data == current constants. **[M]**
 - [ ] SPEC-039 (not yet written) — **Parameterize grid + payline evaluation**:
       `resolveGrid`/`evaluatePaylines` consume the machine's strips/paylines/paytable
       instead of module constants; frozen-seed parity guard. **[M]** ← riskiest; watch.
@@ -123,7 +123,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       seeds through the default machine assert identical outcomes — the stage's
       regression guard. **[S]**
 
-**Count:** 0 shipped / 0 active / 6 pending — 4×M, 1×S–M, 1×S. No L (the engine
+**Count:** 0 shipped / 1 active / 5 pending — 4×M, 1×S–M, 1×S. No L (the engine
 parameterization was split into 039+040 to keep the riskiest work bounded). Within
 the 3–8 range.
 
