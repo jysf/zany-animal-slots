@@ -60,16 +60,40 @@ count_backlog_bullets() {
     ' "$f"
 }
 
+# List planned stages from the brief's "## Stage Plan" section, one per line as
+# "STAGE-NNN|Title". These are the stages the project knows it wants but has not
+# framed yet (no stage file on disk). The caller filters out any that already
+# have a file so the roadmap shows the full known arc — framed stages with their
+# spec backlog, plus the planned-but-unframed ones — for forward planning.
+list_planned_stages() {
+    local brief="${ACTIVE_DIR}/brief.md"
+    [ -f "$brief" ] || return 0
+    # Only checkbox bullets ("- [ ] STAGE-NNN …") are stage entries; prose in
+    # the section that merely mentions a STAGE id is skipped.
+    awk '
+        /^## Stage Plan/ { in_s = 1; next }
+        in_s && /^## / { in_s = 0 }
+        in_s && /^- \[.\] / && match($0, /STAGE-[0-9]+/) {
+            id = substr($0, RSTART, RLENGTH)
+            title = ""
+            if (match($0, /\*\*[^*]+\*\*/)) title = substr($0, RSTART + 2, RLENGTH - 4)
+            print id "|" title
+        }
+    ' "$brief"
+}
+
 # --- JSON output (DEC-001 §2) ------------------------------------------------
 if [ "$(has_json_flag "$@")" = 1 ]; then
     active_stage_file=$(get_active_stage_file "$ACTIVE_DIR" || true)
     active_stage_id=""
     [ -n "$active_stage_file" ] && active_stage_id=$(basename "$active_stage_file" .md | sed -E 's/^(STAGE-[0-9]+).*/\1/')
     stages_json=()
+    ondisk_ids=" "
     if [ -d "$STAGES_DIR" ]; then
         for s in "${STAGES_DIR}"/STAGE-*.md; do
             [ -f "$s" ] || continue
             sid=$(basename "$s" .md | sed -E 's/^(STAGE-[0-9]+).*/\1/')
+            ondisk_ids="${ondisk_ids}${sid} "
             status=$(get_stage_status "$s"); [ -n "$status" ] || status="?"
             case "$status" in
                 shipped)   bucket=shipped ;;
@@ -91,10 +115,22 @@ if [ "$(has_json_flag "$@")" = 1 ]; then
         done
     fi
     [ "${#stages_json[@]}" -gt 0 ] && stages_arr=$(json_arr "${stages_json[@]}") || stages_arr="[]"
+    # Planned-but-unframed stages from the brief's Stage Plan (no file yet).
+    planned_json=()
+    while IFS='|' read -r pid ptitle; do
+        [ -n "$pid" ] || continue
+        case "$ondisk_ids" in *" $pid "*) continue ;; esac
+        planned_json+=("$(json_obj \
+            "project.stage" "$(json_qs "$pid")" \
+            title "$(json_qs "$ptitle")" \
+            bucket "$(json_qs planned)")")
+    done < <(list_planned_stages)
+    [ "${#planned_json[@]}" -gt 0 ] && planned_arr=$(json_arr "${planned_json[@]}") || planned_arr="[]"
     data=$(json_obj \
         active_project "$(json_qs "$ACTIVE_PROJECT")" \
         active_stage "$([ -n "$active_stage_id" ] && json_qs "$active_stage_id" || printf null)" \
-        stages "$stages_arr")
+        stages "$stages_arr" \
+        planned "$planned_arr")
     json_emit roadmap "$data"
     exit 0
 fi
@@ -113,11 +149,13 @@ if [ -n "$ACTIVE_STAGE_FILE" ]; then
 fi
 
 any_stage=0
+ONDISK_IDS=" "   # space-delimited set of framed stage ids, to skip when listing planned
 for s in "${STAGES_DIR}"/STAGE-*.md; do
     [ -f "$s" ] || continue
     any_stage=1
     sname=$(basename "$s" .md)
     sid=$(echo "$sname" | sed -E 's/^(STAGE-[0-9]+).*/\1/')
+    ONDISK_IDS="${ONDISK_IDS}${sid} "
     status=$(get_stage_status "$s")
 
     # User-facing status bucket. Multiple "active" stages are possible
@@ -175,6 +213,19 @@ for s in "${STAGES_DIR}"/STAGE-*.md; do
             "$sname" "$bucket" "$date_col" "$counts_col"
     fi
 done
+
+# Planned-but-unframed stages from the brief's Stage Plan — the stages the
+# project knows about but has not framed yet (no stage file). Render them as
+# "planned / not yet framed" so the roadmap shows the full known arc for
+# planning, not only the framed stages.
+while IFS='|' read -r pid ptitle; do
+    [ -n "$pid" ] || continue
+    case "$ONDISK_IDS" in *" $pid "*) continue ;; esac   # already rendered from its file
+    any_stage=1
+    printf "  %-36s %-10s %-22s %s\n" \
+        "$pid" "planned" "not yet framed" "${ptitle}"
+done < <(list_planned_stages)
+
 if [ "$any_stage" = "0" ]; then
     echo "  ${DIM}(no stages yet)${RESET}"
 fi
