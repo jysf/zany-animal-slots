@@ -7,7 +7,7 @@
 task:
   id: SPEC-044
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -69,6 +69,30 @@ cost:
         wild-and-whimsical` both printed reports and exited 0. Production-file diff
         guard (`git diff main..HEAD` on engine/machine production files) confirmed
         empty; no new dependency; no new DEC.
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      estimated_usd: null
+      duration_minutes: null
+      recorded_at: 2026-07-05
+      notes: >-
+        Sonnet sub-agent COLD verify (local only, no push/PR/gh/advance-cycle). Full gate
+        green: typecheck/lint/test/build/validate all exit 0 (313 tests, 53 files, incl.
+        the 6 metrics.test.ts cases; validate confirms 44 specs with valid front-matter).
+        Confirmed metrics.ts matches the spec's drop-in algorithm verbatim (seed
+        derivation, spin() call shape, DEFAULT_SEED/DEFAULT_SPINS), full MachineMetrics
+        field set, engine-no-dom import boundary (only ./index + ./rng), not re-exported
+        from src/engine/index.ts. Confirmed no .skip/.only/xit and that the synthetic and
+        pinned-baseline tests genuinely assert the specified exact values. Ran the
+        adversarial guard-mutation per spec Notes: (a) mutated REEL_STRIP in strips.ts
+        (DEER->WOLF) — baseline test failed (rtp 0.1295 -> 0.12541) as required, reverted
+        clean; (b) mutated PAYTABLE.low[2] in paylines.ts (5->50) — baseline test failed
+        (rtp -> 0.30054) as required, reverted clean. Both mutations proved the pinned
+        baseline guards the real outcome-drivers, not a tautology. Confirmed
+        `git diff main..HEAD` on all production engine/machine files and
+        package.json/package-lock.json is EMPTY. `just simulate` and `just simulate
+        wild-and-whimsical` both exit 0 and print reports. Verdict: PASS, 0 defects.
   totals:
     tokens_total: 0
     estimated_usd: 0
