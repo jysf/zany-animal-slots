@@ -55,6 +55,18 @@ cost:
         tuning sweeps + a full pin computation (frozen seeds, representative seeds, metrics
         baseline, synthetic-grid re-evaluations) run via vite-node against the REAL shipped
         buildStrip + engine, so every re-baselined value is a reproduced fact.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      duration_minutes: null   # orchestrator to fill from the Agent result's duration_ms
+      note: >-
+        Build subagent run: applied the pinned DATA (REEL_WEIGHTS/REEL_STRIP/PAYLINES/PAYTABLE),
+        wrote DEC-016, re-baselined the 8 named test files to the spec's exact pins (verified via
+        vite-node before editing tests), plus 4 unlisted fixtures the retune also moved
+        (spin.test.ts strip-length/stops/grid, PaylineMap.test.tsx aria label, paytable.test.ts
+        multipliers, PaytableSheet.test.tsx payout text) — full 54-file/321-test suite green.
+        Orchestrator fills tokens_total/duration_minutes from the Agent result's subagent_tokens.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -298,3 +310,55 @@ then revert. This is the intended-behavior-change analogue of the STAGE-007 guar
 
 **UI preview (orchestrator, at ship):** the paytable's payline map now shows 20 line diagrams,
 and the game visibly pays more often with a reachable jackpot — spot-check via the preview.
+
+## Build Completion
+
+**Applied exactly as pinned.** `REEL_WEIGHTS` (sum 42), the generated `REEL_STRIP` (via
+`buildStrip(SYMBOLS, REEL_WEIGHTS)`), `PAYLINES` (20 lines), and `PAYTABLE` were applied
+byte-for-byte from the spec's Notes. Re-ran the generated strip through vite-node before
+touching any test and it matched the spec's pinned 42-symbol strip exactly, confirming the
+data was applied correctly before re-baselining fixtures against it. Every value in the spec's
+Failing Tests section reproduced exactly once the data was applied (strips, paylines/paytable
+synthetic grids, representative seeds 1/6/68357/2/12345/276/999, and the metrics baseline
+RTP 0.9379 / hit 0.3443 / tierCounts / jackpots 1 / maxWin 3150 / totalReturned 468950).
+
+**Fixtures re-derived beyond the spec's pinned set** (the spec explicitly anticipated this —
+"a synthetic-grid or UI assertion the 20-line change also moved"):
+- `src/engine/spin.test.ts` — `resolveStops`/`resolveGrid` tests reference the strip length
+  (35 → 42) and pin `createRng(12345)`'s stops/grid; re-derived via the deterministic engine:
+  stops `[41, 12, 20, 34, 21]`, grid identical to the new seed-12345 loss grid pinned in
+  `index.test.ts`/`spin-parity.test.ts`.
+- `src/ui/PaylineMap.test.tsx` — "exposes an accessible label per line" asserted on the old
+  `LINE_ARIA['L1']` text ("middle row"); re-derived against the new index-derived label
+  (`Payline 1`), consistent with the Notes' drop-in.
+- `src/ui/paytable.test.ts` — "each tier has its DEC-011 multipliers" pinned the old paytable
+  numbers; re-derived to the DEC-016 numbers (`[10,50,250]` / `[4,14,55]` / `[2,6,18]` /
+  `[1,3,7]`), renamed the test to "DEC-016 multipliers".
+- `src/ui/PaytableSheet.test.tsx` — "shows tier payouts" asserted literal text `/200/` and
+  `/0\.5/` (the old jackpot/low multipliers); re-derived to `/250/` and an exact-match
+  `/^1×$/` (the new low 3-of-a-kind multiplier renders as one `"1×"` text node, so an exact
+  substring match was needed instead of the old loose `/0\.5/` regex).
+
+No other test files needed changes; the full 54-file / 321-test suite is green.
+
+**Reflection:**
+
+1. **What was the hardest part of this build?** Not the data application (that was
+   mechanical — copy the Notes' drop-ins verbatim) but making sure every *unlisted* fixture
+   that the 20-line/retuned-paytable change silently moved actually got found. The spec was
+   explicit that this could happen, but finding all four instances (`spin.test.ts`'s strip-length
+   assumption, `PaylineMap.test.tsx`'s hard-coded aria text, `paytable.test.ts`'s old
+   multipliers, `PaytableSheet.test.tsx`'s literal payout text) required running the full
+   suite (not just the 8 named files) and reading each failure's diff carefully enough to
+   confirm it was a genuine "the retune moved this" case rather than an engine-logic bug I'd
+   introduced.
+2. **What would you do differently next time?** Run the full `just test` once immediately
+   after applying the production data (before touching any of the 8 named test files) to get
+   the complete list of everything the retune touches up front, rather than discovering the
+   4 unlisted failures only after the 8 named files were already green. Same outcome, slightly
+   less efficient path.
+3. **Is there anything in this spec that should inform how future specs are written?** The
+   "list the exact pins, but explicitly flag that unlisted-but-touched fixtures may need
+   re-derivation" pattern worked well — it gave a hard contract to apply mechanically (the 8
+   files) while still licensing the judgment call needed for the rest. Worth keeping as the
+   template for future behavior-changing retune specs.

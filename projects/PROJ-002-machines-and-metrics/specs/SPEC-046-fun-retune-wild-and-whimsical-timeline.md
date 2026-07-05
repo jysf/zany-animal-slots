@@ -18,6 +18,12 @@ Cycle prompts live in `prompts/SPEC-046-<cycle>.md`.
       INTENDED) — every value computed via vite-node against the real buildStrip + engine and
       pinned in the spec. Emits DEC-016 (supersedes DEC-003/011 specifics for W&W). Complete
       drop-in code + all pins in the spec; build prompt written. **[L]**
-- [ ] **build**
+- [x] **build** — completed 2026-07-05 (Sonnet): applied the pinned DATA (REEL_WEIGHTS sum 42,
+      generated REEL_STRIP via buildStrip, 20 PAYLINES, retuned PAYTABLE), wrote DEC-016,
+      re-baselined the 8 named test files to the spec's exact pins + 4 unlisted fixtures the
+      retune also moved (spin.test.ts, PaylineMap.test.tsx, paytable.test.ts,
+      PaytableSheet.test.tsx). Full gate green (54 files / 321 tests); simulator confirms
+      RTP 93.79% / hit 34.43%. No engine-logic file body changed (spin.ts/tiers.ts/rng.ts
+      untouched; evaluatePaylines body unchanged). Local commit only — no push/PR.
 - [ ] **verify**
 - [ ] **ship**

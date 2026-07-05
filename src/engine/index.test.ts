@@ -27,16 +27,16 @@ describe('spin()', () => {
     expect(result.balance).toBe(990);
     expect(result.bet).toBe(10);
     expect(result.grid).toEqual([
-      ['FOX', 'DEER', 'FOX'],
-      ['DEER', 'FOX', 'BEAR'],
-      ['DEER', 'FOX', 'WOLF'],
-      ['FOX', 'BEAR', 'EAGLE'],
-      ['FOX', 'WOLF', 'SQUIRREL'],
+      ['DEER', 'DEER', 'FOX'],
+      ['BEAR', 'FOX', 'SQUIRREL'],
+      ['BEAR', 'OWL', 'BISON'],
+      ['OWL', 'BISON', 'WOLF'],
+      ['OWL', 'BISON', 'WOLF'],
     ]);
   });
 
   it('a small win credits and classifies small', () => {
-    const result = spin({ seed: 12, balance: 1000, bet: 10 });
+    const result = spin({ seed: 1, balance: 1000, bet: 10 });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -49,27 +49,27 @@ describe('spin()', () => {
   });
 
   it('a big multi-line win credits and classifies big', () => {
-    const result = spin({ seed: 276, balance: 1000, bet: 10 });
+    const result = spin({ seed: 6, balance: 1000, bet: 10 });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.totalWin).toBe(55);
+    expect(result.totalWin).toBe(70);
     expect(result.tier).toBe('big');
-    expect(result.balance).toBe(1045);
-    expect(result.lineWins).toHaveLength(3);
+    expect(result.balance).toBe(1060);
+    expect(result.lineWins).toHaveLength(1);
   });
 
-  it('a jackpot spin credits 2000 and classifies jackpot', () => {
-    const result = spin({ seed: 407947, balance: 1000, bet: 10 });
+  it('a jackpot spin credits 2500 and classifies jackpot', () => {
+    const result = spin({ seed: 68357, balance: 1000, bet: 10 });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.totalWin).toBe(2000);
+    expect(result.totalWin).toBe(2500);
     expect(result.tier).toBe('jackpot');
-    // balance = 1000 − 10 + 2000 = 2990
-    expect(result.balance).toBe(2990);
+    // balance = 1000 − 10 + 2500 = 3490
+    expect(result.balance).toBe(3490);
   });
 
   it('an unaffordable spin returns insufficient-balance without spinning', () => {
@@ -93,14 +93,14 @@ describe('spin()', () => {
   });
 
   it('the balance reflects debit then credit', () => {
-    // seed 276, balance 1000, bet 10 → totalWin 55
-    // Expected: 1000 − 10 + 55 = 1045 (debit first, then credit the win)
+    // seed 276, balance 1000, bet 10 → totalWin 40 (DEC-016 retune re-baseline)
+    // Expected: 1000 − 10 + 40 = 1030 (debit first, then credit the win)
     const result = spin({ seed: 276, balance: 1000, bet: 10 });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.balance).toBe(1045);
+    expect(result.balance).toBe(1030);
   });
 });
 
@@ -112,7 +112,7 @@ describe('re-exports the public surface the UI needs', () => {
   });
 
   it('PAYLINES.length and SYMBOLS.length', () => {
-    expect(PAYLINES).toHaveLength(5);
+    expect(PAYLINES).toHaveLength(20);
     expect(SYMBOLS).toHaveLength(8);
   });
 

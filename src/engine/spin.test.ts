@@ -12,7 +12,7 @@ describe('resolveStops', () => {
     for (const stop of stops) {
       expect(Number.isInteger(stop)).toBe(true);
       expect(stop).toBeGreaterThanOrEqual(0);
-      expect(stop).toBeLessThan(35);
+      expect(stop).toBeLessThan(42);
     }
   });
 
@@ -28,9 +28,11 @@ describe('resolveStops', () => {
   });
 
   it('is deterministic and matches the pinned seed', () => {
+    // Re-baselined (SPEC-046 / DEC-016): the strip is now 42-long (was 35), so the
+    // same RNG draws land on different (still in-range) stop indices.
     const rng = createRng(12345);
     const stops = resolveStops(rng, WILD_AND_WHIMSICAL_MATH.strips);
-    expect(stops).toEqual([34, 10, 16, 28, 17]);
+    expect(stops).toEqual([41, 12, 20, 34, 21]);
   });
 });
 
@@ -54,13 +56,14 @@ describe('resolveGrid', () => {
   });
 
   it('matches the pinned grid for seed 12345', () => {
+    // Re-baselined (SPEC-046 / DEC-016): same seed, new (tuned) strip → new grid.
     const grid = resolveGrid(createRng(12345), WILD_AND_WHIMSICAL_MATH);
     expect(grid).toEqual([
-      ['FOX', 'DEER', 'FOX'],
-      ['DEER', 'FOX', 'BEAR'],
-      ['DEER', 'FOX', 'WOLF'],
-      ['FOX', 'BEAR', 'EAGLE'],
-      ['FOX', 'WOLF', 'SQUIRREL'],
+      ['DEER', 'DEER', 'FOX'],
+      ['BEAR', 'FOX', 'SQUIRREL'],
+      ['BEAR', 'OWL', 'BISON'],
+      ['OWL', 'BISON', 'WOLF'],
+      ['OWL', 'BISON', 'WOLF'],
     ]);
   });
 

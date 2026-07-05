@@ -12,8 +12,8 @@ import {
 import { WILD_AND_WHIMSICAL_MATH } from './machine';
 
 describe('PAYLINES', () => {
-  it('PAYLINES matches DEC-003', () => {
-    expect(PAYLINES).toHaveLength(5);
+  it('PAYLINES matches DEC-016 (20 lines; L1-L5 unchanged from DEC-003)', () => {
+    expect(PAYLINES).toHaveLength(20);
     expect(PAYLINES[0]).toEqual({ id: 'L1', rows: [1, 1, 1, 1, 1] });
     expect(PAYLINES[1]).toEqual({ id: 'L2', rows: [0, 0, 0, 0, 0] });
     expect(PAYLINES[2]).toEqual({ id: 'L3', rows: [2, 2, 2, 2, 2] });
@@ -23,12 +23,12 @@ describe('PAYLINES', () => {
 });
 
 describe('PAYTABLE', () => {
-  it('PAYTABLE matches DEC-011', () => {
+  it('PAYTABLE matches DEC-016', () => {
     expect(PAYTABLE).toEqual({
-      low:     [0.5, 2,   5],
-      mid:     [1,   4,  12],
-      high:    [3,  10,  40],
-      jackpot: [8,  40, 200],
+      low:     [1,  3,   7],
+      mid:     [2,  6,  18],
+      high:    [4, 14,  55],
+      jackpot: [10, 50, 250],
     });
   });
 });
@@ -88,14 +88,14 @@ describe('evaluatePaylines', () => {
       ['EAGLE',    'FOX',  'OWL'],       // reel 4
     ];
     const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
-    expect(result.totalWin).toBe(10);
+    expect(result.totalWin).toBe(20);
     expect(result.lineWins).toHaveLength(1);
     expect(result.lineWins[0]).toEqual({
       line: 'L1',
       symbol: 'BEAR',
       count: 3,
-      multiplier: 1,
-      amount: 10,
+      multiplier: 2,
+      amount: 20,
     });
   });
 
@@ -109,19 +109,20 @@ describe('evaluatePaylines', () => {
       ['DEER', 'BEAR',   'SQUIRREL'],
     ];
     const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
-    expect(result.totalWin).toBe(50);
+    expect(result.totalWin).toBe(70);
     expect(result.lineWins).toHaveLength(1);
     expect(result.lineWins[0]).toEqual({
       line: 'L2',
       symbol: 'DEER',
       count: 5,
-      multiplier: 5,
-      amount: 50,
+      multiplier: 7,
+      amount: 70,
     });
   });
 
   it('scores a 4-of-a-kind high on L1', () => {
     // L1 = middle row [1,1,1,1,1] → row 1 = BISON, BISON, BISON, BISON, DEER
+    // With 20 lines (DEC-016), L12 [0,1,1,1,0] also reads BISON×4 off the same cells.
     const grid: Grid = [
       ['BISON',    'BISON', 'DEER'],   // reel 0 row1 = BISON
       ['FOX',      'BISON', 'OWL'],    // reel 1 row1 = BISON
@@ -130,15 +131,17 @@ describe('evaluatePaylines', () => {
       ['EAGLE',    'DEER',  'OWL'],    // reel 4 row1 = DEER  (run stops at 4)
     ];
     const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
-    expect(result.totalWin).toBe(100);
-    expect(result.lineWins).toHaveLength(1);
-    expect(result.lineWins[0]).toEqual({
-      line: 'L1',
-      symbol: 'BISON',
-      count: 4,
-      multiplier: 10,
-      amount: 100,
-    });
+    expect(result.totalWin).toBe(280);
+    expect(result.lineWins).toHaveLength(2);
+    for (const win of result.lineWins) {
+      expect(win).toMatchObject({
+        symbol: 'BISON',
+        count: 4,
+        multiplier: 14,
+        amount: 140,
+      });
+    }
+    expect(result.lineWins.map((w) => w.line).sort()).toEqual(['L1', 'L12']);
   });
 
   it('five Wolves pays the jackpot amount on every line', () => {
@@ -151,15 +154,15 @@ describe('evaluatePaylines', () => {
       ['WOLF', 'WOLF', 'WOLF'],
     ];
     const result = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
-    // 5 lines × floor(200 × 10) = 5 × 2000 = 10000
-    expect(result.totalWin).toBe(10000);
-    expect(result.lineWins).toHaveLength(5);
+    // 20 lines × floor(250 × 10) = 20 × 2500 = 50000
+    expect(result.totalWin).toBe(50000);
+    expect(result.lineWins).toHaveLength(20);
     for (const win of result.lineWins) {
       expect(win).toMatchObject({
         symbol: 'WOLF',
         count: 5,
-        multiplier: 200,
-        amount: 2000,
+        multiplier: 250,
+        amount: 2500,
       });
     }
   });
@@ -174,18 +177,19 @@ describe('evaluatePaylines', () => {
       ['OWL',      'FOX',  'BISON'],     // reel 3
       ['DEER',     'EAGLE','SQUIRREL'],  // reel 4
     ];
-    // totalBet 10: L1 mid 3 = floor(1 × 10) = 10; L3 low 3 = floor(0.5 × 10) = 5; total = 15
+    // totalBet 10: L1 mid 3 = floor(2 × 10) = 20; L3 low 3 = floor(1 × 10) = 10; total = 30
     const r10 = evaluatePaylines(grid, 10, WILD_AND_WHIMSICAL_MATH);
-    expect(r10.totalWin).toBe(15);
+    expect(r10.totalWin).toBe(30);
 
-    // totalBet 25: L1 mid 3 = floor(1 × 25) = 25; L3 low 3 = floor(0.5 × 25) = 12; total = 37
+    // totalBet 25: L1 mid 3 = floor(2 × 25) = 50; L3 low 3 = floor(1 × 25) = 25; total = 75
     const r25 = evaluatePaylines(grid, 25, WILD_AND_WHIMSICAL_MATH);
-    expect(r25.totalWin).toBe(37);
+    expect(r25.totalWin).toBe(75);
   });
 
   it('floors fractional payouts', () => {
-    // L2 top row [0,0,0,0,0] = DEER, DEER, DEER, FOX, EAGLE → 3-of-a-kind low
-    // floor(0.5 × 25) = floor(12.5) = 12
+    // L2 top row [0,0,0,0,0] = DEER, DEER, DEER, FOX, EAGLE → 3-of-a-kind low.
+    // DEC-016's low multipliers are now integers (1/3/7), so this no longer exercises a
+    // fractional floor — the amount is the exact integer product: floor(1 × 25) = 25.
     const grid: Grid = [
       ['DEER',   'BEAR',  'SQUIRREL'],
       ['DEER',   'EAGLE', 'FOX'],
@@ -195,7 +199,7 @@ describe('evaluatePaylines', () => {
     ];
     const result = evaluatePaylines(grid, 25, WILD_AND_WHIMSICAL_MATH);
     expect(result.lineWins).toHaveLength(1);
-    expect(result.lineWins[0].amount).toBe(12);
-    expect(result.totalWin).toBe(12);
+    expect(result.lineWins[0].amount).toBe(25);
+    expect(result.totalWin).toBe(25);
   });
 });

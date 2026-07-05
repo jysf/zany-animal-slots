@@ -1,5 +1,6 @@
 // PaylineMap tests — the diagrams must stay in lockstep with the engine's
-// PAYLINES (they are the source of truth for line shapes, DEC-003).
+// PAYLINES (they are the source of truth for line shapes, DEC-003; DEC-016 widens
+// the set to 20 lines, so labels are now derived from index, not per-line names).
 import { render, screen } from '@testing-library/react';
 import PaylineMap from './PaylineMap';
 import { PAYLINES } from '../engine/index';
@@ -27,9 +28,10 @@ describe('PaylineMap', () => {
 
   it('exposes an accessible label per line', () => {
     render(<PaylineMap />);
-    // Every line renders an SVG with role=img and a descriptive name.
+    // Every line renders an SVG with role=img and a descriptive name — derived
+    // from the line's index (`Payline N`), since 20 lines can't have per-line names.
     const imgs = screen.getAllByRole('img');
     expect(imgs.length).toBeGreaterThanOrEqual(PAYLINES.length);
-    expect(imgs.some((el) => /middle row/i.test(el.getAttribute('aria-label') ?? ''))).toBe(true);
+    expect(imgs.some((el) => /payline 1/i.test(el.getAttribute('aria-label') ?? ''))).toBe(true);
   });
 });

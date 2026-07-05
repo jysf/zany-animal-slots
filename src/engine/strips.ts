@@ -1,6 +1,7 @@
 // Symbol vocabulary and weighted reel strips for the slot engine.
-// DEC-006: 8 symbols + tiers; DEC-011: reel weights + strip composition.
+// DEC-006: 8 symbols + tiers; DEC-016: retuned reel weights (supersedes DEC-011 for W&W).
 // No React/DOM imports; no Math.random() — pure data + one helper.
+import { buildStrip } from './stripBuilder';
 
 /** The 8 symbol IDs in tier order (Low → Jackpot), per DEC-006. */
 export const SYMBOLS = [
@@ -39,34 +40,29 @@ export const SYMBOL_TIER: Record<SymbolId, Tier> = {
 };
 
 /**
- * Relative appearance count per symbol on each reel (DEC-011).
- * Sum equals 35 (the reel-strip length).
+ * Relative appearance count per symbol on each reel (DEC-016 retune —
+ * supersedes DEC-011's weights for W&W). Sum equals 42 (the reel-strip length).
  */
 export const REEL_WEIGHTS: Record<SymbolId, number> = {
-  DEER: 7,
-  FOX: 7,
-  SQUIRREL: 6,
-  BEAR: 4,
+  DEER: 9,
+  FOX: 8,
+  SQUIRREL: 7,
+  BEAR: 5,
   EAGLE: 4,
-  OWL: 4,
-  BISON: 2,
-  WOLF: 1,
+  OWL: 3,
+  BISON: 3,
+  WOLF: 3,
 };
 
 /** Number of reels in the game. */
 export const REEL_COUNT = 5;
 
 /**
- * Canonical reel strip — a well-spread arrangement of DEC-011 weights
- * with no adjacent duplicates, pinned to lock spin reproducibility (SPEC-007).
- * Length: 35 (sum of REEL_WEIGHTS).
+ * Canonical reel strip — GENERATED from REEL_WEIGHTS via SPEC-045's `buildStrip`
+ * (DEC-016; the retune's live tuning knob — a hand-authored strip made weights inert).
+ * Length: 42 (sum of REEL_WEIGHTS).
  */
-export const REEL_STRIP = [
-  'DEER', 'FOX', 'SQUIRREL', 'BEAR', 'EAGLE', 'OWL', 'DEER', 'FOX', 'SQUIRREL', 'BISON',
-  'DEER', 'FOX', 'BEAR', 'EAGLE', 'OWL', 'SQUIRREL', 'DEER', 'FOX', 'WOLF', 'SQUIRREL',
-  'BEAR', 'EAGLE', 'OWL', 'DEER', 'FOX', 'SQUIRREL', 'BISON', 'DEER', 'FOX', 'BEAR',
-  'EAGLE', 'OWL', 'SQUIRREL', 'DEER', 'FOX',
-] as const satisfies readonly SymbolId[];
+export const REEL_STRIP = buildStrip(SYMBOLS, REEL_WEIGHTS);
 
 /**
  * All five reel strips — identical composition for v1 (DEC-011 symmetric strip).

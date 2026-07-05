@@ -1,20 +1,22 @@
 // Hook tests for useSlotMachine (SPEC-013, extended SPEC-014, SPEC-015, SPEC-016, SPEC-017, SPEC-021).
 // Uses renderHook + act. Outcomes are pinned via injected nextSeed (DEC-002).
-// Fixtures from SPEC-011: seed 276 → big win, balance 1045, 3 line wins;
-//                          seed 12345 → no win, balance 990 at bet 10;
-//                                       balance 975 at bet 25.
+// SPEC-046 (DEC-016) RE-BASELINES these fixtures to the tuned machine:
+//   seed 276 → now a SMALL win (was big), balance 1030, 3 line wins;
+//   seed 12345 → still no win, balance 990 at bet 10; balance 975 at bet 25 (data-independent);
+//   the jackpot seed moves from 407947 (now a loss under the tuned machine) to 68357 →
+//     jackpot, totalWin 2500, balance 2990 + 500 (see per-test math) → 3490.
 //
 // SPEC-016: spin is now timed. All tests that assert on the post-spin state
 // must advance fake timers by SPIN_DURATION_MS inside act() so the reveal
 // callback fires before the assertion.
 //
 // SPEC-017: auto-spin. Seeds: 12345 → losing (−bet each spin);
-//           407947 → jackpot (five Wolves on L5; at bet 10: totalWin 2000,
-//           balance 2990, tier 'jackpot').
+//           68357 → jackpot (five Wolves on L11; at bet 10: totalWin 2500,
+//           balance 3490, tier 'jackpot').
 //           One auto iteration = SPIN_DURATION_MS + AUTO_SPIN_DELAY_MS.
 //
 // SPEC-021: celebration tests. celebration starts null; set on a win; null after a loss;
-//           jackpot seed 407947 → tier 'jackpot'; id strictly increases across wins;
+//           jackpot seed 68357 → tier 'jackpot'; id strictly increases across wins;
 //           reset() clears it.
 import { renderHook, act } from '@testing-library/react';
 import { useSlotMachine, SPIN_DURATION_MS, AUTO_SPIN_COUNT, AUTO_SPIN_DELAY_MS } from './useSlotMachine';
@@ -54,8 +56,8 @@ describe('useSlotMachine', () => {
     act(() => {
       vi.advanceTimersByTime(SPIN_DURATION_MS);
     });
-    expect(result.current.balance).toBe(1045);
-    expect(result.current.tier).toBe('big');
+    expect(result.current.balance).toBe(1030);
+    expect(result.current.tier).toBe('small');
     expect(result.current.lineWins).toHaveLength(3);
     expect(result.current.status).toBe('resolved');
     expect(result.current.grid).not.toEqual(INITIAL_GRID);
@@ -203,16 +205,16 @@ describe('useSlotMachine', () => {
 
   it('defaults to the active machine and preserves the frozen seeds', () => {
     // No `machine` opt — the hook falls back to getActiveMachine(). Re-confirms the
-    // 407947 jackpot seed still resolves through the default machine (SPEC-042 parity).
+    // 68357 jackpot seed still resolves through the default machine (SPEC-042 parity).
     const { result } = renderHook(() =>
-      useSlotMachine({ nextSeed: () => 407947 }),
+      useSlotMachine({ nextSeed: () => 68357 }),
     );
     expect(result.current.machine).toBe(WILD_AND_WHIMSICAL);
     act(() => { result.current.spin(); });
     act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
-    expect(result.current.lastWin).toBe(2000);
+    expect(result.current.lastWin).toBe(2500);
     expect(result.current.tier).toBe('jackpot');
-    expect(result.current.balance).toBe(2990);
+    expect(result.current.balance).toBe(3490);
   });
 
   // ── SPEC-016: timed spin flow ───────────────────────────────────────────────
@@ -244,8 +246,8 @@ describe('useSlotMachine', () => {
     });
     expect(result.current.status).toBe('resolved');
     expect(result.current.isSpinning).toBe(false);
-    expect(result.current.balance).toBe(1045);
-    expect(result.current.tier).toBe('big');
+    expect(result.current.balance).toBe(1030);
+    expect(result.current.tier).toBe('small');
     expect(result.current.grid).not.toEqual(INITIAL_GRID);
   });
 
@@ -329,9 +331,9 @@ describe('useSlotMachine', () => {
   });
 
   it('auto-spin stops immediately on a jackpot', () => {
-    // seed 407947 → jackpot (five Wolves on L5; at bet 10: totalWin 2000, balance 2990).
+    // seed 68357 → jackpot (five Wolves on L11; at bet 10: totalWin 2500, balance 3490).
     const { result } = renderHook(() =>
-      useSlotMachine({ nextSeed: () => 407947 }),
+      useSlotMachine({ nextSeed: () => 68357 }),
     );
     act(() => {
       result.current.toggleAutoSpin();
@@ -344,7 +346,7 @@ describe('useSlotMachine', () => {
 
     expect(result.current.autoSpinning).toBe(false);
     expect(result.current.tier).toBe('jackpot');
-    expect(result.current.balance).toBe(2990);
+    expect(result.current.balance).toBe(3490);
 
     // Capture balance after the jackpot stop; further timer advances must not
     // trigger more spins.
@@ -429,13 +431,13 @@ describe('useSlotMachine', () => {
   });
 
   it('lastWin reflects a winning spin', () => {
-    // seed 276 → big win, totalWin 55 (balance 1000 − 10 + 55 = 1045).
+    // seed 276 → small win, totalWin 40 (balance 1000 − 10 + 40 = 1030).
     const { result } = renderHook(() =>
       useSlotMachine({ nextSeed: () => 276 }),
     );
     act(() => { result.current.spin(); });
     act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
-    expect(result.current.lastWin).toBe(55);
+    expect(result.current.lastWin).toBe(40);
   });
 
   it('lastWin is 0 after a losing spin', () => {
@@ -455,7 +457,7 @@ describe('useSlotMachine', () => {
     );
     act(() => { result.current.spin(); });
     act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
-    expect(result.current.lastWin).toBe(55);
+    expect(result.current.lastWin).toBe(40);
 
     act(() => { result.current.reset(); });
     expect(result.current.lastWin).toBe(0);
@@ -469,15 +471,15 @@ describe('useSlotMachine', () => {
   });
 
   it('celebration is set on a winning spin', () => {
-    // seed 276 → big win, totalWin 55, 3 line wins.
+    // seed 276 → small win, totalWin 40, 3 line wins.
     const { result } = renderHook(() =>
       useSlotMachine({ nextSeed: () => 276 }),
     );
     act(() => { result.current.spin(); });
     act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
     expect(result.current.celebration).not.toBeNull();
-    expect(result.current.celebration?.tier).toBe('big');
-    expect(result.current.celebration?.totalWin).toBe(55);
+    expect(result.current.celebration?.tier).toBe('small');
+    expect(result.current.celebration?.totalWin).toBe(40);
     expect(result.current.celebration?.lineWins).toHaveLength(3);
   });
 
@@ -492,14 +494,14 @@ describe('useSlotMachine', () => {
   });
 
   it('celebration carries the jackpot tier', () => {
-    // seed 407947 → jackpot; at bet 10: totalWin 2000.
+    // seed 68357 → jackpot; at bet 10: totalWin 2500.
     const { result } = renderHook(() =>
-      useSlotMachine({ nextSeed: () => 407947 }),
+      useSlotMachine({ nextSeed: () => 68357 }),
     );
     act(() => { result.current.spin(); });
     act(() => { vi.advanceTimersByTime(SPIN_DURATION_MS); });
     expect(result.current.celebration?.tier).toBe('jackpot');
-    expect(result.current.celebration?.totalWin).toBe(2000);
+    expect(result.current.celebration?.totalWin).toBe(2500);
   });
 
   it('celebration id strictly increases across wins', () => {
