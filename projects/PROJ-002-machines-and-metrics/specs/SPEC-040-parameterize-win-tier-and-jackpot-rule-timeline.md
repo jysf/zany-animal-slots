@@ -21,8 +21,15 @@ Cycle prompts live in `prompts/SPEC-040-<cycle>.md`.
       engine diff guard empty; WOLF/5-boundary grep guard empty; spin-parity.test.ts green
       unchanged; all pre-existing tiers.test.ts values byte-identical. Branch
       feat/spec-040-parameterize-tier-jackpot, committed locally (no push/PR).
-- [ ] **verify** — Sonnet sub-agent (cold review): full gate + AC-by-AC + frozen-seed tier
-      parity + variant-machine-guard-is-real + no-hard-coded-WOLF/5 + engine-diff-scope +
-      DEC-001 checks.
+- [x] **verify** — completed 2026-07-04 (Sonnet sub-agent, cold review): PASS, 0 defects. Full
+      gate green (typecheck/lint/test [294 passed, tiers.test.ts 12 + spin-parity.test.ts 5
+      both green]/build/validate). Confirmed genuinely machine-driven via an adversarial mutation
+      test (temporarily hard-coded isJackpot/classifyWin behind the same signature — both new
+      SPEC-040 variant assertions failed as expected, proving the test block is not vacuous).
+      spin-parity.test.ts diff vs main is empty; tiers.test.ts diff shows only the import +
+      appended machine args + new describe block, zero changed expected values. 5-file engine
+      freeze diff (spin/paylines/strips/balance/rng) empty; index.ts diff is only the
+      classifyWin one-liner. Grep guard clean; type-only import confirmed; no dep changes;
+      useSlotMachine.ts untouched (still `engineSpin({ seed, balance, bet })`).
 - [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
       archive; update STAGE-007 backlog line + count.
