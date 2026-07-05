@@ -33,5 +33,8 @@ Cycle prompts live in `prompts/SPEC-038-<cycle>.md`.
       ./paylines, ./balance; engine-boundary.test.ts passes; no import cycle — ui/reels/
       symbols.ts does not import machines); no new dependency; no UI/hook/component
       changes; out-of-scope list clean.
-- [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
-      archive; update STAGE-007 backlog line + count.
+- [x] **ship** — completed 2026-07-04 (Opus): squash-merged PR #46 (CI CLEAN — cost-capture,
+      app-checks, supply-chain, Workers build all green), cost totals (136772 tok / $0.90 /
+      5 sessions), ship reflection, archived. First STAGE-007 spec shipped (1/6); the
+      Machine type + default machine "Wild & Whimsical" now live on main, no engine
+      signature changes. SPEC-039 (parameterize resolveGrid + evaluatePaylines) is next.
