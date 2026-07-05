@@ -36,5 +36,10 @@ Cycle prompts live in `prompts/SPEC-042-<cycle>.md`.
       files; no selector/persistence/2nd machine/new dependency/App.tsx change; bet-stepping +
       paytable math source still on engine constants as scoped; engine-boundary.test.ts passed;
       no re-render/reset churn risk (getActiveMachine() is a stable module-const reference).
-- [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, **preview play check** (UI
-      spec), cost totals, bookkeeping, archive; update STAGE-007 backlog line + count.
+- [x] **ship** — completed 2026-07-04 (Opus): squash-merged PR #52 (CI CLEAN — all 7 checks
+      SUCCESS). **Preview play check** (UI spec): started the dev server, spun — balance
+      initialized to 1000 from machine.math.startingBalance, a win of 10 registered, balance
+      settled to 1000 (1000−10+10), no console errors — the machine-threaded hook drives the game
+      live. Cost totals (200069 tok / $1.32 / 5 sessions), ship reflection, archived. Fifth
+      STAGE-007 spec shipped (5/6) — config-driven loop closed. Only SPEC-043 (parity contract
+      test) remains before Stage Ship.
