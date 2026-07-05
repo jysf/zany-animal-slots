@@ -16,10 +16,26 @@ Cycle prompts live in `prompts/SPEC-041-<cycle>.md`.
       components render the passed map. **Scope decision: per-machine theme + audio DEFERRED to
       STAGE-008** (invasive runtime wiring, no payoff until a distinct machine exists) —
       recorded in the STAGE-007 Design Notes + brief STAGE-008 line. Build prompt written. No new DEC.
-- [ ] **build** — Sonnet sub-agent (local only): apply the drop-in prop/param threading + test
-      updates; keep every rendered expectation identical; src/engine diff empty; no theme/audio.
-- [ ] **verify** — Sonnet sub-agent (cold review): full gate + AC-by-AC + visual-parity (no
-      changed rendered expectations) + supplied-map-guard-is-real + no-SYMBOL_DISPLAY-in-consumers
-      + engine-untouched + no-theme/audio-leak checks.
+- [x] **build** — completed 2026-07-04 (Sonnet, local only, branch
+      `feat/spec-041-presentation-symbol-display`): applied the drop-in prop/param threading
+      exactly as specified — `SymbolDisplay` type in `types.ts`; `ReelGrid` takes a
+      `symbolDisplay` prop and drops the `SYMBOL_DISPLAY` import; `Game.tsx` supplies
+      `WILD_AND_WHIMSICAL.presentation.symbolDisplay`; `paytableRows(symbolDisplay)` param;
+      `PaytableSheet.tsx` supplies the same map. Updated `ReelGrid.test.tsx` (all 11 call
+      sites + 1 new supplied-map case) and `paytable.test.ts` (all 4 call sites + 1 new
+      supplied-map case); `PaytableSheet.test.tsx`/`Game.test.tsx` needed no changes. Every
+      pre-existing rendered expectation stayed byte-identical. Full gate green (typecheck,
+      lint, 296/296 tests across 50 files, build); `just validate` passes; `src/engine` diff
+      empty; `SYMBOL_DISPLAY` grep in the two consumers empty; `symbols.ts` still exports it;
+      no theme/audio/tokens.css touched; no new dep; no new DEC. Committed locally, not pushed.
+- [x] **verify** — completed 2026-07-04 (Sonnet sub-agent, cold review): PASS, 0 defects. Full
+      gate green (typecheck/lint/test 296/296 across 50 files/build/validate); visual-parity
+      diff is additive-only (comments + `symbolDisplay=…` call-site args + 2 new supplied-map
+      cases, zero changed pre-existing assertions); supplied-map guard confirmed real by
+      adversarially hard-coding `SYMBOL_DISPLAY` back into ReelGrid.tsx/paytable.ts — both new
+      tests failed (2 failed/17 passed) as expected, then restored to green; all 7 ACs PASS;
+      no `SYMBOL_DISPLAY` in consumers, `symbols.ts` still exports it; `src/engine` diff empty;
+      tokens.css/audioEngine/mixer/registry/useSlotMachine untouched; no theme/audio fields
+      added; no new dep; `decisions-audit` clean (only pre-existing unrelated scope warnings).
 - [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, **preview visual check** (UI
       spec), cost totals, bookkeeping, archive; update STAGE-007 backlog line + count.

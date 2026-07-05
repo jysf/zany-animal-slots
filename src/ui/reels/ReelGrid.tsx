@@ -5,9 +5,11 @@
 // animation delays left→right (the reel-stop bounce cascades column by column).
 // SPEC-018: accepts lineWins; adds .reel__cell--win to winning cells when not
 // spinning. While spinning the highlight is suppressed so no stale win shows.
+// SPEC-041: reads symbolDisplay from a prop (the machine's presentation slice)
+// instead of importing the module-level emoji/label map from ./symbols.
 // Pure function of its props; no internal state.
 import type { Grid, LineWin } from '../../engine/index';
-import { SYMBOL_DISPLAY } from './symbols';
+import type { SymbolDisplay } from '../../machines/types';
 import { winningCellKeys } from './winningCells';
 import './reels.css';
 
@@ -21,9 +23,11 @@ interface Props {
   /** Key from celebration.id; when non-null, paw overlays render on winning cells.
    *  A new id value remounts the paw spans so the pop-in animation replays (SPEC-023). */
   trailKey?: number | null;
+  /** Per-symbol emoji + label map, sourced from the active machine's presentation slice (SPEC-041). */
+  symbolDisplay: SymbolDisplay;
 }
 
-export default function ReelGrid({ grid, spinning = false, lineWins = [], trailKey }: Props) {
+export default function ReelGrid({ grid, spinning = false, lineWins = [], trailKey, symbolDisplay }: Props) {
   // Suppress the highlight while spinning so a stale win doesn't flash mid-spin.
   const winKeys = spinning ? EMPTY : winningCellKeys(lineWins);
 
@@ -37,7 +41,7 @@ export default function ReelGrid({ grid, spinning = false, lineWins = [], trailK
           style={{ ['--reel-index' as string]: reelIndex }}
         >
           {cells.map((symbolId, rowIndex) => {
-            const { emoji, label } = SYMBOL_DISPLAY[symbolId];
+            const { emoji, label } = symbolDisplay[symbolId];
             const isWin = winKeys.has(`${reelIndex}:${rowIndex}`);
             return (
               <span

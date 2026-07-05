@@ -60,10 +60,34 @@ cost:
       duration_minutes: 40
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (first UI-touching STAGE-007 spec — thread symbolDisplay from the machine's presentation slice into ReelGrid + paytable via props/params, sourced from the default machine; extract a SymbolDisplay type; update component tests; visual parity + a preview check at ship. Included the scope decision to defer per-machine theme + audio to STAGE-008 — recorded in the STAGE-007 Design Notes + brief STAGE-008 line)."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 110357
+      estimated_usd: 0.73
+      duration_minutes: 7.2
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens; local-only build sub-agent: applied the drop-in prop/param threading exactly as specified (SymbolDisplay type extraction, ReelGrid symbolDisplay prop, Game/PaytableSheet sourcing WILD_AND_WHIMSICAL, paytableRows(symbolDisplay) param); updated ReelGrid.test.tsx (all 11 render() call sites + 1 new supplied-map case) and paytable.test.ts (all 4 call sites + 1 new supplied-map case); PaytableSheet.test.tsx/Game.test.tsx needed no changes (they exercise the components without asserting on ReelGrid/paytableRows call sites directly). Full gate green (typecheck/lint/test 296 passed/build); src/engine diff empty; SYMBOL_DISPLAY grep in the two consumers empty (reworded two explanatory comments that had referenced the old name so the literal grep matches nothing); symbols.ts still exports SYMBOL_DISPLAY; no theme/audio/tokens.css touched; no new dependency; no new DEC."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 85985
+      estimated_usd: 0.57
+      duration_minutes: 10.8
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens; cold, independent verify sub-agent on feat/spec-041-presentation-symbol-display: re-ran full gate (typecheck/lint/test 296/296 passed across 50 files/build) + just validate + just decisions-audit (0 structural errors, only pre-existing unrelated scope warnings, no new drift) — all green. Confirmed git diff main..HEAD -- src/ui/reels/ReelGrid.test.tsx and src/ui/paytable.test.ts is additive-only: added WILD_AND_WHIMSICAL import + DEFAULT_DISPLAY const, symbolDisplay=DEFAULT_DISPLAY appended to every pre-existing call site, and exactly one new 'supplied map' it() case per file — zero changed pre-existing assertion values. PaytableSheet.test.tsx and Game.test.tsx diffs vs main are empty. Adversarially proved the supplied-map guard is real: temporarily reverted ReelGrid.tsx and paytable.ts to read the module-level SYMBOL_DISPLAY import directly (ignoring the prop/param), re-ran just those two test files, and got 2 failed/17 passed — exactly the two new SPEC-041 cases failed, confirming they are not vacuously true against a hard-coded import; restored both files afterward (git status clean, gate re-confirmed green). Walked all 7 acceptance criteria PASS with file:line citations (types.ts:7,10; ReelGrid.tsx:12,27,30,44; Game.tsx:15,35; paytable.ts:9,40,47; PaytableSheet.tsx:10,45). Confirmed grep -rn SYMBOL_DISPLAY in ReelGrid.tsx/paytable.ts is empty, symbols.ts:6 still exports SYMBOL_DISPLAY, wildAndWhimsical.ts references it directly (identity parity). Confirmed src/engine diff empty; tokens.css/audioEngine.ts/mixer.ts/registry/useSlotMachine diffs all empty; no theme/audio fields added to MachinePresentation; package.json/lockfile unchanged. Verdict: PASS, 0 defects."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      recorded_at: 2026-07-04
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate reconcile + preview visual check [UI spec] + PR + CI-poll + squash-merge + cost totals + STAGE-007 bookkeeping + archive)."
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 196342
+    estimated_usd: 1.30
+    session_count: 5
 ---
 
 # SPEC-041: presentation symbol display per machine
@@ -277,28 +301,42 @@ expectations (that identity is the visual-parity proof); their call sites gain t
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+- **Branch:** `feat/spec-041-presentation-symbol-display`
+- **PR (if applicable):** not opened (local-only build cycle; orchestrator handles PR/ship)
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none — DEC-015 already covers this wiring
 - **Deviations from spec:**
-  - [list]
+  - Reworded two explanatory code comments (in `ReelGrid.tsx` and `paytable.ts`) that
+    referenced the literal string `SYMBOL_DISPLAY` when explaining what the code no longer
+    imports. The hard constraint's grep checks for that literal string with no code/comment
+    distinction, so the comments now say "the module-level emoji/label map" instead. No
+    functional change — purely to satisfy the literal grep constraint.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None beyond what the spec already defers (SPEC-042 registry/hook threading;
+    STAGE-008 per-machine theme + audio).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing substantive. The spec's drop-in code snippets and file-by-file Notes matched
+   the actual source almost verbatim, so this was closer to transcription than design work.
+   The only judgment call was whether `PaytableSheet.test.tsx`/`Game.test.tsx` needed edits —
+   the spec said "if it renders ReelGrid" / call sites, and on inspection neither test
+   asserts against `ReelGrid`/`paytableRows` call arguments directly (they exercise the
+   parent components end-to-end), so no changes were needed there.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — The hard-constraint grep (`grep -rn 'SYMBOL_DISPLAY' ...` must find nothing) doesn't
+   distinguish code from comments. My first pass left two comments mentioning the old name
+   to explain the change, which technically failed the literal grep even though no import/
+   usage remained. Worth a one-line clarification in future specs: "the grep is literal —
+   don't use the old identifier name even in comments."
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Grep for the banned identifier in my own new comments before running the gate, not
+   after — would have saved one extra edit-and-rerun cycle.
 
 ---
 
@@ -308,10 +346,29 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Little. The scope decision — carve 041 down to `symbolDisplay` and defer per-machine
+   theme + audio to STAGE-008 — was the highest-leverage call: it kept the first UI-touching
+   spec small, behavior-preserving, and cleanly verifiable, and it moved the invasive
+   runtime-theming/audio-singleton work to where it actually pays off (a distinct machine).
+   The verify agent's adversarial guard check (revert the source to hard-code `SYMBOL_DISPLAY`
+   → confirm the two supplied-map tests fail → restore) was again the right move to prove the
+   presentation is genuinely data-driven, mirroring SPEC-040's façade-mutation test. Making
+   "revert-and-confirm-the-guard-fails" a standing verify move for every parameterization spec
+   is paying off consistently.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint/decision change. DEC-015 covers the presentation slice. Worth
+   recording as a stage-level lesson (candidate for the PROJ-002 signals set): a mid-stage
+   scope re-carve is legitimate and cheap when the deferred work is behavior-preserving-only
+   and its payoff depends on a not-yet-existing artifact — the key is to record the decision
+   where the next reader will hit it (here: the STAGE-007 Design Notes + the brief's STAGE-008
+   line + this spec's Context), not just in a commit message.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec — SPEC-042 (machine registry + hook plumbing) is next and already framed.
+   Its job: introduce a registry (default machine only) and thread the **active** machine
+   through `useSlotMachine` so both the engine (`spin` gets `machine.math`) and the
+   presentation (`Game`/`PaytableSheet` get `machine.presentation.symbolDisplay`) source from
+   ONE active machine, replacing 039's `spin` default and 041's direct `WILD_AND_WHIMSICAL`
+   imports. Default-only, no selector UI (that's STAGE-008). End-to-end parity is its guard.
+   After 042, SPEC-043 (the frozen-seed machine-parity contract test) closes the stage.

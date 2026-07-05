@@ -1,11 +1,12 @@
 // Paytable display rows — pure builder that reads engine data + UI emoji (SPEC-020).
 // DEC-001: UI reads engine only via src/engine/index.ts.
 // DEC-011: multipliers come from PAYTABLE, never hard-coded here.
-// DEC-006: emoji come from SYMBOL_DISPLAY (UI layer).
+// DEC-006: emoji come from the supplied symbolDisplay map (SPEC-041 threads it from
+// the machine's presentation slice instead of importing the emoji/label map directly).
 
 import { SYMBOLS, SYMBOL_TIER, PAYTABLE, PAYLINES } from '../engine/index';
 import type { Tier } from '../engine/index';
-import { SYMBOL_DISPLAY } from './reels/symbols';
+import type { SymbolDisplay } from '../machines/types';
 
 /** Number of fixed paylines, read from the engine so the rules copy can't drift. */
 export const PAYLINE_COUNT = PAYLINES.length;
@@ -32,18 +33,18 @@ const TIER_LABELS: Record<Tier, string> = {
 };
 
 /**
- * Build the paytable display rows from engine data + UI emoji map.
+ * Build the paytable display rows from engine data + the supplied symbol display map.
  * Returns one row per tier in descending value order (jackpot → high → mid → low).
  * Multipliers are read straight from PAYTABLE so they can never drift from the evaluator.
  */
-export function paytableRows(): PaytableRow[] {
+export function paytableRows(symbolDisplay: SymbolDisplay): PaytableRow[] {
   return TIER_ORDER.map((tier) => ({
     tier,
     label: TIER_LABELS[tier],
     // Filter SYMBOLS (in declaration order) to those belonging to this tier,
     // then map to the UI emoji. SYMBOLS is the single source of symbol ordering.
     emoji: SYMBOLS.filter((s) => SYMBOL_TIER[s] === tier).map(
-      (s) => SYMBOL_DISPLAY[s].emoji,
+      (s) => symbolDisplay[s].emoji,
     ),
     multipliers: PAYTABLE[tier],
   }));

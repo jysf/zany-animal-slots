@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { paytableRows, PAYLINE_COUNT } from './paytable';
+import { WILD_AND_WHIMSICAL } from '../machines/wildAndWhimsical';
 import PaylineMap from './PaylineMap';
 import './paytable.css';
 
@@ -41,7 +42,7 @@ export function PaytableSheet() {
     };
   }, [open]);
 
-  const rows = paytableRows();
+  const rows = paytableRows(WILD_AND_WHIMSICAL.presentation.symbolDisplay);
 
   return (
     <>
