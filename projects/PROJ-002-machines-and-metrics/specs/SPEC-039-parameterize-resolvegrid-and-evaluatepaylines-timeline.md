@@ -17,11 +17,19 @@ Cycle prompts live in `prompts/SPEC-039-<cycle>.md`.
       mechanical call-site updates to spin.test/paylines.test/index.test (outcomes identical
       = the parity proof). Type-only `import type { MachineMath }` avoids the paylines↔machine
       runtime cycle. Build prompt written. No new DEC (DEC-015 covers it).
-- [ ] **build** — Sonnet sub-agent (local only): apply the drop-in signature changes + thread
-      the machine; make the parity guard green; keep every pinned fixture byte-identical and
-      tiers.ts unchanged.
-- [ ] **verify** — Sonnet sub-agent (cold review): full gate re-run + AC-by-AC + frozen-seed
-      parity confirmation + tiers.ts-diff-empty + no-module-constant-reads + no-UI-change +
-      DEC-001/no-cycle checks.
+- [x] **build** — completed 2026-07-04 (Sonnet sub-agent, local only): applied the drop-in
+      signature changes verbatim — resolveGrid/resolveStops read `math.strips`, evaluatePaylines
+      reads `math.paylines`/`symbolTier`/`paytable`, spin() threads a defaulted machine; type-only
+      `MachineMath` imports avoid the paylines↔machine runtime cycle. Added spin-parity.test.ts
+      (5 tests) + mechanical call-site updates + the index.test jackpot case. Full gate green
+      (292 tests); tiers.ts diff empty; no module-constant reads left in the three functions.
+      Branch feat/spec-039-parameterize-grid-payline, commit 0cef3cd. subagent_tokens=106662, 304s.
+- [x] **verify** — Sonnet sub-agent (cold review): PASS, 0 defects. Full gate green (292
+      tests incl. spin-parity.test.ts 5/5); all four frozen seeds byte-identical through
+      default vs explicit machine; spin.test/paylines.test/index.test diffs confirmed
+      mechanical-only (call-site args/imports, zero expected-value changes); no
+      STRIPS/PAYLINES/PAYTABLE/SYMBOL_TIER reads in resolveGrid/resolveStops/evaluatePaylines
+      bodies; type-only MachineMath imports in both spin.ts/paylines.ts; tiers.ts diff empty;
+      useSlotMachine.ts untouched; no new dep.
 - [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
       archive; update STAGE-007 backlog line + count.

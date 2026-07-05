@@ -10,6 +10,8 @@ import { classifyWin } from './tiers';
 import type { Grid } from './spin';
 import type { LineWin } from './paylines';
 import type { WinTier } from './tiers';
+import { WILD_AND_WHIMSICAL_MATH } from './machine';
+import type { MachineMath } from './machine';
 
 // ── Re-exports: types ────────────────────────────────────────────────────────
 export type { SymbolId, Tier } from './strips';
@@ -54,10 +56,14 @@ export type SpinOutcome =
  *
  * Compose order (spec §Notes for the Implementer):
  *   1. debit — if insufficient balance, return typed failure with original balance.
- *   2. resolveGrid(createRng(seed)) — deterministic grid from seed.
- *   3. evaluatePaylines(grid, bet) — lineWins + totalWin.
+ *   2. resolveGrid(createRng(seed), machine) — deterministic grid from seed + machine strips.
+ *   3. evaluatePaylines(grid, bet, machine) — lineWins + totalWin from the machine's paylines/paytable.
  *   4. credit(d.balance, totalWin) — new balance.
  *   5. classifyWin — win tier.
+ *
+ * `machine` (the engine's MachineMath slice) defaults to WILD_AND_WHIMSICAL_MATH so
+ * existing callers (`spin({ seed, balance, bet })`) keep working unchanged (SPEC-042
+ * wires the active machine from the UI hook).
  *
  * Never throws on unaffordable bet (DEC-005).
  * All randomness flows through createRng(seed) — no Math.random() (DEC-002).
@@ -66,8 +72,9 @@ export function spin(args: {
   seed: number;
   balance: number;
   bet: BetLevel;
+  machine?: MachineMath;
 }): SpinOutcome {
-  const { seed, balance, bet } = args;
+  const { seed, balance, bet, machine = WILD_AND_WHIMSICAL_MATH } = args;
 
   // 1. Debit
   const d = debit(balance, bet);
@@ -76,16 +83,16 @@ export function spin(args: {
   }
 
   // 2. Resolve grid
-  const grid = resolveGrid(createRng(seed));
+  const grid = resolveGrid(createRng(seed), machine);
 
   // 3. Evaluate paylines
-  const { lineWins, totalWin } = evaluatePaylines(grid, bet);
+  const { lineWins, totalWin } = evaluatePaylines(grid, bet, machine);
 
   // 4. Credit win
   const newBalance = credit(d.balance, totalWin);
 
   // 5. Classify win tier
-  const tier = classifyWin(totalWin, bet, lineWins);
+  const tier = classifyWin(totalWin, bet, lineWins);   // unchanged — SPEC-040 parameterizes
 
   return { ok: true, grid, lineWins, totalWin, balance: newBalance, tier, bet };
 }

@@ -64,10 +64,34 @@ cost:
       duration_minutes: 35
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (parameterize resolveGrid + evaluatePaylines to consume the machine's math slice; spin() threads a defaulted machine; remove module-constant reads/defaults; write the frozen-seed parity failing test + update the existing engine unit-test call sites; build prompt). Riskiest spec — first engine signature change."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 106662
+      estimated_usd: 0.70
+      duration_minutes: 5.1
+      recorded_at: 2026-07-04
+      notes: "Sonnet sub-agent build (Agent subagent_tokens=106662, 304s). Build sub-agent (local only, no push/PR/gh/advance-cycle): applied the drop-in signature changes verbatim — resolveStops/resolveGrid read math.strips, evaluatePaylines reads math.paylines/symbolTier/paytable, spin() threads a defaulted machine param; type-only MachineMath imports in spin.ts + paylines.ts to avoid the paylines↔machine runtime cycle. Added spin-parity.test.ts (5 tests, frozen-seed guard + default-equals-explicit). Updated call sites in spin.test.ts/paylines.test.ts (outcomes unchanged) and added the jackpot case to index.test.ts. Full gate green (typecheck/lint/test 292 passed/build/validate); tiers.ts diff confirmed empty; no STRIPS/PAYLINES/PAYTABLE/SYMBOL_TIER reads left in the three parameterized function bodies."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 89548
+      estimated_usd: 0.59
+      duration_minutes: 3.9
+      recorded_at: 2026-07-04
+      notes: "Sonnet sub-agent verify (Agent subagent_tokens=89548, 232s). Verify sub-agent (local only, read-only/no push/PR/gh/advance-cycle): cold adversarial re-review. Re-ran full gate (typecheck/lint/test 292 passed incl. spin-parity.test.ts 5/5/build/validate) all green. Confirmed all four frozen seeds (407947/12345/276/12) byte-identical between default and explicit WILD_AND_WHIMSICAL_MATH via spin-parity.test.ts. Diffed spin.test.ts/paylines.test.ts/index.test.ts against main: every change is mechanical (added WILD_AND_WHIMSICAL_MATH import/arg, or one new jackpot test case) — zero pinned expected-value changes. Grepped spin.ts/paylines.ts: STRIPS/PAYLINES/PAYTABLE/SYMBOL_TIER appear only in paylines.ts's own PAYLINES/PAYTABLE definitions, never inside resolveGrid/resolveStops/evaluatePaylines bodies. Confirmed resolveStops has no `= STRIPS` default. Confirmed import type { MachineMath } (type-only) in both spin.ts and paylines.ts, and machine.ts imports values from paylines.ts/strips.ts (not the reverse) — no runtime cycle; vite build succeeded. tiers.ts diff vs main empty; rng.ts/balance.ts/strips.ts unchanged. useSlotMachine.ts diff vs main empty (still calls spin({seed,balance,bet}) with no machine arg). package.json/package-lock.json unchanged. Verdict: PASS, 0 defects."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-07-04
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate reconcile + PR + CI-poll + squash-merge + cost totals + STAGE-007 bookkeeping + archive)."
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 196210
+    estimated_usd: 1.29
+    session_count: 5
 ---
 
 # SPEC-039: parameterize resolveGrid and evaluatePaylines
@@ -381,28 +405,47 @@ their **exact** expected values — that identity IS the parity proof.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-039-parameterize-grid-payline`
+- **PR (if applicable):** none — local-only build cycle per orchestrator instructions;
+  PR deferred to ship.
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (DEC-015 covers it, as anticipated)
 - **Deviations from spec:**
-  - [list]
+  - none. Implemented the drop-in code from the spec's Notes verbatim for
+    `spin.ts`, `paylines.ts`, and `index.ts`. `spin.test.ts` kept its
+    `STRIPS`-based "each grid column equals visibleCells" assertion (the spec
+    explicitly allowed either that or switching to
+    `WILD_AND_WHIMSICAL_MATH.strips[reel]` — both are the same reference), and
+    added `WILD_AND_WHIMSICAL_MATH` as the 3rd/2nd arg elsewhere as specified.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new — SPEC-040 (parameterize `classifyWin`) and SPEC-042 (UI/hook
+    threading) remain as already scheduled in the STAGE-007 backlog.
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the drop-in code blocks in the Notes section matched
+   the acceptance criteria and failing-test descriptions exactly, so this was a
+   mechanical, low-ambiguity build. The only judgment call (keep `STRIPS` import
+   in `spin.test.ts`'s visibleCells test vs. switch to
+   `WILD_AND_WHIMSICAL_MATH.strips`) was already pre-resolved by the spec as an
+   explicit either/or.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. The hard constraints (type-only `MachineMath` import to avoid the
+   paylines↔machine runtime cycle, tiers.ts byte-identical, no
+   STRIPS/PAYLINES/PAYTABLE/SYMBOL_TIER reads in the three function bodies) were
+   all called out explicitly and were sufficient to self-verify before finishing.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally; the mechanical regex substitution for
+   `evaluatePaylines(grid, N)` → `evaluatePaylines(grid, N, WILD_AND_WHIMSICAL_MATH)`
+   across `paylines.test.ts`'s 9 call sites was fast and safe since the pattern
+   was uniform. Would keep the same approach (scripted substitution + full-file
+   diff review) on future mechanical call-site updates.
 
 ---
 
@@ -412,10 +455,27 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Very little — the riskiest spec of the stage went through clean (build + cold verify
+   both PASS, 0 defects) precisely because the design led with the four frozen seeds and
+   provided complete drop-in code, so the "signature change" reduced to mechanical
+   substitution with identity-preserving fixtures. The one thing that made it safe was
+   keeping the change *narrow*: only resolveGrid/evaluatePaylines + spin threading, with
+   classifyWin/tiers.ts explicitly frozen for SPEC-040. Splitting 039/040 (rather than one
+   big "parameterize the engine" spec) was the right call and I'd do it again.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint/decision change. DEC-015 already covers the model. Worth
+   recording as a reusable pattern for the stage: a behavior-preserving engine refactor is
+   safest when (a) the new data path is introduced as a *default-valued* param so existing
+   callers/tests keep working, and (b) the pre-existing pinned fixtures are the parity proof
+   — a changed fixture is the tripwire. The verify agent also surfaced a diff-base artifact
+   (the branch predates an unrelated main commit, so `main..HEAD` showed a phantom "removal")
+   — a reminder that sub-agent diffs against a moved main can show noise; reconcile against
+   the actual merge, not the branch diff.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec — SPEC-040 (parameterize win-tier + jackpot rule) is next and already
+   framed. Its design should thread the machine's `jackpot {symbol,count}` + `tiers
+   {bigMultiple}` into `classifyWin`/`isJackpot` (replacing the hard-coded WOLF×5 / 5×),
+   default the machine as 039 did, and reuse the same frozen-seed parity guard (extended to
+   assert `tier` specifically). After 040, `classifyWin` stops reading any hard-coded symbol.

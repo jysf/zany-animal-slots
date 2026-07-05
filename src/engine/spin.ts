@@ -2,7 +2,8 @@
 // DEC-001: pure engine, no React/DOM. DEC-002: all randomness via injected Rng.
 
 import { type Rng, randomInt } from './rng';
-import { type SymbolId, STRIPS, visibleCells } from './strips';
+import { type SymbolId, visibleCells } from './strips';
+import type { MachineMath } from './machine';
 
 /**
  * The visible 5×3 grid produced by a spin.
@@ -19,20 +20,13 @@ export type Grid = SymbolId[][];
  */
 export function resolveStops(
   rng: Rng,
-  strips: readonly (readonly SymbolId[])[] = STRIPS,
+  strips: readonly (readonly SymbolId[])[],
 ): number[] {
   return strips.map((strip) => randomInt(rng, strip.length));
 }
 
-/**
- * Resolve the visible 5×3 Grid for a spin.
- * Reuses resolveStops (one draw per reel, reel 0→4) then maps each stop through
- * visibleCells — no double-draw.
- */
-export function resolveGrid(
-  rng: Rng,
-  strips: readonly (readonly SymbolId[])[] = STRIPS,
-): Grid {
-  const stops = resolveStops(rng, strips);
-  return stops.map((stop, reel) => visibleCells(strips[reel], stop) as SymbolId[]);
+/** Resolve the visible 5×3 Grid for a spin from the machine's strips. */
+export function resolveGrid(rng: Rng, math: MachineMath): Grid {
+  const stops = resolveStops(rng, math.strips);
+  return stops.map((stop, reel) => visibleCells(math.strips[reel], stop) as SymbolId[]);
 }
