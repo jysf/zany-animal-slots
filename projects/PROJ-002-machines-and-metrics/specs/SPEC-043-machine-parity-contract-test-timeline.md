@@ -21,8 +21,13 @@ Cycle prompts live in `prompts/SPEC-043-<cycle>.md`.
       tests, all green (no regression). Full gate green (typecheck, lint, test [307 passed],
       build); `just validate` passed; `git diff main..HEAD -- src/engine/ src/ui/` confirmed
       EMPTY. No production change, no new dep, no new DEC.
-- [ ] **verify** — Sonnet sub-agent (cold review): full gate + confirm the contract asserts the
-      frozen values (not vacuous), the diff is test-only, and the pinned values match the
-      established contract; check nothing in production changed.
+- [x] **verify** — completed 2026-07-05 (Sonnet, cold review): PASS, 0 defects. Full gate green
+      (typecheck, lint, test [307 passed/52 files, incl. the 6 new contract cases], build,
+      validate); `git diff main..HEAD -- src/engine/ src/ui/` confirmed EMPTY (only the new
+      `src/machines/machine-parity.contract.test.ts` added); contract confirmed real/non-vacuous
+      — pinned scalars cross-check exactly against `spin-parity.test.ts` + `index.test.ts`, the
+      `getActiveMachine().math === WILD_AND_WHIMSICAL_MATH` check is a genuine identity (not
+      tautological — `wildAndWhimsical.ts` references the same object), no `.skip`/`.only`/xit; no
+      new dep, no new DEC.
 - [ ] **ship** — Opus (orchestrator): PR, CI-poll, squash-merge, cost totals, bookkeeping,
       archive; update STAGE-007 backlog line + count → STAGE-007 complete, then run Stage Ship.

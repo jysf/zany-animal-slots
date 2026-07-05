@@ -62,15 +62,31 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
-      duration_minutes: 15
+      tokens_total: 68646
+      estimated_usd: 0.45
+      duration_minutes: 4.7
       recorded_at: 2026-07-05
       notes: "orchestrator to fill tokens_total from subagent_tokens. Created src/machines/machine-parity.contract.test.ts verbatim from the spec's Notes drop-in (no edits). Cross-checked all frozen-seed values against spin-parity.test.ts and index.test.ts before running — all matched, no regression. Full gate green (typecheck, lint, test [307 passed, 52 files], build); just validate passed; git diff main..HEAD -- src/engine/ src/ui/ confirmed empty. No production code touched."
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 67724
+      estimated_usd: 0.45
+      duration_minutes: 1.9
+      recorded_at: 2026-07-05
+      notes: "orchestrator to fill tokens_total from subagent_tokens. Cold independent review. Re-ran full gate green (typecheck, lint, test [307 passed, 52 files, incl. the 6 new machine-parity.contract.test.ts cases], build); just validate passed (43 specs valid front-matter). Confirmed git diff main..HEAD -- src/engine/ src/ui/ is EMPTY; only src/machines/machine-parity.contract.test.ts added among non-doc files; registry.ts/wildAndWhimsical.ts/types.ts/spin-parity.test.ts all unchanged. Read the contract test in full: genuinely exercises spin() through getActiveMachine(), pinned scalars for all four frozen seeds (407947/12345/276/12) cross-checked exactly against spin-parity.test.ts + index.test.ts — no mismatch; getActiveMachine().math===WILD_AND_WHIMSICAL_MATH is a real identity check (wildAndWhimsical.ts's math field references the same const); no .skip/.only/xit; no commented-out expects. All AC checkboxes PASS. No new dependency, no new DEC, plain .ts (no JSX). VERDICT: PASS, 0 defects."
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-07-04
+      notes: "main-loop, not separately metered (AGENTS §4); ship cycle (orchestrator gate reconcile + PR + CI-poll + squash-merge + cost totals + STAGE-007 bookkeeping + archive + Stage Ship)."
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 136370
+    estimated_usd: 0.90
+    session_count: 5
 ---
 
 # SPEC-043: machine parity contract test
@@ -321,10 +337,26 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Nothing. Closing an "unfreeze the engine" stage with a single named contract test that
+   runs the frozen seeds through the fully-assembled pipeline (registry → spin) is the right
+   capstone — it turns the scattered per-spec parity assertions into one durable guard any
+   future machine/engine change must keep green. Pinning only values already established by
+   the existing fixtures (rather than inventing grids) meant a green run was a real parity
+   confirmation, not a self-fulfilling fixture — and the build/verify both cross-checked them,
+   so the guard has real teeth. This "one consolidated contract test as the stage capstone"
+   is a pattern worth reusing for any behavior-preserving refactor stage.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint/decision change. This is a stage-level lesson (for the PROJ-002
+   signals set + the STAGE-007 reflection): a behavior-preserving refactor stage benefits from
+   two guard layers — per-spec change-scoped parity assertions (catch the regression at the
+   spec that caused it) PLUS one consolidated end-to-end contract test at the close (the
+   durable guard). The overlap is intentional defense-in-depth, not redundancy.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No — STAGE-007 is complete (6/6). The next step is the **Stage Ship**: fill the STAGE-007
+   Stage-Level Reflection, flip its status to shipped, and roll the PROJ-002 project count.
+   Then STAGE-008 (fun retune + more machines) gets framed in a fresh session — it inherits the
+   deferred per-machine theme + audio wiring (STAGE-007 Design Notes), the bet-level/paytable-
+   math parameterization follow-ups (SPEC-042 reflection), and the open product questions
+   (target RTP, machine count, cash-in semantics) from the brief.
