@@ -7,7 +7,7 @@
 task:
   id: SPEC-046
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: L                    # S | M | L  (L means split it)
@@ -67,6 +67,25 @@ cost:
         (spin.test.ts strip-length/stops/grid, PaylineMap.test.tsx aria label, paytable.test.ts
         multipliers, PaytableSheet.test.tsx payout text) — full 54-file/321-test suite green.
         Orchestrator fills tokens_total/duration_minutes from the Agent result's subagent_tokens.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      note: >-
+        Cold verify (Sonnet, no prior context). Full gate green (typecheck/lint/test/build/
+        validate/cost-audit; 54 files / 321 tests). Confirmed engine-logic diff EMPTY
+        (spin.ts/tiers.ts/rng.ts/machine.ts unchanged vs main; paylines.ts's evaluatePaylines/
+        lineSymbols bodies byte-identical, only data+comments+LineId type changed). Simulator
+        confirmed the target on the pinned seed (RTP 93.79%/hit 34.43%) and a second seed
+        (12345: RTP 94.65%/hit 34.66%, within the generous band) to rule out a single-seed
+        artifact. Independently reproduced all 4 pinned contract seeds (68357/6/1/2) via
+        vite-node against the real spin()+getActiveMachine(), bypassing the test suite.
+        Verified the generated REEL_STRIP byte-matches the spec's pinned 42-symbol strip.
+        Read all 12 re-baselined fixture files end-to-end for staleness. Ran the adversarial
+        REEL_WEIGHTS.WOLF 3→1 mutation — both the metrics baseline and the machine-parity
+        jackpot case failed as required, then cleanly reverted (git diff empty). 0 defects
+        found; verdict PASS. Orchestrator fills tokens_total from the Agent result's
+        subagent_tokens.
   totals:
     tokens_total: 0
     estimated_usd: 0
