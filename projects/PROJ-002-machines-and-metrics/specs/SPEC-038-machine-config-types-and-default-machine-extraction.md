@@ -63,6 +63,14 @@ cost:
       duration_minutes: 30
       recorded_at: 2026-07-04
       notes: "main-loop, not separately metered (AGENTS §4); design cycle (keystone: pin the Machine type — math + presentation slices — extract today's constants into the default machine referencing them byte-identically, write the data-parity failing tests + build prompt, emit DEC-015). No engine signature changes designed here."
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 10
+      recorded_at: 2026-07-04
+      notes: "orchestrator to fill tokens_total from subagent_tokens (AGENTS §4). Created src/engine/machine.ts, src/machines/types.ts, src/machines/wildAndWhimsical.ts, src/machines/wildAndWhimsical.parity.test.ts; added additive re-exports to src/engine/index.ts. All 286 tests pass (8 new parity tests); typecheck/lint/build/validate green; engine function-file diff empty."
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -464,28 +472,28 @@ the machine files exactly as specified (the drop-in code is in **Notes**).
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** feat/spec-038-machine-config
+- **PR (if applicable):** (local only — orchestrator opens the PR at ship)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-NNN` — <title> (if any)
+  - none (DEC-015 was already authored at design by the architect)
 - **Deviations from spec:**
-  - [list]
+  - none; all four files created from drop-in code exactly as specified; additive index.ts re-exports placed in the existing Re-exports blocks as directed
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond the already-planned SPEC-039..042 listed in the spec
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear. The spec's drop-in code blocks + "Notes for the Implementer" were complete and self-contained; the build was mechanical and friction-free. The only lookup needed was confirming that `src/machines/` did not already exist (it didn't).
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps found. DEC-001 (engine-no-dom), DEC-006/011/003 (the constants being referenced), and DEC-015 (the decision emitted) were all listed and directly relevant. The engine-boundary test was called out as a guard to preserve.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing material. The spec is an ideal data-only build prompt: complete drop-in code, explicit hard constraints, a diff guard command, and a parity test that fully specifies the output. I would read it exactly the same way.
 
 ---
 

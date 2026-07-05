@@ -21,7 +21,7 @@ Cycle prompts live in `prompts/SPEC-038-<cycle>.md`.
       Emitted **DEC-015** (config-driven machine model — extends DEC-001, generalizes
       DEC-006/011/003). Migration note: machine references constants here (zero
       transcription risk); ownership inverts in SPEC-039..042 under frozen-seed parity.
-- [ ] **build** — Sonnet sub-agent (local only): create the four machine files + additive
+- [~] **build** — Sonnet sub-agent (local only): create the four machine files + additive
       index.ts re-exports per the spec drop-in code; make the parity test green; keep the
       src/engine function files byte-unchanged and the engine-no-dom boundary intact.
 - [ ] **verify** — Sonnet sub-agent (cold review): full gate re-run + AC-by-AC check +
