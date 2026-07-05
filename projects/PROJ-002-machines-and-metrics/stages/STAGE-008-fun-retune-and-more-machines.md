@@ -139,12 +139,13 @@ regression.
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
-- [~] SPEC-044 (build) — **Machine-metrics simulator**: a seeded Monte-Carlo
-      harness (`src/engine/metrics.ts` + `scripts/simulate.ts` + `just simulate`) reporting
-      RTP, hit-frequency, and win-tier distribution for a machine's math slice; pins
-      today's Wild & Whimsical baseline (measured: RTP **0.13** / hitFreq **0.10** /
+- [x] SPEC-044 (shipped 2026-07-05, PR #54) — **Machine-metrics simulator**: a seeded
+      Monte-Carlo harness (`src/engine/metrics.ts` + `scripts/simulate.ts` + `just simulate`)
+      reporting RTP, hit-frequency, and win-tier distribution for a machine's math slice;
+      pins today's Wild & Whimsical baseline (measured: RTP **0.13** / hitFreq **0.10** /
       jackpotRate **0** — the quantified "too hard to win") as the retune's before-number.
-      Test-covered, no production game-behavior change. **[M]**
+      Test-covered, no production game-behavior change; 0 defects. **Finding:** `reelWeights`
+      is documentation-only — SPEC-045 must retune the strip/paytable, not the weights. **[M]**
 - [ ] (not yet written) SPEC-045 — **Fun-retune Wild & Whimsical (in place)**: retune the
       default's weights/strip/paytable/jackpot/tier to the generous target (measured by
       SPEC-044); **recompute + re-pin the frozen-seed contract** and all parity tests
@@ -172,7 +173,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [ ] (not yet written) SPEC-052 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 0 shipped / 0 active / 9 pending — 2×L, 6×M, 1×S–M. **At the top of the 3–8
+**Count:** 1 shipped / 0 active / 8 pending — 2×L, 6×M, 1×S–M. **At the top of the 3–8
 range (9 specs).** Deliberately so: this stage does the retune, absorbs three STAGE-007
 deferrals, and ships four machines. The three themed-machine specs (050–052) are cheap
 DATA specs once the theme/audio/selector infra (047–049) lands; if the wave runs long,

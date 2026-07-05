@@ -51,4 +51,10 @@ Cycle prompts live in `prompts/SPEC-044-<cycle>.md`.
       `git diff main..HEAD` on all production engine/machine files is EMPTY;
       package.json/package-lock.json unchanged. `just simulate` and `just simulate
       wild-and-whimsical` both exit 0 and print reports. **Verdict: PASS, 0 defects.**
-- [ ] **ship**
+- [x] **ship** — completed 2026-07-05 (Opus): reconciled both sub-agents against git/disk
+      (build + verify commits, production-diff guard EMPTY, reverts clean), squash-merged
+      PR #54 (CI CLEAN — all 7 checks SUCCESS), returned to main. Cost totals filled
+      (181693 tok / $1.20 / 5 sessions; build 104934/$0.69, verify 76759/$0.51). Ship
+      reflection recorded the SPEC-045 carry-forward: `reelWeights` is documentation-only —
+      the retune must move the strip composition (and/or paytable/jackpot). First STAGE-008
+      spec shipped (1/9). No production game-behavior change; no new dep; no new DEC.
