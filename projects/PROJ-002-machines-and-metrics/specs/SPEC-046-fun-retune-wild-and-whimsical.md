@@ -58,8 +58,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
-      duration_minutes: null   # orchestrator to fill from the Agent result's duration_ms
+      tokens_total: 196411   # from Agent result subagent_tokens
+      estimated_usd: 1.30    # 196411 tok × $6.6/M (Sonnet)
+      duration_minutes: 46.1 # 2767385 ms
       note: >-
         Build subagent run: applied the pinned DATA (REEL_WEIGHTS/REEL_STRIP/PAYLINES/PAYTABLE),
         wrote DEC-016, re-baselined the 8 named test files to the spec's exact pins (verified via
@@ -70,7 +71,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 110308   # from Agent result subagent_tokens
+      estimated_usd: 0.73    # 110308 tok × $6.6/M (Sonnet)
+      duration_minutes: 13.4 # 805232 ms
       note: >-
         Cold verify (Sonnet, no prior context). Full gate green (typecheck/lint/test/build/
         validate/cost-audit; 54 files / 321 tests). Confirmed engine-logic diff EMPTY
@@ -86,10 +89,22 @@ cost:
         jackpot case failed as required, then cleanly reverted (git diff empty). 0 defects
         found; verdict PASS. Orchestrator fills tokens_total from the Agent result's
         subagent_tokens.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 18
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Includes ~5 simulator tuning
+        sweeps + full pin computation during design (folded into this Opus loop), reconcile of
+        both sub-agents against git/disk + independent gate/simulator re-run, PR + CI-poll +
+        squash-merge + preview check (20-payline paytable + generous gameplay) + backlog rollup
+        + archive. The behavior-changing centerpiece — Wild & Whimsical is now generous.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 306719   # build 196411 + verify 110308
+    estimated_usd: 2.03    # build $1.30 + verify $0.73
+    session_count: 5
 ---
 
 # SPEC-046: fun retune wild and whimsical
@@ -381,3 +396,33 @@ No other test files needed changes; the full 54-file / 321-test suite is green.
    re-derivation" pattern worked well — it gave a hard contract to apply mechanically (the 8
    files) while still licensing the judgment call needed for the rest. Worth keeping as the
    template for future behavior-changing retune specs.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused, distinct from the process-focused
+build reflection above.*
+
+1. **What would I do differently next time?**
+   — Almost nothing — the "measure-then-pin against the real engine during design" discipline
+   paid off hugely on the widest-blast-radius spec of the wave. Every pinned fixture reproduced,
+   and the build agent's own re-derivation of the 4 *unlisted* fixtures (spin.test, PaylineMap.test,
+   paytable.test, PaytableSheet.test) confirms the "here are the pins, re-derive the rest" contract
+   scales. The one thing I under-scoped at design time: the 20-payline change rippled into UI tests
+   (paytable text, payline-map aria) I hadn't enumerated — I caught the *engine* blast radius fully
+   but under-counted the *UI* one. Next behavior-changing UI spec: grep the UI test tree for the
+   changing constants up front, not just the engine.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No template/constraint change. DEC-016 records the retune and supersedes the DEC-003 (5
+   paylines) / DEC-011 (weights/paytable) specifics for W&W. Logged a signal: a behavior-changing
+   spec's design should enumerate BOTH the engine and UI fixture blast radius (a UI test can pin a
+   payout string or an aria label derived from the changed data).
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The remaining STAGE-008 backlog (SPEC-047 residual param reads, SPEC-048 theme+
+   audio, SPEC-049 reactive context, SPEC-050 selector, SPEC-051–053 machines) is already framed.
+   Note for SPEC-051–053 (the themed machines): each new machine's generated strip must be checked
+   for adjacent-duplicate quality and its metrics measured with `just simulate` before pinning —
+   the same measure-then-pin loop this spec used.
