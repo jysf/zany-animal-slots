@@ -129,16 +129,17 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       PaytableSheet source presentation from `getActiveMachine()`. Default machine only,
       no selector UI; end-to-end parity + a supplied-machine guard (preview-verified).
       Config-driven loop closed. PR #52. **[M]**
-- [ ] SPEC-043 (not yet written) — **Machine-parity contract test**: the four frozen
-      seeds through the default machine assert identical outcomes — the stage's
-      regression guard. **[S]**
+- [~] SPEC-043 (build) — **Machine-parity contract test**: the four frozen
+      seeds through the registry-resolved default machine (`getActiveMachine()`) pin the
+      full outcome (grid/lineWins/totalWin/tier/balance) — the stage's durable regression
+      guard; consolidates SPEC-039's spin-parity. Test-only, no production change. **[S]**
 
-**Count:** 5 shipped / 0 active / 1 pending — 4×M, 1×S–M, 1×S. No L (the engine
+**Count:** 5 shipped / 1 active / 0 pending — 4×M, 1×S–M, 1×S. No L (the engine
 parameterization was split into 039+040 to keep the riskiest work bounded). Within
 the 3–8 range. Engine parameterization (038–040) complete; presentation symbolDisplay
-(041) + registry/hook (042) shipped — the config-driven loop is closed. Only 043
-(the frozen-seed parity contract test) remains. Per-machine theme + audio deferred to
-STAGE-008 (see Design Notes).
+(041) + registry/hook (042) shipped — the config-driven loop is closed; 043 (the
+frozen-seed parity contract test) is the last spec, in build. Per-machine theme + audio
+deferred to STAGE-008 (see Design Notes).
 
 ## Design Notes
 
