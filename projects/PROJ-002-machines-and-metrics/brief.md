@@ -163,7 +163,11 @@ is the most separable and could be deferred or split off if the wave runs long.
       first machine, behavior-preserving. Foundation for everything else.
 - [ ] STAGE-008 (not yet framed) — **Fun retune + more machines**: tune the default
       for fun (hit-rate, medium band, jackpots, more ways to win) to a target RTP;
-      ship 2–3 machines with theme+music+math; machine selector + persistence.
+      ship 2–3 machines with theme+music+math; machine selector + persistence. **Absorbs
+      the per-machine theme-token + audio-param wiring deferred from STAGE-007/SPEC-041**
+      (the runtime-application mechanism pays off here, where a distinct themed variant
+      exists) — extend the `MachinePresentation` slice with `theme` + `audio` and wire the
+      UI/audio engine to read the active machine.
 - [ ] STAGE-009 (not yet framed) — **Player session stats**: client-side
       winnings-over-time, biggest win, cash-ins, spins; in-app panel.
 - [ ] STAGE-010 (not yet framed) — **Help / how-to-play**: onboarding surface that
