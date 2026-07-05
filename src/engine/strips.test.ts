@@ -36,23 +36,23 @@ describe('strips', () => {
     });
   });
 
-  it('weights match DEC-011 and sum to 35', () => {
+  it('weights match DEC-016 and sum to 42', () => {
     expect(REEL_WEIGHTS).toEqual({
-      DEER: 7,
-      FOX: 7,
-      SQUIRREL: 6,
-      BEAR: 4,
+      DEER: 9,
+      FOX: 8,
+      SQUIRREL: 7,
+      BEAR: 5,
       EAGLE: 4,
-      OWL: 4,
-      BISON: 2,
-      WOLF: 1,
+      OWL: 3,
+      BISON: 3,
+      WOLF: 3,
     });
     const total = Object.values(REEL_WEIGHTS).reduce((sum, w) => sum + w, 0);
-    expect(total).toBe(35);
+    expect(total).toBe(42);
   });
 
   it('the reel strip honors the weights', () => {
-    expect(REEL_STRIP.length).toBe(35);
+    expect(REEL_STRIP.length).toBe(42);
 
     // Count each symbol in the strip and compare to REEL_WEIGHTS.
     const counts: Record<string, number> = {};
@@ -65,7 +65,7 @@ describe('strips', () => {
   it('all five reels share the canonical composition', () => {
     expect(STRIPS.length).toBe(REEL_COUNT);
     for (const strip of STRIPS) {
-      expect(strip.length).toBe(35);
+      expect(strip.length).toBe(42);
       const counts: Record<string, number> = {};
       for (const symbol of strip) {
         counts[symbol] = (counts[symbol] ?? 0) + 1;
@@ -76,10 +76,11 @@ describe('strips', () => {
 
   it('the canonical strip order is pinned', () => {
     expect(REEL_STRIP).toEqual([
-      'DEER', 'FOX', 'SQUIRREL', 'BEAR', 'EAGLE', 'OWL', 'DEER', 'FOX', 'SQUIRREL', 'BISON',
-      'DEER', 'FOX', 'BEAR', 'EAGLE', 'OWL', 'SQUIRREL', 'DEER', 'FOX', 'WOLF', 'SQUIRREL',
-      'BEAR', 'EAGLE', 'OWL', 'DEER', 'FOX', 'SQUIRREL', 'BISON', 'DEER', 'FOX', 'BEAR',
-      'EAGLE', 'OWL', 'SQUIRREL', 'DEER', 'FOX',
+      'DEER', 'FOX', 'SQUIRREL', 'BEAR', 'EAGLE', 'DEER', 'OWL', 'BISON', 'WOLF', 'FOX',
+      'SQUIRREL', 'DEER', 'BEAR', 'FOX', 'SQUIRREL', 'EAGLE', 'DEER', 'FOX', 'DEER', 'SQUIRREL',
+      'BEAR', 'OWL', 'BISON', 'WOLF', 'FOX', 'DEER', 'EAGLE', 'SQUIRREL', 'FOX', 'BEAR',
+      'DEER', 'SQUIRREL', 'FOX', 'DEER', 'OWL', 'BISON', 'WOLF', 'EAGLE', 'BEAR', 'SQUIRREL',
+      'FOX', 'DEER',
     ]);
   });
 
@@ -91,17 +92,17 @@ describe('strips', () => {
   });
 
   it('visibleCells wraps at the end of the strip', () => {
-    // Stop at index 34 (last): should wrap to indices 34, 0, 1.
-    expect(visibleCells(REEL_STRIP, 34)).toEqual([
-      REEL_STRIP[34],
+    // Stop at index 41 (last): should wrap to indices 41, 0, 1.
+    expect(visibleCells(REEL_STRIP, 41)).toEqual([
+      REEL_STRIP[41],
       REEL_STRIP[0],
       REEL_STRIP[1],
     ]);
 
-    // Stop at index 33: should wrap to indices 33, 34, 0.
-    expect(visibleCells(REEL_STRIP, 33)).toEqual([
-      REEL_STRIP[33],
-      REEL_STRIP[34],
+    // Stop at index 40: should wrap to indices 40, 41, 0.
+    expect(visibleCells(REEL_STRIP, 40)).toEqual([
+      REEL_STRIP[40],
+      REEL_STRIP[41],
       REEL_STRIP[0],
     ]);
   });

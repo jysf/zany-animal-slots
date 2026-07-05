@@ -1,26 +1,12 @@
 // PaylineMap — small per-line shape diagrams for the Paytable's "How wins work"
-// section. Purely data-driven from the engine's PAYLINES (DEC-003): each line's
-// `rows` array gives the active row per reel, so the drawn shape can never drift
-// from the evaluator. No animation → no reduced-motion / perf-contract surface.
+// section. Purely data-driven from the engine's PAYLINES (DEC-003 mechanics;
+// DEC-016 widens the set to 20 lines): each line's `rows` array gives the active
+// row per reel, so the drawn shape can never drift from the evaluator. No
+// animation → no reduced-motion / perf-contract surface.
 // DEC-010: token colors only (set via CSS classes in paytable.css).
+// DEC-016: 20 lines can't be enumerated in a Record<LineId, string> — labels are
+// derived from the line's index in PAYLINES instead (`Line N` / `Payline N`).
 import { PAYLINES } from '../engine/index';
-import type { LineId } from '../engine/index';
-
-// UI-side names for each line (the engine only knows L1…L5).
-const LINE_LABELS: Record<LineId, string> = {
-  L1: 'Middle',
-  L2: 'Top',
-  L3: 'Bottom',
-  L4: 'V',
-  L5: '^',
-};
-const LINE_ARIA: Record<LineId, string> = {
-  L1: 'middle row',
-  L2: 'top row',
-  L3: 'bottom row',
-  L4: 'V shape',
-  L5: 'inverted-V shape',
-};
 
 const COLS = 5;
 const ROWS = 3;
@@ -32,7 +18,7 @@ const cy = (row: number) => row * CELL + HALF;
 export default function PaylineMap() {
   return (
     <ul className="payline-map" aria-label="Paylines">
-      {PAYLINES.map((line) => {
+      {PAYLINES.map((line, i) => {
         const points = line.rows.map((row, reel) => `${cx(reel)},${cy(row)}`).join(' ');
         return (
           <li key={line.id} className="payline-map__item">
@@ -40,7 +26,7 @@ export default function PaylineMap() {
               className="payline-map__grid"
               viewBox={`0 0 ${COLS * CELL} ${ROWS * CELL}`}
               role="img"
-              aria-label={`Payline ${line.id}: ${LINE_ARIA[line.id]}`}
+              aria-label={`Payline ${i + 1}`}
               data-line={line.id}
             >
               {Array.from({ length: COLS }).flatMap((_, reel) =>
@@ -60,7 +46,7 @@ export default function PaylineMap() {
               )}
               <polyline className="payline-map__path" points={points} fill="none" />
             </svg>
-            <span className="payline-map__label">{LINE_LABELS[line.id]}</span>
+            <span className="payline-map__label">{`Line ${i + 1}`}</span>
           </li>
         );
       })}

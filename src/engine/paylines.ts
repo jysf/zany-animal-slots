@@ -1,14 +1,14 @@
 // Payline definitions and paytable evaluation for the slot engine.
-// DEC-003: five fixed paylines, left-anchored run ≥3 from reel 0.
-// DEC-011: tier paytable (multiples of total bet); lineWin = floor(multiplier × totalBet).
+// DEC-003: fixed paylines, left-anchored run ≥3 from reel 0 (mechanics unchanged).
+// DEC-016: 20 fixed paylines + retuned paytable (supersedes DEC-003/011 specifics for W&W).
 // DEC-001: pure engine — imports only spin and strips, no React/DOM.
 
 import type { Grid } from './spin';
 import { type SymbolId, type Tier } from './strips';
 import type { MachineMath } from './machine';
 
-/** The five fixed payline identifiers (DEC-003). */
-export type LineId = 'L1' | 'L2' | 'L3' | 'L4' | 'L5';
+/** A fixed payline identifier (DEC-016: widened from the original 'L1'..'L5' to support 20 lines). */
+export type LineId = `L${number}`;
 
 /** A payline: an id and one row index per reel (5 reels). */
 export interface Payline {
@@ -18,26 +18,43 @@ export interface Payline {
 }
 
 /**
- * The five fixed paylines (DEC-003).
- * L1: middle row, L2: top row, L3: bottom row, L4: V-shape, L5: ^-shape.
+ * The 20 fixed paylines (DEC-016 — supersedes DEC-003's 5 lines for W&W; the
+ * structural lever for hit-frequency). The first five (L1-L5) are the original
+ * lines unchanged: L1 middle row, L2 top row, L3 bottom row, L4 V-shape, L5 ^-shape.
  */
 export const PAYLINES: readonly Payline[] = [
-  { id: 'L1', rows: [1, 1, 1, 1, 1] },
-  { id: 'L2', rows: [0, 0, 0, 0, 0] },
-  { id: 'L3', rows: [2, 2, 2, 2, 2] },
-  { id: 'L4', rows: [0, 1, 2, 1, 0] },
-  { id: 'L5', rows: [2, 1, 0, 1, 2] },
+  { id: 'L1',  rows: [1, 1, 1, 1, 1] },
+  { id: 'L2',  rows: [0, 0, 0, 0, 0] },
+  { id: 'L3',  rows: [2, 2, 2, 2, 2] },
+  { id: 'L4',  rows: [0, 1, 2, 1, 0] },
+  { id: 'L5',  rows: [2, 1, 0, 1, 2] },
+  { id: 'L6',  rows: [1, 0, 0, 0, 1] },
+  { id: 'L7',  rows: [1, 2, 2, 2, 1] },
+  { id: 'L8',  rows: [0, 0, 1, 2, 2] },
+  { id: 'L9',  rows: [2, 2, 1, 0, 0] },
+  { id: 'L10', rows: [1, 2, 1, 0, 1] },
+  { id: 'L11', rows: [1, 0, 1, 2, 1] },
+  { id: 'L12', rows: [0, 1, 1, 1, 0] },
+  { id: 'L13', rows: [2, 1, 1, 1, 2] },
+  { id: 'L14', rows: [0, 1, 0, 1, 0] },
+  { id: 'L15', rows: [2, 1, 2, 1, 2] },
+  { id: 'L16', rows: [1, 1, 0, 1, 1] },
+  { id: 'L17', rows: [1, 1, 2, 1, 1] },
+  { id: 'L18', rows: [0, 0, 1, 0, 0] },
+  { id: 'L19', rows: [2, 2, 1, 2, 2] },
+  { id: 'L20', rows: [0, 2, 0, 2, 0] },
 ];
 
 /**
- * Payout multipliers (× total bet) per tier, for 3 / 4 / 5 of a kind (DEC-011).
+ * Payout multipliers (× total bet) per tier, for 3 / 4 / 5 of a kind (DEC-016
+ * retune — supersedes DEC-011's paytable for W&W).
  * lineWin = Math.floor(multiplier × totalBet).
  */
 export const PAYTABLE: Record<Tier, readonly [number, number, number]> = {
-  low:     [0.5, 2,   5],
-  mid:     [1,   4,  12],
-  high:    [3,  10,  40],
-  jackpot: [8,  40, 200],
+  low:     [1,  3,   7],
+  mid:     [2,  6,  18],
+  high:    [4, 14,  55],
+  jackpot: [10, 50, 250],
 };
 
 /** A single hitting payline win. */

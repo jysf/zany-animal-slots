@@ -7,7 +7,7 @@
 task:
   id: SPEC-046
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: high
   complexity: L                    # S | M | L  (L means split it)
@@ -55,10 +55,56 @@ cost:
         tuning sweeps + a full pin computation (frozen seeds, representative seeds, metrics
         baseline, synthetic-grid re-evaluations) run via vite-node against the REAL shipped
         buildStrip + engine, so every re-baselined value is a reproduced fact.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 196411   # from Agent result subagent_tokens
+      estimated_usd: 1.30    # 196411 tok × $6.6/M (Sonnet)
+      duration_minutes: 46.1 # 2767385 ms
+      note: >-
+        Build subagent run: applied the pinned DATA (REEL_WEIGHTS/REEL_STRIP/PAYLINES/PAYTABLE),
+        wrote DEC-016, re-baselined the 8 named test files to the spec's exact pins (verified via
+        vite-node before editing tests), plus 4 unlisted fixtures the retune also moved
+        (spin.test.ts strip-length/stops/grid, PaylineMap.test.tsx aria label, paytable.test.ts
+        multipliers, PaytableSheet.test.tsx payout text) — full 54-file/321-test suite green.
+        Orchestrator fills tokens_total/duration_minutes from the Agent result's subagent_tokens.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 110308   # from Agent result subagent_tokens
+      estimated_usd: 0.73    # 110308 tok × $6.6/M (Sonnet)
+      duration_minutes: 13.4 # 805232 ms
+      note: >-
+        Cold verify (Sonnet, no prior context). Full gate green (typecheck/lint/test/build/
+        validate/cost-audit; 54 files / 321 tests). Confirmed engine-logic diff EMPTY
+        (spin.ts/tiers.ts/rng.ts/machine.ts unchanged vs main; paylines.ts's evaluatePaylines/
+        lineSymbols bodies byte-identical, only data+comments+LineId type changed). Simulator
+        confirmed the target on the pinned seed (RTP 93.79%/hit 34.43%) and a second seed
+        (12345: RTP 94.65%/hit 34.66%, within the generous band) to rule out a single-seed
+        artifact. Independently reproduced all 4 pinned contract seeds (68357/6/1/2) via
+        vite-node against the real spin()+getActiveMachine(), bypassing the test suite.
+        Verified the generated REEL_STRIP byte-matches the spec's pinned 42-symbol strip.
+        Read all 12 re-baselined fixture files end-to-end for staleness. Ran the adversarial
+        REEL_WEIGHTS.WOLF 3→1 mutation — both the metrics baseline and the machine-parity
+        jackpot case failed as required, then cleanly reverted (git diff empty). 0 defects
+        found; verdict PASS. Orchestrator fills tokens_total from the Agent result's
+        subagent_tokens.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 18
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Includes ~5 simulator tuning
+        sweeps + full pin computation during design (folded into this Opus loop), reconcile of
+        both sub-agents against git/disk + independent gate/simulator re-run, PR + CI-poll +
+        squash-merge + preview check (20-payline paytable + generous gameplay) + backlog rollup
+        + archive. The behavior-changing centerpiece — Wild & Whimsical is now generous.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 306719   # build 196411 + verify 110308
+    estimated_usd: 2.03    # build $1.30 + verify $0.73
+    session_count: 5
 ---
 
 # SPEC-046: fun retune wild and whimsical
@@ -298,3 +344,85 @@ then revert. This is the intended-behavior-change analogue of the STAGE-007 guar
 
 **UI preview (orchestrator, at ship):** the paytable's payline map now shows 20 line diagrams,
 and the game visibly pays more often with a reachable jackpot — spot-check via the preview.
+
+## Build Completion
+
+**Applied exactly as pinned.** `REEL_WEIGHTS` (sum 42), the generated `REEL_STRIP` (via
+`buildStrip(SYMBOLS, REEL_WEIGHTS)`), `PAYLINES` (20 lines), and `PAYTABLE` were applied
+byte-for-byte from the spec's Notes. Re-ran the generated strip through vite-node before
+touching any test and it matched the spec's pinned 42-symbol strip exactly, confirming the
+data was applied correctly before re-baselining fixtures against it. Every value in the spec's
+Failing Tests section reproduced exactly once the data was applied (strips, paylines/paytable
+synthetic grids, representative seeds 1/6/68357/2/12345/276/999, and the metrics baseline
+RTP 0.9379 / hit 0.3443 / tierCounts / jackpots 1 / maxWin 3150 / totalReturned 468950).
+
+**Fixtures re-derived beyond the spec's pinned set** (the spec explicitly anticipated this —
+"a synthetic-grid or UI assertion the 20-line change also moved"):
+- `src/engine/spin.test.ts` — `resolveStops`/`resolveGrid` tests reference the strip length
+  (35 → 42) and pin `createRng(12345)`'s stops/grid; re-derived via the deterministic engine:
+  stops `[41, 12, 20, 34, 21]`, grid identical to the new seed-12345 loss grid pinned in
+  `index.test.ts`/`spin-parity.test.ts`.
+- `src/ui/PaylineMap.test.tsx` — "exposes an accessible label per line" asserted on the old
+  `LINE_ARIA['L1']` text ("middle row"); re-derived against the new index-derived label
+  (`Payline 1`), consistent with the Notes' drop-in.
+- `src/ui/paytable.test.ts` — "each tier has its DEC-011 multipliers" pinned the old paytable
+  numbers; re-derived to the DEC-016 numbers (`[10,50,250]` / `[4,14,55]` / `[2,6,18]` /
+  `[1,3,7]`), renamed the test to "DEC-016 multipliers".
+- `src/ui/PaytableSheet.test.tsx` — "shows tier payouts" asserted literal text `/200/` and
+  `/0\.5/` (the old jackpot/low multipliers); re-derived to `/250/` and an exact-match
+  `/^1×$/` (the new low 3-of-a-kind multiplier renders as one `"1×"` text node, so an exact
+  substring match was needed instead of the old loose `/0\.5/` regex).
+
+No other test files needed changes; the full 54-file / 321-test suite is green.
+
+**Reflection:**
+
+1. **What was the hardest part of this build?** Not the data application (that was
+   mechanical — copy the Notes' drop-ins verbatim) but making sure every *unlisted* fixture
+   that the 20-line/retuned-paytable change silently moved actually got found. The spec was
+   explicit that this could happen, but finding all four instances (`spin.test.ts`'s strip-length
+   assumption, `PaylineMap.test.tsx`'s hard-coded aria text, `paytable.test.ts`'s old
+   multipliers, `PaytableSheet.test.tsx`'s literal payout text) required running the full
+   suite (not just the 8 named files) and reading each failure's diff carefully enough to
+   confirm it was a genuine "the retune moved this" case rather than an engine-logic bug I'd
+   introduced.
+2. **What would you do differently next time?** Run the full `just test` once immediately
+   after applying the production data (before touching any of the 8 named test files) to get
+   the complete list of everything the retune touches up front, rather than discovering the
+   4 unlisted failures only after the 8 named files were already green. Same outcome, slightly
+   less efficient path.
+3. **Is there anything in this spec that should inform how future specs are written?** The
+   "list the exact pins, but explicitly flag that unlisted-but-touched fixtures may need
+   re-derivation" pattern worked well — it gave a hard contract to apply mechanically (the 8
+   files) while still licensing the judgment call needed for the rest. Worth keeping as the
+   template for future behavior-changing retune specs.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused, distinct from the process-focused
+build reflection above.*
+
+1. **What would I do differently next time?**
+   — Almost nothing — the "measure-then-pin against the real engine during design" discipline
+   paid off hugely on the widest-blast-radius spec of the wave. Every pinned fixture reproduced,
+   and the build agent's own re-derivation of the 4 *unlisted* fixtures (spin.test, PaylineMap.test,
+   paytable.test, PaytableSheet.test) confirms the "here are the pins, re-derive the rest" contract
+   scales. The one thing I under-scoped at design time: the 20-payline change rippled into UI tests
+   (paytable text, payline-map aria) I hadn't enumerated — I caught the *engine* blast radius fully
+   but under-counted the *UI* one. Next behavior-changing UI spec: grep the UI test tree for the
+   changing constants up front, not just the engine.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No template/constraint change. DEC-016 records the retune and supersedes the DEC-003 (5
+   paylines) / DEC-011 (weights/paytable) specifics for W&W. Logged a signal: a behavior-changing
+   spec's design should enumerate BOTH the engine and UI fixture blast radius (a UI test can pin a
+   payout string or an aria label derived from the changed data).
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The remaining STAGE-008 backlog (SPEC-047 residual param reads, SPEC-048 theme+
+   audio, SPEC-049 reactive context, SPEC-050 selector, SPEC-051–053 machines) is already framed.
+   Note for SPEC-051–053 (the themed machines): each new machine's generated strip must be checked
+   for adjacent-duplicate quality and its metrics measured with `just simulate` before pinning —
+   the same measure-then-pin loop this spec used.

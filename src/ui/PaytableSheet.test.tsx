@@ -25,11 +25,11 @@ describe('PaytableSheet', () => {
     // Dialog is now in the DOM.
     expect(screen.getByRole('dialog')).toBeTruthy();
 
-    // Jackpot 5-of-a-kind = 200×
-    expect(screen.getByText(/200/)).toBeTruthy();
+    // Jackpot 5-of-a-kind = 250× (DEC-016 retune)
+    expect(screen.getByText(/250/)).toBeTruthy();
 
-    // Low 3-of-a-kind = 0.5×
-    expect(screen.getByText(/0\.5/)).toBeTruthy();
+    // Low 3-of-a-kind = 1× (DEC-016 retune) — the multiplier renders as "1×" in one span.
+    expect(screen.getByText(/^1×$/)).toBeTruthy();
 
     // Wolf emoji (jackpot tier)
     expect(screen.getByText(/🐺/)).toBeTruthy();

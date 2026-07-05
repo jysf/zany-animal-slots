@@ -1,5 +1,6 @@
 // Unit tests for paytableRows() — SPEC-020 failing tests (written at design).
-// DEC-011 multiplier values are the source of truth for the assertions below.
+// DEC-016 (re-baselined by SPEC-046) multiplier values are the source of truth
+// for the assertions below — supersedes DEC-011's original numbers for W&W.
 // SPEC-041: paytableRows() now takes the symbolDisplay map as a param, sourced
 // from the default machine's presentation slice; call sites supply it.
 
@@ -21,14 +22,14 @@ describe('paytableRows()', () => {
     ]);
   });
 
-  it('each tier has its DEC-011 multipliers', () => {
+  it('each tier has its DEC-016 multipliers', () => {
     const rows = paytableRows(DEFAULT_DISPLAY);
     const byTier = Object.fromEntries(rows.map((r) => [r.tier, r.multipliers]));
 
-    expect(byTier['jackpot']).toEqual([8, 40, 200]);
-    expect(byTier['high']).toEqual([3, 10, 40]);
-    expect(byTier['mid']).toEqual([1, 4, 12]);
-    expect(byTier['low']).toEqual([0.5, 2, 5]);
+    expect(byTier['jackpot']).toEqual([10, 50, 250]);
+    expect(byTier['high']).toEqual([4, 14, 55]);
+    expect(byTier['mid']).toEqual([2, 6, 18]);
+    expect(byTier['low']).toEqual([1, 3, 7]);
   });
 
   it("each tier lists its symbols' emoji", () => {

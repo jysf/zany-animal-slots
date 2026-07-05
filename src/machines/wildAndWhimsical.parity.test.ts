@@ -34,7 +34,7 @@ describe('SPEC-038 default machine parity — extracted data == current constant
     expect(math.strips).toHaveLength(5);
     for (const strip of math.strips) {
       expect(strip).toEqual(REEL_STRIP);
-      expect(strip).toHaveLength(35);
+      expect(strip).toHaveLength(42);
     }
   });
 
@@ -66,7 +66,7 @@ describe('SPEC-038 default machine parity — extracted data == current constant
       expect(presentation.symbolDisplay[s]).toBeDefined();
     }
     const sum = Object.values(math.reelWeights).reduce((a, b) => a + b, 0);
-    expect(sum).toBe(35);
+    expect(sum).toBe(42);
     expect(sum).toBe(REEL_STRIP.length);
   });
 });

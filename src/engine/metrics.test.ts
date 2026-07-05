@@ -1,6 +1,7 @@
 // Tests for the machine-metrics simulator (STAGE-008 / SPEC-044).
 // Determinism + exact-RTP on synthetic degenerate machines + the pinned W&W baseline
-// (the retune's "before" number — SPEC-045 intentionally re-baselines this fixture).
+// (SPEC-046 / DEC-016 intentionally re-baselines this fixture to the tuned "after" numbers —
+// RTP 93.8% / hit 34.4%, versus the old measured 13% / 10%).
 import { describe, it, expect } from 'vitest';
 import { simulateMachine } from './metrics';
 import { WILD_AND_WHIMSICAL_MATH } from './machine';
@@ -59,13 +60,14 @@ describe('simulateMachine', () => {
     expect(m.hitFrequency).toBeCloseTo(m.hits / m.spins);
   });
 
-  it('reproduces the pinned Wild & Whimsical baseline (the retune\'s before-number)', () => {
+  it('reproduces the pinned Wild & Whimsical baseline (DEC-016 retuned target)', () => {
     const m = simulateMachine(WILD_AND_WHIMSICAL_MATH, { spins: 50000, seed: 20260705, bet: 10 });
-    expect(m.rtp).toBeCloseTo(0.1295, 4);
-    expect(m.hitFrequency).toBeCloseTo(0.0999, 4);
-    expect(m.tierCounts).toEqual({ none: 45003, small: 4786, big: 211, jackpot: 0 });
-    expect(m.jackpots).toBe(0);
-    expect(m.maxWin).toBe(500);
+    expect(m.rtp).toBeCloseTo(0.9379, 4);
+    expect(m.hitFrequency).toBeCloseTo(0.3443, 4);
+    expect(m.tierCounts).toEqual({ none: 32787, small: 14975, big: 2237, jackpot: 1 });
+    expect(m.jackpots).toBe(1);
+    expect(m.maxWin).toBe(3150);
     expect(m.totalWagered).toBe(500000);
+    expect(m.totalReturned).toBe(468950);
   });
 });
