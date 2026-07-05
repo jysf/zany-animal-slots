@@ -24,7 +24,9 @@ if [ -z "$PROJECT_DIR" ]; then
     die "Project not found: ${PROJECT_ID}"
 fi
 
-STAGE_ID=$(next_id STAGE "${PROJECT_DIR}/stages")
+# Stage IDs are continuous across the whole repo (not per-project) — scan
+# repo-wide so PROJ-002 continues after PROJ-001's last stage.
+STAGE_ID=$(next_id STAGE)
 SLUG=$(slugify "$TITLE")
 STAGE_FILE="${PROJECT_DIR}/stages/${STAGE_ID}-${SLUG}.md"
 

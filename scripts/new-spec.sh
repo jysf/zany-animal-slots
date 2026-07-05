@@ -33,7 +33,9 @@ if [ -z "$STAGE_FILE" ]; then
     die "Stage not found in ${PROJECT_ID}: ${STAGE_ID}"
 fi
 
-SPEC_ID=$(next_id SPEC "${PROJECT_DIR}/specs")
+# Spec IDs are continuous across the whole repo (not per-project) — scan
+# repo-wide so numbering doesn't restart in a new project.
+SPEC_ID=$(next_id SPEC)
 SLUG=$(slugify "$TITLE")
 SPEC_FILE="${PROJECT_DIR}/specs/${SPEC_ID}-${SLUG}.md"
 VARIANT=$(get_variant)

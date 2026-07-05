@@ -4,7 +4,7 @@
 # It has a spec backlog and ships as a unit when the backlog is done.
 
 stage:
-  id: STAGE-001                     # stable, zero-padded within the project
+  id: STAGE-007                     # stable, zero-padded, continuous across the repo
   status: proposed                  # proposed | active | shipped | cancelled | on_hold
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
@@ -27,19 +27,19 @@ value_contribution:
     today's behavior exactly. This is the spine every other PROJ-002 stage builds on.
   delivers:
     # NOTE: this stage is deliberately INFRASTRUCTURE — near-zero user-visible change.
-    # Its payoff is that STAGE-002's retune + variety become data edits, not engine code.
+    # Its payoff is that STAGE-008's retune + variety become data edits, not engine code.
     - "A Machine config type (a math slice consumed by the engine + a presentation slice consumed by the UI)."
     - "The current game expressed entirely as data — the default machine, 'Wild & Whimsical'."
     - "Engine spin/grid/payline/tier functions that take a machine instead of module constants (DEC-001 boundary intact)."
     - "The app plays byte-identically to today, driven by the default machine, guarded by a frozen-seed parity test."
   explicitly_does_not:
-    - "Retune the math for fun — this stage is strictly behavior-preserving (that's STAGE-002)."
-    - "Add a machine-selector UI, persist a choice, or ship a 2nd/3rd machine (STAGE-002)."
-    - "Add player stats, help, or analytics (STAGE-003..005)."
+    - "Retune the math for fun — this stage is strictly behavior-preserving (that's STAGE-008)."
+    - "Add a machine-selector UI, persist a choice, or ship a 2nd/3rd machine (STAGE-008)."
+    - "Add player stats, help, or analytics (STAGE-009..011)."
     - "Change the engine-no-dom boundary (DEC-001) — the engine takes plain-data config, never DOM."
 ---
 
-# STAGE-001: config driven machine model
+# STAGE-007: config driven machine model
 
 ## What This Stage Is
 
@@ -51,7 +51,7 @@ UI consumes). The current game is extracted, unchanged, as the first machine
 (**"Wild & Whimsical"**), and every engine function — grid resolution, payline
 evaluation, win-tier classification, `spin()` — is changed to take a machine instead
 of reading module constants. When it ships, the app plays **byte-identically to
-today**; but the game is now data, so STAGE-002's fun-retune and extra machines become
+today**; but the game is now data, so STAGE-008's fun-retune and extra machines become
 config edits, not engine code.
 
 ## Why Now
@@ -93,47 +93,47 @@ and freshly frozen is far cheaper than after more behavior accretes.
 - A **DEC** for the config-driven-machine model (extends DEC-001/006/011/003).
 
 ### Explicitly out of scope
-- Any change to the numbers / feel (retune) — **STAGE-002**.
-- A selector UI, persisting the choice, or a 2nd/3rd machine — **STAGE-002**.
-- Player stats / help / analytics — STAGE-003..005.
+- Any change to the numbers / feel (retune) — **STAGE-008**.
+- A selector UI, persisting the choice, or a 2nd/3rd machine — **STAGE-008**.
+- Player stats / help / analytics — STAGE-009..011.
 - Per-reel asymmetric strips, more paylines, or new mechanics (scatter, etc.) — later,
-  as machine config, in STAGE-002+.
+  as machine config, in STAGE-008+.
 
 ## Spec Backlog
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
-- [ ] SPEC-001 (not yet written) — **Machine config types + default-machine data
+- [ ] SPEC-038 (not yet written) — **Machine config types + default-machine data
       extraction**: define the `Machine` type (math + presentation slices) and extract
       today's constants into the default machine, **no engine signature changes yet**;
       emit the config-model DEC. Parity: extracted data == current constants. **[M]**
-- [ ] SPEC-002 (not yet written) — **Parameterize grid + payline evaluation**:
+- [ ] SPEC-039 (not yet written) — **Parameterize grid + payline evaluation**:
       `resolveGrid`/`evaluatePaylines` consume the machine's strips/paylines/paytable
       instead of module constants; frozen-seed parity guard. **[M]** ← riskiest; watch.
-- [ ] SPEC-003 (not yet written) — **Parameterize win-tier + jackpot rule**: tier
+- [ ] SPEC-040 (not yet written) — **Parameterize win-tier + jackpot rule**: tier
       boundaries + jackpot symbol/count read from the machine (not hard-coded WOLF×5 /
       5× big); parity guard. **[S–M]**
-- [ ] SPEC-004 (not yet written) — **Presentation config per machine**: emoji /
+- [ ] SPEC-041 (not yet written) — **Presentation config per machine**: emoji /
       symbol-display + theme tokens + audio params move into the machine; the UI reads
       the active machine; visual + audio parity. **[M]**
-- [ ] SPEC-005 (not yet written) — **Machine registry + hook plumbing**: a registry
+- [ ] SPEC-042 (not yet written) — **Machine registry + hook plumbing**: a registry
       (default only) and `useSlotMachine` threads the active machine into engine +
       presentation; **default machine only, no selector UI**; end-to-end parity. **[M]**
-- [ ] SPEC-006 (not yet written) — **Machine-parity contract test**: the four frozen
+- [ ] SPEC-043 (not yet written) — **Machine-parity contract test**: the four frozen
       seeds through the default machine assert identical outcomes — the stage's
       regression guard. **[S]**
 
 **Count:** 0 shipped / 0 active / 6 pending — 4×M, 1×S–M, 1×S. No L (the engine
-parameterization was split into 002+003 to keep the riskiest work bounded). Within
+parameterization was split into 039+040 to keep the riskiest work bounded). Within
 the 3–8 range.
 
 ## Design Notes
 
 - **This stage UNFREEZES the engine.** It's been frozen since SPEC-011 (zero
-  `src/engine/**` changes). STAGE-001 deliberately reopens it — so *every* engine
-  change is guarded by the frozen-seed parity test (SPEC-006, plus parity assertions in
+  `src/engine/**` changes). STAGE-007 deliberately reopens it — so *every* engine
+  change is guarded by the frozen-seed parity test (SPEC-043, plus parity assertions in
   each spec's Failing Tests). This is the contract-tests-as-guards pattern PROJ-001
-  proved. This stage must land before any STAGE-002 tuning touches the numbers.
+  proved. This stage must land before any STAGE-008 tuning touches the numbers.
 - **Split the config: math vs presentation.** The `Machine` has a **math slice**
   (symbols, tiers, strips/weights, reelCount/rows, paylines, paytable, jackpot rule,
   tier boundaries, bet levels, starting balance) the *engine* consumes, and a
@@ -161,9 +161,9 @@ the 3–8 range.
 - External: none.
 
 ### Enables
-- **STAGE-002 (Fun retune + more machines):** once the engine is config-driven, the
+- **STAGE-008 (Fun retune + more machines):** once the engine is config-driven, the
   retune and every new machine/theme/music become data changes, not engine code.
-- **STAGE-003..005** indirectly — they layer on the machine-aware app.
+- **STAGE-009..011** indirectly — they layer on the machine-aware app.
 
 ## Stage-Level Reflection
 
