@@ -60,7 +60,9 @@ cost:
     - cycle: build
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 119465   # from Agent result subagent_tokens
+      estimated_usd: 0.79    # 119465 tok × $6.6/M (Sonnet)
+      duration_minutes: 41.0 # 2461216 ms
       note: >-
         Implemented the four drop-in source edits (balance.ts nextBet/prevBet gain an optional
         `levels` param; paytable.ts paytableRows/paylineCount read MachineMath instead of engine
@@ -81,7 +83,9 @@ cost:
     - cycle: verify
       agent: claude-sonnet-4-6
       interface: claude-code
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 93485    # from Agent result subagent_tokens
+      estimated_usd: 0.62    # 93485 tok × $6.6/M (Sonnet)
+      duration_minutes: 77.6 # 4656420 ms
       note: >-
         Cold, independent re-verification. Re-ran the full gate (`just typecheck && just lint
         && just test && just build && just validate`) — all exit 0, 54 test files, 326 tests
@@ -100,10 +104,21 @@ cost:
         checkout --` with diff confirmed empty afterward. Hard guards (engine-math/machine files;
         package.json/package-lock.json) both empty. Full gate re-confirmed green after all
         reverts. Defect count: 0.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents
+        against git/disk (reviewed the full diff, re-ran the gate + hard guards myself — all
+        green/empty), filled build+verify cost from subagent_tokens, PR + CI-poll + squash-merge
+        + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 212950   # build 119465 + verify 93485
+    estimated_usd: 1.41    # build $0.79 + verify $0.62
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-047: Parameterize residual engine reads
@@ -421,8 +436,22 @@ teeth — investigate before shipping.
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Ship the drop-in test literals already `tsc`-clean. This build was pure transcription
+     with a single wrinkle: the stub-math `paytable` tuple literal in `paytable.test.ts`
+     needed `as const` to satisfy `MachineMath.paytable`'s `readonly [number, number, number]`
+     under strict `tsc` (the design's verbatim literal widened to `number[]`). Trivial, but a
+     spec whose drop-in code was run through `tsc` at design time would have zero deviations.
+
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. No new DEC (this closed the last STAGE-007 residual-read deferral as a seam
+     parameterization under DEC-015 — not a new decision). No constraint/template change. One
+     small LESSON worth logging to the PROJ-002 signals set: for parameterization specs,
+     type-check inline test-object literals against strict tsc when authoring drop-in code —
+     tuple-typed fields (`readonly [number, number, number]`) need `as const` on array literals.
+
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The stage backlog already sequences the payoff: SPEC-048 (theme/audio slice),
+     SPEC-049 (reactive active-machine context — makes `getActiveMachine()` reactive so the
+     paytable re-reads on a switch), SPEC-050 (selector), then the three themed machines
+     (051/052/053) that finally exercise the now-machine-driven bet levels + paytable this spec
+     unlocked. Nothing to add.
