@@ -57,6 +57,27 @@ cost:
         [10,25,50]; default machine paylines 20; paytable per DEC-016; the custom [10,50] levels
         array gives nextBet(10)->50 / prevBet(50)->10, skipping 25 — the adversarial-guard teeth),
         so the build is transcription.
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      note: >-
+        Implemented the four drop-in source edits (balance.ts nextBet/prevBet gain an optional
+        `levels` param; paytable.ts paytableRows/paylineCount read MachineMath instead of engine
+        consts, PAYLINE_COUNT removed; PaytableSheet.tsx resolves the machine once and threads
+        math to both functions; useSlotMachine.ts threads machine.math.betLevels into all three
+        nextBet/prevBet call sites) and the three test-file updates (balance.test.ts +2 tests,
+        paytable.test.ts updated to two-arg calls +2 tests, useSlotMachine.test.tsx +1 test)
+        verbatim per the spec Notes, with one type-only deviation (added `as const` to the
+        stub-math paytable tuple literal in paytable.test.ts to satisfy MachineMath's tuple type
+        under strict tsc). Manually ran both adversarial guard-mutations from the spec Notes
+        (revert nextBet/prevBet to ignore levels; revert paytableRows/paylineCount to read the
+        engine PAYTABLE/SYMBOL_TIER/SYMBOLS/PAYLINES consts) and confirmed both fail the new
+        tests as specified, then restored the correct implementation. Gate green: `just
+        typecheck && just lint && just test && just build && just validate` — 54 test files,
+        326 tests passed. Hard guard confirmed empty: `git diff main..HEAD -- src/engine/
+        machine.ts src/engine/paylines.ts src/engine/spin.ts src/engine/strips.ts
+        src/engine/tiers.ts src/machines/`.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -345,20 +366,31 @@ teeth — investigate before shipping.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:** none expected (seam parameterization under DEC-015).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-047-parameterize-residual-engine-reads`
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (seam parameterization under DEC-015, as expected).
+- **Deviations from spec:** One implementation-detail deviation, not a behavior/API deviation:
+  the stub-math test's inline `paytable: { low: [9,9,9], ... }` literal (as given verbatim in
+  the spec Notes) fails `tsc --strict` because `MachineMath.paytable[tier]` is typed as the
+  tuple `readonly [number, number, number]` and a bare `[9, 9, 9]` array literal widens to
+  `number[]`. Added `as const` to each of the four tuples in that one test object so it
+  type-checks; the runtime values and assertions are unchanged from the spec text. No other
+  deviations — all four source edits and all three test-file changes were made verbatim.
+- **Follow-up work identified:** none beyond what the spec already defers to SPEC-048/049.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the only friction was the `as const` tuple-typing wrinkle in the
+     stub-math test literal noted above, which the spec's drop-in code didn't need to
+     anticipate since it was written before running `tsc` against it.
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001/011/015 fully covered the boundary and data-source rules needed; nothing
+     missing.
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structurally different — the spec's "measure against the real engine before
+     writing tests" design discipline meant the build was, as advertised, transcription plus
+     one small type-literal fix.
 
 ---
 

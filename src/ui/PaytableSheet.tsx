@@ -6,7 +6,7 @@
 // constraint: respect-reduced-motion — handled in paytable.css.
 
 import { useState, useEffect, useRef } from 'react';
-import { paytableRows, PAYLINE_COUNT } from './paytable';
+import { paytableRows, paylineCount } from './paytable';
 import { getActiveMachine } from '../machines/registry';
 import PaylineMap from './PaylineMap';
 import './paytable.css';
@@ -42,7 +42,8 @@ export function PaytableSheet() {
     };
   }, [open]);
 
-  const rows = paytableRows(getActiveMachine().presentation.symbolDisplay);
+  const machine = getActiveMachine();
+  const rows = paytableRows(machine.math, machine.presentation.symbolDisplay);
 
   return (
     <>
@@ -108,7 +109,7 @@ export function PaytableSheet() {
             <section className="paytable__rules" aria-label="How wins work">
               <h3 className="paytable__rules-title">How wins work</h3>
               <p className="paytable__rules-text">
-                Wins pay left-to-right on {PAYLINE_COUNT} fixed lines. You need{' '}
+                Wins pay left-to-right on {paylineCount(machine.math)} fixed lines. You need{' '}
                 <strong>3+ matching symbols in a row starting from the leftmost reel</strong> — a
                 run that doesn&rsquo;t reach the first reel doesn&rsquo;t pay.
               </p>

@@ -16,23 +16,23 @@ export type BetLevel = (typeof BET_LEVELS)[number];
 export const DEFAULT_BET: BetLevel = 10;
 
 /**
- * Step the bet level up by one step.
- * Clamped at the top (50) — no wraparound.
+ * Step the bet level up by one step within `levels` (defaults to BET_LEVELS).
+ * Clamped at the top — no wraparound. A machine supplies its own `machine.math.betLevels`.
  */
-export function nextBet(bet: BetLevel): BetLevel {
-  const idx = BET_LEVELS.indexOf(bet);
-  const nextIdx = Math.min(idx + 1, BET_LEVELS.length - 1);
-  return BET_LEVELS[nextIdx];
+export function nextBet(bet: BetLevel, levels: readonly BetLevel[] = BET_LEVELS): BetLevel {
+  const idx = levels.indexOf(bet);
+  const nextIdx = Math.min(idx + 1, levels.length - 1);
+  return levels[nextIdx];
 }
 
 /**
- * Step the bet level down by one step.
- * Clamped at the bottom (10) — no wraparound.
+ * Step the bet level down by one step within `levels` (defaults to BET_LEVELS).
+ * Clamped at the bottom — no wraparound. A machine supplies its own `machine.math.betLevels`.
  */
-export function prevBet(bet: BetLevel): BetLevel {
-  const idx = BET_LEVELS.indexOf(bet);
+export function prevBet(bet: BetLevel, levels: readonly BetLevel[] = BET_LEVELS): BetLevel {
+  const idx = levels.indexOf(bet);
   const prevIdx = Math.max(idx - 1, 0);
-  return BET_LEVELS[prevIdx];
+  return levels[prevIdx];
 }
 
 /**

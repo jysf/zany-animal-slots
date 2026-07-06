@@ -22,3 +22,13 @@ Cycle prompts live in `prompts/SPEC-047-<cycle>.md`.
       [10,50] levels array gives nextBet(10)->50 / prevBet(50)->10 (skips 25) — the adversarial-guard
       teeth. Complete drop-in code + failing tests (balance / paytable / useSlotMachine) in the spec.
       No new dep, no new DEC. Build prompt written.
+- [~] **build** — (Sonnet) implemented the four source edits (balance.ts, paytable.ts,
+      PaytableSheet.tsx, useSlotMachine.ts) and the three test-file updates (balance.test.ts,
+      paytable.test.ts, useSlotMachine.test.tsx) verbatim per the spec's Notes, plus one type-only
+      `as const` fix on the stub-math test literal to satisfy `MachineMath`'s tuple type. Ran both
+      adversarial guard-mutations by hand and confirmed they fail the new tests as specified, then
+      restored. Gate green: `just typecheck && just lint && just test && just build && just
+      validate` — 54 test files, 326 tests passed. Hard guard (`git diff main..HEAD` on
+      engine-math/machine/data files) confirmed EMPTY — no frozen-seed re-baseline needed. Branch
+      `feat/spec-047-parameterize-residual-engine-reads`. Left `[~]` for the orchestrator to flip
+      to `[x]`.
