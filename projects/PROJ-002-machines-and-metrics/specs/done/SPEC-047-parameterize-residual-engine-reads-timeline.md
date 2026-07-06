@@ -22,7 +22,7 @@ Cycle prompts live in `prompts/SPEC-047-<cycle>.md`.
       [10,50] levels array gives nextBet(10)->50 / prevBet(50)->10 (skips 25) — the adversarial-guard
       teeth. Complete drop-in code + failing tests (balance / paytable / useSlotMachine) in the spec.
       No new dep, no new DEC. Build prompt written.
-- [~] **build** — (Sonnet) implemented the four source edits (balance.ts, paytable.ts,
+- [x] **build** — (Sonnet) implemented the four source edits (balance.ts, paytable.ts,
       PaytableSheet.tsx, useSlotMachine.ts) and the three test-file updates (balance.test.ts,
       paytable.test.ts, useSlotMachine.test.tsx) verbatim per the spec's Notes, plus one type-only
       `as const` fix on the stub-math test literal to satisfy `MachineMath`'s tuple type. Ran both
@@ -32,7 +32,7 @@ Cycle prompts live in `prompts/SPEC-047-<cycle>.md`.
       engine-math/machine/data files) confirmed EMPTY — no frozen-seed re-baseline needed. Branch
       `feat/spec-047-parameterize-residual-engine-reads`. Left `[~]` for the orchestrator to flip
       to `[x]`.
-- [~] **verify** — (Sonnet, cold review) re-ran the full gate independently: `just typecheck &&
+- [x] **verify** — (Sonnet, cold review) re-ran the full gate independently: `just typecheck &&
       just lint && just test && just build && just validate` all exit 0 — 54 test files, 326
       tests passed. Conformance confirmed by reading the changed source: `balance.ts`
       `nextBet`/`prevBet` take `levels: readonly BetLevel[] = BET_LEVELS`, index `levels` (not
@@ -58,3 +58,11 @@ Cycle prompts live in `prompts/SPEC-047-<cycle>.md`.
       src/engine/tiers.ts src/machines/` and `git diff main..HEAD -- package.json
       package-lock.json`. Full gate re-run green after all reverts. Defect count: 0. Left `[~]` for
       the orchestrator to flip to `[x]`.
+- [x] **ship** — completed 2026-07-06 (Opus): reconciled both sub-agents against git/disk
+      (reviewed the full diff, independently re-ran the gate + both hard guards — all green/
+      empty), filled build/verify cost from subagent_tokens (build 119465 tok / $0.79; verify
+      93485 tok / $0.62; totals 212950 tok / $1.41 / 4 sessions). Squash-merged PR #57 (CI CLEAN
+      — all 7 checks SUCCESS) and synced main. 0 defects; both adversarial guard-mutations proved
+      teeth. Fourth STAGE-008 spec shipped (4/10). No behavior change; no frozen-seed re-baseline;
+      no new dep; no new DEC. The last STAGE-007 residual-read deferral is closed — bet levels +
+      the paytable view are now machine-driven, ready for the themed machines (SPEC-051/052/053).

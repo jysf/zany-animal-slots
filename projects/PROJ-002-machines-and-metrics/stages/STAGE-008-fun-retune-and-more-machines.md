@@ -160,10 +160,13 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       the frozen-seed contract + metrics baseline + 12 test files to the tuned outcomes (a changed
       fixture INTENDED); emitted **DEC-016**. Preview-verified (20 line diagrams + retuned paytable).
       0 defects. **[L]**
-- [ ] SPEC-047 (build) — **Parameterize residual engine reads**: bet-level
-      stepping (`nextBet`/`prevBet`) and the paytable view's math source read the active
-      machine instead of engine constants (deferred STAGE-007); adversarial guard-mutation
-      proves it's data-driven. **[S–M]**
+- [x] SPEC-047 (shipped 2026-07-06, PR #57) — **Parameterize residual engine reads**: bet-level
+      stepping (`nextBet`/`prevBet` gained an optional `levels` param) and the paytable view's math
+      source (`paytableRows`/new `paylineCount` read `MachineMath`; `PAYLINE_COUNT` const removed)
+      now read the active machine instead of engine constants (deferred STAGE-007). Same
+      "optional-param-defaulting-to-default" pattern as SPEC-039/040. NO behavior change for the
+      default machine → **no frozen-seed re-baseline** (empty git-diff guard). Both adversarial
+      guard-mutations proved teeth; 0 defects. No new dep, no new DEC. **[S–M]**
 - [ ] (not yet written) SPEC-048 — **Per-machine theme + audio slice**: extend
       `MachinePresentation` with `theme` (token overrides applied at runtime as CSS vars)
       + `audio` (channel gains / mix / music params); wire the UI + the audio singleton
@@ -182,7 +185,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 3 shipped / 0 active / 7 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 4 shipped / 0 active / 6 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs
