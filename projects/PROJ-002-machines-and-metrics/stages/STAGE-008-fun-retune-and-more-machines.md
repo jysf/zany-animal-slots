@@ -160,7 +160,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       the frozen-seed contract + metrics baseline + 12 test files to the tuned outcomes (a changed
       fixture INTENDED); emitted **DEC-016**. Preview-verified (20 line diagrams + retuned paytable).
       0 defects. **[L]**
-- [ ] (not yet written) SPEC-047 — **Parameterize residual engine reads**: bet-level
+- [ ] SPEC-047 (build) — **Parameterize residual engine reads**: bet-level
       stepping (`nextBet`/`prevBet`) and the paytable view's math source read the active
       machine instead of engine constants (deferred STAGE-007); adversarial guard-mutation
       proves it's data-driven. **[S–M]**
