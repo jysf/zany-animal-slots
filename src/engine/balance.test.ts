@@ -29,6 +29,20 @@ describe("balance", () => {
     expect(prevBet(10)).toBe(10);
   });
 
+  // SPEC-047: nextBet/prevBet step through a SUPPLIED levels array (a machine's
+  // machine.math.betLevels), defaulting to BET_LEVELS — proven above. These prove
+  // the steppers read the passed levels, not the module BET_LEVELS.
+  it("nextBet steps through a machine's custom bet levels", () => {
+    expect(nextBet(10, [10, 50])).toBe(50);
+    expect(nextBet(50, [10, 50])).toBe(50); // top clamp
+    expect(nextBet(10, [10, 25, 50])).toBe(25); // sanity
+  });
+
+  it("prevBet steps through a machine's custom bet levels", () => {
+    expect(prevBet(50, [10, 50])).toBe(10);
+    expect(prevBet(10, [10, 50])).toBe(10); // bottom clamp
+  });
+
   it("canAfford respects balance and positive bet", () => {
     expect(canAfford(1000, 50)).toBe(true);
     expect(canAfford(50, 50)).toBe(true); // exact balance

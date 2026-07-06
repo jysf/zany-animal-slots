@@ -57,10 +57,68 @@ cost:
         [10,25,50]; default machine paylines 20; paytable per DEC-016; the custom [10,50] levels
         array gives nextBet(10)->50 / prevBet(50)->10, skipping 25 — the adversarial-guard teeth),
         so the build is transcription.
+    - cycle: build
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 119465   # from Agent result subagent_tokens
+      estimated_usd: 0.79    # 119465 tok × $6.6/M (Sonnet)
+      duration_minutes: 41.0 # 2461216 ms
+      note: >-
+        Implemented the four drop-in source edits (balance.ts nextBet/prevBet gain an optional
+        `levels` param; paytable.ts paytableRows/paylineCount read MachineMath instead of engine
+        consts, PAYLINE_COUNT removed; PaytableSheet.tsx resolves the machine once and threads
+        math to both functions; useSlotMachine.ts threads machine.math.betLevels into all three
+        nextBet/prevBet call sites) and the three test-file updates (balance.test.ts +2 tests,
+        paytable.test.ts updated to two-arg calls +2 tests, useSlotMachine.test.tsx +1 test)
+        verbatim per the spec Notes, with one type-only deviation (added `as const` to the
+        stub-math paytable tuple literal in paytable.test.ts to satisfy MachineMath's tuple type
+        under strict tsc). Manually ran both adversarial guard-mutations from the spec Notes
+        (revert nextBet/prevBet to ignore levels; revert paytableRows/paylineCount to read the
+        engine PAYTABLE/SYMBOL_TIER/SYMBOLS/PAYLINES consts) and confirmed both fail the new
+        tests as specified, then restored the correct implementation. Gate green: `just
+        typecheck && just lint && just test && just build && just validate` — 54 test files,
+        326 tests passed. Hard guard confirmed empty: `git diff main..HEAD -- src/engine/
+        machine.ts src/engine/paylines.ts src/engine/spin.ts src/engine/strips.ts
+        src/engine/tiers.ts src/machines/`.
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: 93485    # from Agent result subagent_tokens
+      estimated_usd: 0.62    # 93485 tok × $6.6/M (Sonnet)
+      duration_minutes: 77.6 # 4656420 ms
+      note: >-
+        Cold, independent re-verification. Re-ran the full gate (`just typecheck && just lint
+        && just test && just build && just validate`) — all exit 0, 54 test files, 326 tests
+        passed. Confirmed spec conformance by reading the changed source directly: balance.ts
+        nextBet/prevBet take `levels: readonly BetLevel[] = BET_LEVELS` and index `levels` (pure,
+        no DOM); paytable.ts paytableRows/paylineCount read MachineMath fields, PAYLINE_COUNT and
+        the engine value-import are gone (type-only MachineMath/Tier import, DEC-001 intact);
+        PaytableSheet.tsx resolves getActiveMachine() once and threads machine.math to both
+        functions; useSlotMachine.ts threads machine.math.betLevels into all three call sites with
+        `machine` in the two useCallback deps. No .skip/.only/xit in the touched test files. Ran
+        both adversarial guard-mutations myself: (a) reverting nextBet/prevBet to index BET_LEVELS
+        failed 2 tests in balance.test.ts (expected 50/10, got 25/25) and 1 in
+        useSlotMachine.test.tsx (expected 50, got 25); (b) reverting paytableRows/paylineCount to
+        read engine PAYTABLE/SYMBOL_TIER/SYMBOLS/PAYLINES failed 1 test in paytable.test.ts
+        (expected [9,9,9], got the engine's real [10,50,250] jackpot row). Both reverted via `git
+        checkout --` with diff confirmed empty afterward. Hard guards (engine-math/machine files;
+        package.json/package-lock.json) both empty. Full gate re-confirmed green after all
+        reverts. Defect count: 0.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 12
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents
+        against git/disk (reviewed the full diff, re-ran the gate + hard guards myself — all
+        green/empty), filled build+verify cost from subagent_tokens, PR + CI-poll + squash-merge
+        + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 212950   # build 119465 + verify 93485
+    estimated_usd: 1.41    # build $0.79 + verify $0.62
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-047: Parameterize residual engine reads
@@ -345,20 +403,31 @@ teeth — investigate before shipping.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:** none expected (seam parameterization under DEC-015).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-047-parameterize-residual-engine-reads`
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (seam parameterization under DEC-015, as expected).
+- **Deviations from spec:** One implementation-detail deviation, not a behavior/API deviation:
+  the stub-math test's inline `paytable: { low: [9,9,9], ... }` literal (as given verbatim in
+  the spec Notes) fails `tsc --strict` because `MachineMath.paytable[tier]` is typed as the
+  tuple `readonly [number, number, number]` and a bare `[9, 9, 9]` array literal widens to
+  `number[]`. Added `as const` to each of the four tuples in that one test object so it
+  type-checks; the runtime values and assertions are unchanged from the spec text. No other
+  deviations — all four source edits and all three test-file changes were made verbatim.
+- **Follow-up work identified:** none beyond what the spec already defers to SPEC-048/049.
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing was unclear; the only friction was the `as const` tuple-typing wrinkle in the
+     stub-math test literal noted above, which the spec's drop-in code didn't need to
+     anticipate since it was written before running `tsc` against it.
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001/011/015 fully covered the boundary and data-source rules needed; nothing
+     missing.
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structurally different — the spec's "measure against the real engine before
+     writing tests" design discipline meant the build was, as advertised, transcription plus
+     one small type-literal fix.
 
 ---
 
@@ -367,8 +436,22 @@ teeth — investigate before shipping.
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Ship the drop-in test literals already `tsc`-clean. This build was pure transcription
+     with a single wrinkle: the stub-math `paytable` tuple literal in `paytable.test.ts`
+     needed `as const` to satisfy `MachineMath.paytable`'s `readonly [number, number, number]`
+     under strict `tsc` (the design's verbatim literal widened to `number[]`). Trivial, but a
+     spec whose drop-in code was run through `tsc` at design time would have zero deviations.
+
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. No new DEC (this closed the last STAGE-007 residual-read deferral as a seam
+     parameterization under DEC-015 — not a new decision). No constraint/template change. One
+     small LESSON worth logging to the PROJ-002 signals set: for parameterization specs,
+     type-check inline test-object literals against strict tsc when authoring drop-in code —
+     tuple-typed fields (`readonly [number, number, number]`) need `as const` on array literals.
+
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. The stage backlog already sequences the payoff: SPEC-048 (theme/audio slice),
+     SPEC-049 (reactive active-machine context — makes `getActiveMachine()` reactive so the
+     paytable re-reads on a switch), SPEC-050 (selector), then the three themed machines
+     (051/052/053) that finally exercise the now-machine-driven bet levels + paytable this spec
+     unlocked. Nothing to add.

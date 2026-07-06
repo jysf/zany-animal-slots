@@ -161,12 +161,16 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const isSpinable = status !== 'spinning' && canAfford(balance, bet);
 
   // canIncreaseBet: only when nextBet would actually step up AND balance can cover it.
-  // nextBet clamps at 50 so nextBet(bet) === bet means we're already at the top.
-  const canIncreaseBet = nextBet(bet) !== bet && canAfford(balance, nextBet(bet));
+  // nextBet clamps at the top of machine.math.betLevels so nextBet(bet, levels) === bet
+  // means we're already at the top.
+  const canIncreaseBet =
+    nextBet(bet, machine.math.betLevels) !== bet &&
+    canAfford(balance, nextBet(bet, machine.math.betLevels));
 
   // canDecreaseBet: only when prevBet would actually step down.
-  // prevBet clamps at 10 so prevBet(bet) === bet means we're already at the floor.
-  const canDecreaseBet = prevBet(bet) !== bet;
+  // prevBet clamps at the bottom of machine.math.betLevels so prevBet(bet, levels) === bet
+  // means we're already at the floor.
+  const canDecreaseBet = prevBet(bet, machine.math.betLevels) !== bet;
 
   const spin = useCallback(() => {
     // Re-entrant guard: if already spinning, ignore.
@@ -236,13 +240,13 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
 
   const increaseBet = useCallback(() => {
     if (!canIncreaseBet) return;
-    setBet(nextBet(bet));
-  }, [bet, canIncreaseBet]);
+    setBet(nextBet(bet, machine.math.betLevels));
+  }, [bet, canIncreaseBet, machine]);
 
   const decreaseBet = useCallback(() => {
     if (!canDecreaseBet) return;
-    setBet(prevBet(bet));
-  }, [bet, canDecreaseBet]);
+    setBet(prevBet(bet, machine.math.betLevels));
+  }, [bet, canDecreaseBet, machine]);
 
   const toggleAutoSpin = useCallback(() => {
     if (autoRef.current.active) {

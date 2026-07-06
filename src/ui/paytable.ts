@@ -3,13 +3,17 @@
 // DEC-011: multipliers come from PAYTABLE, never hard-coded here.
 // DEC-006: emoji come from the supplied symbolDisplay map (SPEC-041 threads it from
 // the machine's presentation slice instead of importing the emoji/label map directly).
+// SPEC-047: symbols/tiers/multipliers/line-count now come from the supplied MachineMath
+// (the active machine) instead of engine module constants, closing the last STAGE-007
+// residual engine read.
 
-import { SYMBOLS, SYMBOL_TIER, PAYTABLE, PAYLINES } from '../engine/index';
-import type { Tier } from '../engine/index';
+import type { MachineMath, Tier } from '../engine/index';
 import type { SymbolDisplay } from '../machines/types';
 
-/** Number of fixed paylines, read from the engine so the rules copy can't drift. */
-export const PAYLINE_COUNT = PAYLINES.length;
+/** Number of fixed paylines for a machine's math slice (was the PAYLINE_COUNT const). */
+export function paylineCount(math: MachineMath): number {
+  return math.paylines.length;
+}
 
 /** Display row for one symbol tier in the paytable sheet. */
 export interface PaytableRow {
@@ -33,19 +37,17 @@ const TIER_LABELS: Record<Tier, string> = {
 };
 
 /**
- * Build the paytable display rows from engine data + the supplied symbol display map.
- * Returns one row per tier in descending value order (jackpot → high → mid → low).
- * Multipliers are read straight from PAYTABLE so they can never drift from the evaluator.
+ * Build the paytable display rows from the machine's math + the supplied symbol display map.
+ * Symbols/tiers/multipliers come from `math` so the sheet reflects the ACTIVE machine
+ * (DEC-011: multipliers still come from the machine's paytable, never hard-coded here).
  */
-export function paytableRows(symbolDisplay: SymbolDisplay): PaytableRow[] {
+export function paytableRows(math: MachineMath, symbolDisplay: SymbolDisplay): PaytableRow[] {
   return TIER_ORDER.map((tier) => ({
     tier,
     label: TIER_LABELS[tier],
-    // Filter SYMBOLS (in declaration order) to those belonging to this tier,
-    // then map to the UI emoji. SYMBOLS is the single source of symbol ordering.
-    emoji: SYMBOLS.filter((s) => SYMBOL_TIER[s] === tier).map(
+    emoji: math.symbols.filter((s) => math.symbolTier[s] === tier).map(
       (s) => symbolDisplay[s].emoji,
     ),
-    multipliers: PAYTABLE[tier],
+    multipliers: math.paytable[tier],
   }));
 }

@@ -217,6 +217,25 @@ describe('useSlotMachine', () => {
     expect(result.current.balance).toBe(3490);
   });
 
+  // SPEC-047: bet-level stepping now reads machine.math.betLevels instead of the
+  // module BET_LEVELS const.
+  it("steps the bet through the active machine's bet levels", () => {
+    const variant = {
+      ...WILD_AND_WHIMSICAL,
+      math: { ...WILD_AND_WHIMSICAL.math, betLevels: [10, 50] as const },
+    };
+    const { result } = renderHook(() =>
+      useSlotMachine({ machine: variant, initialBalance: 1000 }),
+    );
+    expect(result.current.bet).toBe(10);
+    act(() => { result.current.increaseBet(); });
+    expect(result.current.bet).toBe(50); // skips 25
+    act(() => { result.current.increaseBet(); });
+    expect(result.current.bet).toBe(50); // top clamp
+    act(() => { result.current.decreaseBet(); });
+    expect(result.current.bet).toBe(10);
+  });
+
   // ── SPEC-016: timed spin flow ───────────────────────────────────────────────
 
   it('spin enters the spinning state without revealing yet', () => {
