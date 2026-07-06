@@ -78,6 +78,28 @@ cost:
         326 tests passed. Hard guard confirmed empty: `git diff main..HEAD -- src/engine/
         machine.ts src/engine/paylines.ts src/engine/spin.ts src/engine/strips.ts
         src/engine/tiers.ts src/machines/`.
+    - cycle: verify
+      agent: claude-sonnet-4-6
+      interface: claude-code
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      note: >-
+        Cold, independent re-verification. Re-ran the full gate (`just typecheck && just lint
+        && just test && just build && just validate`) — all exit 0, 54 test files, 326 tests
+        passed. Confirmed spec conformance by reading the changed source directly: balance.ts
+        nextBet/prevBet take `levels: readonly BetLevel[] = BET_LEVELS` and index `levels` (pure,
+        no DOM); paytable.ts paytableRows/paylineCount read MachineMath fields, PAYLINE_COUNT and
+        the engine value-import are gone (type-only MachineMath/Tier import, DEC-001 intact);
+        PaytableSheet.tsx resolves getActiveMachine() once and threads machine.math to both
+        functions; useSlotMachine.ts threads machine.math.betLevels into all three call sites with
+        `machine` in the two useCallback deps. No .skip/.only/xit in the touched test files. Ran
+        both adversarial guard-mutations myself: (a) reverting nextBet/prevBet to index BET_LEVELS
+        failed 2 tests in balance.test.ts (expected 50/10, got 25/25) and 1 in
+        useSlotMachine.test.tsx (expected 50, got 25); (b) reverting paytableRows/paylineCount to
+        read engine PAYTABLE/SYMBOL_TIER/SYMBOLS/PAYLINES failed 1 test in paytable.test.ts
+        (expected [9,9,9], got the engine's real [10,50,250] jackpot row). Both reverted via `git
+        checkout --` with diff confirmed empty afterward. Hard guards (engine-math/machine files;
+        package.json/package-lock.json) both empty. Full gate re-confirmed green after all
+        reverts. Defect count: 0.
   totals:
     tokens_total: 0
     estimated_usd: 0
