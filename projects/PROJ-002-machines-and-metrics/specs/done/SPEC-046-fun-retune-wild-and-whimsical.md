@@ -95,6 +95,7 @@ cost:
       tokens_total: null
       estimated_usd: null
       duration_minutes: 18
+      recorded_at: 2026-07-05
       note: >-
         main-loop, not separately metered (AGENTS §4); ship cycle. Includes ~5 simulator tuning
         sweeps + full pin computation during design (folded into this Opus loop), reconcile of

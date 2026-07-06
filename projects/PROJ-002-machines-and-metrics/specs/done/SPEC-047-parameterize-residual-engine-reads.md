@@ -110,6 +110,7 @@ cost:
       tokens_total: null
       estimated_usd: null
       duration_minutes: 12
+      recorded_at: 2026-07-06
       note: >-
         main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents
         against git/disk (reviewed the full diff, re-ran the gate + hard guards myself — all

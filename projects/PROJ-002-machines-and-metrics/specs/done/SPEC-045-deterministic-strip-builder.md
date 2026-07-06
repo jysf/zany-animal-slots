@@ -99,6 +99,7 @@ cost:
       tokens_total: null
       estimated_usd: null
       duration_minutes: 15
+      recorded_at: 2026-07-05
       note: >-
         main-loop, not separately metered (AGENTS §4); ship cycle. Also resolved the verify [?]
         (documented the tie-break redundancy — not a defect), reconciled both sub-agents against
