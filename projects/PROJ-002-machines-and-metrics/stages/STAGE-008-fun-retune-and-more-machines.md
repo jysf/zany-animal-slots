@@ -189,7 +189,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       of the wave (one option today; grows with SPEC-051/052/053). Preview-verified the selector
       renders + caught/fixed a mobile header-overflow regression (`flex-wrap` on `.cabinet__header`).
       DEC-001 clean (engine diff EMPTY); all 3 guard-mutations bit; 0 defects. No new dep, no new DEC. **[M]**
-- [ ] (not yet written) SPEC-051 — **Arctic machine**: theme + music + math as data + a
+- [ ] SPEC-051 (build) — **Arctic machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test; selectable via the registry. **[M]**
 - [ ] (not yet written) SPEC-052 — **Desert machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. **[M]**
