@@ -355,6 +355,12 @@ a test.
   before firing the change event.
 - **Follow-up work identified:** none beyond what the spec already calls out (SPEC-051 Arctic makes
   the switch visibly/audibly meaningful with a second option).
+- **Orchestrator post-build fix (preview-surfaced):** the mobile preview (375px) showed the added
+  selector (~164px, sized to "Wild & Whimsical") pushed the header controls past the cabinet's right
+  edge — a layout regression the spec's drop-in didn't anticipate. Added `flex-wrap: wrap` to
+  `.cabinet__header` (`src/ui/regions/regions.css`) so the controls cluster drops to its own row on a
+  narrow phone (single row where there's width); no overflow at any width, machine name stays fully
+  readable. Committed separately on the branch; gate re-run green (356 tests). DEC-001 still EMPTY.
 
 ### Build-phase reflection (3 questions, short answers)
 
