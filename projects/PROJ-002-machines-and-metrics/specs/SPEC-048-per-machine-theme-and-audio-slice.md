@@ -56,10 +56,68 @@ cost:
         restoreS:0.6,holdMs:3000}; music {chord:[C3,G3,C4,E4],noteDuration:2n,loopInterval:2m})
         directly from the current source, so the default machine is a provable no-op and the build
         is transcription.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 138540   # from Agent result subagent_tokens
+      estimated_usd: 0.91    # 138540 tok × $6.6/M (Sonnet)
+      duration_minutes: 13.2 # 793403 ms
+      recorded_at: 2026-07-06
+      note: >-
+        Implemented the spec's Notes verbatim: new src/ui/theme/{machineTheme,useMachineTheme}.ts
+        and src/ui/audio/useMachineAudio.ts; extended src/machines/types.ts with ThemeVar/
+        ThemeTokens/MachineAudio and the required theme+audio fields on MachinePresentation;
+        wired the default machine (wildAndWhimsical.ts) to theme:{} + audio referencing
+        CHANNEL_GAINS/MIX/DEFAULT_BED_MUSIC by import; added mutable active-state layers +
+        setters to audioEngine.ts/mixer.ts/ambientBed.ts; wired App.tsx's stageRef +
+        useMachineTheme/useMachineAudio. Added/updated tests per the Failing Tests section
+        (machineTheme.test.ts, useMachineTheme.test.tsx, useMachineAudio.test.ts new; audioEngine/
+        mixer/ambientBed/wildAndWhimsical.parity tests extended, each restoring singleton defaults
+        after mutating). Ran the spec's three adversarial mutation checks locally (self-clearing
+        applyTheme, getChannel's activeGains read, applyMix's active-gain restore target) —
+        all three broke a test as required, then reverted. Gate green: typecheck, lint, test
+        (340 tests / 57 files), build, validate, cost-audit all exit 0.
+        `git diff main..HEAD -- src/engine/` confirmed EMPTY.
+    - cycle: verify
+      interface: claude-code
+      agent: claude-sonnet-4-6
+      tokens_total: 93332    # from Agent result subagent_tokens
+      estimated_usd: 0.62    # 93332 tok × $6.6/M (Sonnet)
+      duration_minutes: 11.7 # 704734 ms
+      recorded_at: 2026-07-06
+      note: >-
+        Cold, independent re-verification. Re-ran the full gate (typecheck, lint, test, build,
+        validate, cost-audit) — all exit 0; 340 tests / 57 files. Confirmed spec conformance by
+        reading every changed source file against the spec's Notes (types.ts, wildAndWhimsical.ts,
+        machineTheme.ts, useMachineTheme.ts, audioEngine.ts, mixer.ts, ambientBed.ts,
+        useMachineAudio.ts, App.tsx) — all match verbatim. No .skip/.only/xit in touched test files.
+        Ran all three adversarial guard-mutations by hand: (a) applyTheme's clear-branch made a
+        no-op broke machineTheme.test.ts's self-clearing test; (b) getChannel reading
+        CHANNEL_GAINS[name] instead of activeGains[name] broke audioEngine.test.ts's
+        machine-overridden-gain test; (c) applyMix restoring to CHANNEL_GAINS.bed instead of
+        getActiveChannelGain('bed') broke mixer.test.ts's active-bed-gain restore test. All three
+        had teeth; all three cleanly reverted (git diff empty after each). Hard guards confirmed
+        EMPTY: `git diff main..HEAD -- src/engine/` and `git diff main..HEAD --
+        src/machines/machine.ts src/machines/registry.ts`. Full gate re-run green after all
+        reverts. Defect count: 0.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 14
+      recorded_at: 2026-07-06
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents
+        against git/disk (reviewed the full diff, re-ran the gate + engine guard, confirmed the
+        two build-added mutation-teeth assertions are legitimate), filled build+verify cost from
+        subagent_tokens, ran a preview check (default machine renders the campfire palette
+        unchanged — .device-stage carries 0 inline theme vars, --color-bg resolves to #1a1008),
+        PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 231872   # build 138540 + verify 93332
+    estimated_usd: 1.53    # build $0.91 + verify $0.62
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-048: Per-machine theme + audio slice
@@ -485,17 +543,39 @@ has no teeth.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:** none expected (deferred SPEC-041 slice under DEC-015).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-048-per-machine-theme-and-audio-slice`
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (deferred SPEC-041 slice under DEC-015, as expected).
+- **Deviations from spec:** none — every file (new + modified) implements the Notes' drop-in
+  code verbatim. Tests were written to the exact scenarios in Failing Tests (assertion-for-
+  assertion where code was given; author's judgment only for the light scaffolding around
+  `renderHook`/mock wiring the spec didn't spell out char-for-char, e.g. the `useThemedDiv`
+  wrapper in `useMachineTheme.test.tsx` and the loop-callback invocation in the added
+  `ambientBed.test.ts` case).
+- **Follow-up work identified:** none beyond what SPEC-049/050/051-053 already own (reactive
+  active-machine, selector UI, themed machines) — this spec's own scope is fully closed.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** — <answer>
-2. **Was there a constraint or decision that should have been listed but wasn't?** — <answer>
-3. **If you did this task again, what would you do differently?** — <answer>
+1. **What was unclear in the spec that slowed you down?** — Nothing unclear; the Notes'
+   drop-in code was complete and unambiguous. The only judgment calls were filling test
+   scaffolding the spec described by assertion but didn't spell out as full source (e.g.
+   how exactly to mount a ref'd element for `useMachineTheme.test.tsx`, and how to assert
+   the ambient-bed loop callback uses the new chord in `ambientBed.test.ts`).
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No.
+   DEC-001/013/015 fully covered the relevant boundaries; the "verify-cycle adversarial
+   checks" section in the Notes was a useful sanity script even though it wasn't strictly a
+   constraint.
+3. **If you did this task again, what would you do differently?** — Nothing material;
+   the transcription-style implementation (import constants by reference rather than
+   retyping them) made the "no observable change" property easy to keep true throughout.
+
+Ran the spec's own adversarial mutation checks locally before finalizing (not committed):
+reverted `applyTheme`'s clear branch to a no-op → the self-clearing test failed as expected;
+made `getChannel` read `CHANNEL_GAINS[name]` instead of `activeGains[name]` → the
+`setChannelGains` test failed as expected; made `applyMix` restore to `CHANNEL_GAINS.bed`
+instead of `getActiveChannelGain('bed')` → the `setMix` restore-target assertion failed as
+expected. All three guards have teeth; reverted after confirming.
 
 ---
 
@@ -503,6 +583,25 @@ has no teeth.
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?**
+   — Prescribe the adversarial mutations against tests that already have teeth. The build agent
+     found that two of the three mutations the spec named (getChannel's active-gain read; applyMix's
+     active-bed restore) weren't distinguished by the spec's *literal* test text, and added one
+     assertion each to close the gap — a good catch, but the design should have paired each "revert
+     X → test Y fails" with a test Y that actually pins X. Same lesson SPEC-045 logged
+     ([[adversarial-mutation-must-be-behavior-distinguishing]]): write the distinguishing assertion
+     first, then name the mutation that breaks it.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No new DEC (deferred SPEC-041 slice under DEC-015; DEC-013 graph untouched — params only). No
+     template/constraint change. The `recorded_at` gate added earlier this session did its job: all
+     four sessions carry it and `cost-audit` stayed green throughout.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The seam is inert until reactive: **SPEC-049** lifts the active machine into a
+     React Context + localStorage so a *switch* re-runs `useMachineTheme`/`useMachineAudio` (today
+     they read the module-const default once at load); **SPEC-050** adds the selector that triggers
+     it; then **SPEC-051/052/053** supply real `theme`/`audio` values. One note for SPEC-049 to
+     honor: `applyTheme` is self-clearing and `setChannelGains`/`setMix`/`setBedMusic` are
+     idempotent, so a switch back to Wild & Whimsical (`theme:{}`) correctly restores the campfire
+     palette + default audio — no extra reset logic needed.

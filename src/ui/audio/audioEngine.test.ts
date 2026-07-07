@@ -66,3 +66,44 @@ describe('getChannel', () => {
     expect(ch).not.toBe(master);
   });
 });
+
+describe('setChannelGains / getActiveChannelGain', () => {
+  it('setChannelGains changes what getActiveChannelGain reports', async () => {
+    vi.resetModules();
+    const { setChannelGains, getActiveChannelGain, CHANNEL_GAINS: gains } = await import(
+      './audioEngine'
+    );
+
+    setChannelGains({ bed: 0.1, sfx: 0.2, jingle: 0.3 });
+    expect(getActiveChannelGain('bed')).toBe(0.1);
+    expect(getActiveChannelGain('sfx')).toBe(0.2);
+    expect(getActiveChannelGain('jingle')).toBe(0.3);
+
+    // Restore the default so later tests (and other files sharing this module) see the baseline.
+    setChannelGains(gains);
+    expect(getActiveChannelGain('bed')).toBe(gains.bed);
+    expect(getActiveChannelGain('sfx')).toBe(gains.sfx);
+    expect(getActiveChannelGain('jingle')).toBe(gains.jingle);
+  });
+
+  it('default gains still equal CHANNEL_GAINS until setChannelGains is called', async () => {
+    vi.resetModules();
+    const { getActiveChannelGain, CHANNEL_GAINS: gains } = await import('./audioEngine');
+    expect(getActiveChannelGain('bed')).toBe(gains.bed);
+    expect(getActiveChannelGain('sfx')).toBe(gains.sfx);
+    expect(getActiveChannelGain('jingle')).toBe(gains.jingle);
+  });
+
+  it('getChannel creates a not-yet-created channel at the active (machine-overridden) gain', async () => {
+    vi.resetModules();
+    const { setChannelGains, getChannel, CHANNEL_GAINS: gains } = await import('./audioEngine');
+    const { Gain } = await import('tone');
+
+    setChannelGains({ bed: 0.42, sfx: 0.2, jingle: 0.3 });
+    getChannel('bed');
+    expect(Gain).toHaveBeenCalledWith(0.42);
+
+    // Restore the default so later tests see the baseline.
+    setChannelGains(gains);
+  });
+});

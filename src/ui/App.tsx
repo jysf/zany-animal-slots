@@ -15,6 +15,9 @@
 // SPEC-026: calls useAudio() and threads muted + toggleMute into Header.
 // SPEC-027: destructures unlocked from useAudio() and calls useWinJingle.
 // SPEC-030: calls useDynamicMixing for bus-level bed automation (swell/duck).
+// SPEC-048: refs the stage root and applies the active machine's theme + audio
+// params (default machine == today's values, so this is a no-op today).
+import { useRef } from 'react';
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -29,10 +32,13 @@ import { useWinJingle } from './audio/useWinJingle';
 import { useAmbientBed } from './audio/useAmbientBed';
 import { useGameSfx } from './audio/useGameSfx';
 import { useDynamicMixing } from './audio/useDynamicMixing';
+import { useMachineTheme } from './theme/useMachineTheme';
+import { useMachineAudio } from './audio/useMachineAudio';
 
 export default function App() {
   const { muted, toggleMute, unlocked } = useAudio();
   const {
+    machine,
     grid,
     balance,
     bet,
@@ -56,8 +62,12 @@ export default function App() {
   useGameSfx(isSpinning, celebration, { muted, unlocked });
   useDynamicMixing(celebration, { muted, unlocked });
 
+  const stageRef = useRef<HTMLDivElement>(null);
+  useMachineTheme(stageRef, machine.presentation.theme);
+  useMachineAudio(machine.presentation.audio);
+
   return (
-    <div className="device-stage" data-testid="device-stage">
+    <div className="device-stage" data-testid="device-stage" ref={stageRef}>
       <div className="cabinet">
         <Header muted={muted} onToggleMute={toggleMute} />
         <div className="cabinet__winbanner">
