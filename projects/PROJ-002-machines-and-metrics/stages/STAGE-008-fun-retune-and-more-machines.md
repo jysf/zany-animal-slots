@@ -183,9 +183,12 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       today (one machine registered). DEC-001 clean (engine diff EMPTY); DEC-005 clean (localStorage,
       guarded). All 3 guard-mutations had teeth (mutation-(c) gap closed with a `vi.spyOn` delegation
       test); 0 defects. No new dep, no new DEC. **[M]**
-- [ ] SPEC-050 (build) — **Machine-selector UI**: an in-app control to switch
-      machines; switching re-renders reels + paytable + theme + audio together
-      (preview-verified). **[M]**
+- [x] SPEC-050 (shipped 2026-07-07, PR #60) — **Machine-selector UI**: a header `<select
+      aria-label="Machine">` (new `listMachines()` helper) wired to SPEC-049's `setActiveMachineId`;
+      token-styled (≥44px, re-themes via vars), added to the touch-target guard. First visible change
+      of the wave (one option today; grows with SPEC-051/052/053). Preview-verified the selector
+      renders + caught/fixed a mobile header-overflow regression (`flex-wrap` on `.cabinet__header`).
+      DEC-001 clean (engine diff EMPTY); all 3 guard-mutations bit; 0 defects. No new dep, no new DEC. **[M]**
 - [ ] (not yet written) SPEC-051 — **Arctic machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test; selectable via the registry. **[M]**
 - [ ] (not yet written) SPEC-052 — **Desert machine**: theme + music + math as data + a
@@ -193,7 +196,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 6 shipped / 0 active / 4 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 7 shipped / 0 active / 3 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs
