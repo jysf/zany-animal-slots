@@ -71,6 +71,22 @@ cost:
         the new listMachines test), build, validate, and cost-audit all exit 0.
         `git diff main..HEAD -- src/engine/` confirmed EMPTY (DEC-001). No new dependency, no new DEC,
         no raw hex in machine-selector.css (DEC-010).
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill from subagent_tokens
+      recorded_at: 2026-07-07
+      note: >-
+        Cold re-verification: re-ran the full gate independently (typecheck, lint, test — 60 files /
+        356 tests, build, validate, cost-audit — all exit 0). Confirmed conformance by reading the
+        changed source directly (registry.ts, MachineSelector.tsx, machine-selector.css, Header.tsx,
+        regions.css, controls.touch-target.test.ts) against the spec's Acceptance Criteria and drop-in
+        code. All three adversarial guard-mutations (no-op onChange; hard-coded select value; sub-44px
+        min-width) each broke exactly the intended test, then reverted clean — no teeth gaps.
+        `git diff main..HEAD -- src/engine/` EMPTY; no MATH drift. Preview-verified via dev server on
+        port 5173: selector renders with one option "Wild & Whimsical", aria-label "Machine"; at 375px
+        `.cabinet__header` does not overflow (scrollWidth == clientWidth). Full gate re-run green after
+        reverting all mutations. Defect count: 0.
   totals:
     tokens_total: 0
     estimated_usd: 0
