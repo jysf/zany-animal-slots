@@ -167,7 +167,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       "optional-param-defaulting-to-default" pattern as SPEC-039/040. NO behavior change for the
       default machine → **no frozen-seed re-baseline** (empty git-diff guard). Both adversarial
       guard-mutations proved teeth; 0 defects. No new dep, no new DEC. **[S–M]**
-- [ ] (not yet written) SPEC-048 — **Per-machine theme + audio slice**: extend
+- [ ] SPEC-048 (build) — **Per-machine theme + audio slice**: extend
       `MachinePresentation` with `theme` (token overrides applied at runtime as CSS vars)
       + `audio` (channel gains / mix / music params); wire the UI + the audio singleton
       (`audioEngine.ts`, `mixer.ts`) to the active machine (deferred STAGE-007/SPEC-041). **[L]**
