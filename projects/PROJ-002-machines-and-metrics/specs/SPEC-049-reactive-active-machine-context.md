@@ -1,0 +1,377 @@
+---
+# Maps to ContextCore task.* semantic conventions.
+# This variant assumes Claude plays every role. The context normally
+# in a separate handoff doc lives in the ## Implementation Context
+# section below.
+
+task:
+  id: SPEC-049
+  type: story                      # epic | story | task | bug | chore
+  cycle: build  # frame | design | build | verify | ship
+  blocked: false
+  priority: medium
+  complexity: M                    # S | M | L  (L means split it)
+
+project:
+  id: PROJ-002
+  stage: STAGE-008
+repo:
+  id: animal-slots
+
+agents:
+  architect: claude-opus-4-8       # design/frame: Opus (judgement-heavy). See AGENTS §8.
+  implementer: claude-sonnet-4-6   # build/verify: Sonnet (execution against the spec)
+  created_at: 2026-07-06
+
+references:
+  decisions:
+    - DEC-001   # engine-no-dom: the reactive seam is UI/machines layer; the engine never sees it
+    - DEC-005   # no backend: persistence is localStorage only, best-effort, never throws
+    - DEC-015   # config-driven machine model: the active machine becomes a reactive, persisted selection
+  constraints:
+    - engine-no-dom
+  related_specs:
+    - SPEC-042  # registry + getActiveMachine seam this makes reactive
+    - SPEC-047  # parameterized engine reads — a switch now re-runs them
+    - SPEC-048  # theme/audio slice — a switch now re-applies theme + audio
+    - SPEC-050  # machine selector UI that will CALL setActiveMachineId (this ships the context it needs)
+
+value_link: >-
+  The keystone for STAGE-008's variety: lifts the active machine into a React Context backed by
+  localStorage so a switch re-renders the reels, paytable, theme, and audio together and the choice
+  survives a reload — the reactive seam SPEC-050's selector drives and the themed machines
+  (SPEC-051/052/053) are chosen through. Without it a machine switch could not re-render.
+
+cost:
+  sessions:
+    - cycle: design
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null   # design cycle runs on the orchestrator's main Opus loop — not separately metered
+      recorded_at: 2026-07-06
+      note: >-
+        Design authored on the main Opus orchestrator loop (un-metered). No numeric pins to measure —
+        "no behavior change" is provable structurally: only ONE machine is registered, so the context
+        always resolves to the default (empty/unknown localStorage → default), and the existing suite
+        + an empty `git diff src/engine/` are the proof. Verified the consumers (useSlotMachine,
+        PaytableSheet, Game) and their tests render without a provider, so a default context value
+        keeps them green.
+  totals:
+    tokens_total: 0
+    estimated_usd: 0
+    session_count: 0
+---
+
+# SPEC-049: Reactive active-machine context
+
+## Context
+
+The active machine is resolved by `getActiveMachine()` in `src/machines/registry.ts`, which returns
+a **module const** (`MACHINES[DEFAULT_MACHINE_ID]`). Three React consumers read it at render —
+`useSlotMachine` (the engine-driving hook), `PaytableSheet`, and `Game` — but because it is a const,
+a *switch* to another machine could never re-render them. STAGE-008's whole variety payoff (a
+selector, per-machine theme/audio, four machines) is inert until the active machine is a **reactive,
+persisted** value.
+
+This spec is the keystone. It lifts the active machine into a **React Context** backed by
+**localStorage** (namespaced key `zany:active-machine`, so STAGE-009's stats keys can't collide):
+the three consumers subscribe to it, `getActiveMachine()` stops being a hard-wired const (it reads
+the persisted id), the chosen machine survives a reload, and an unknown/absent id falls back to the
+default. It ships the seam **without a selector** (SPEC-050) — with only one machine registered the
+context always resolves to the default, so there is **no observable change today**; it is proven a
+no-op by the existing suite staying green + an empty `git diff src/engine/`. DEC-001 holds (UI/
+machines layer only); DEC-005 holds (localStorage, best-effort, no backend).
+
+## Goal
+
+Lift the active machine into a React Context backed by localStorage: a `MachineProvider` holds the
+active machine id (initialized from and persisted to `zany:active-machine`, falling back to the
+default for an absent/unknown id), exposes `{ machine, activeMachineId, setActiveMachineId }` via a
+`useActiveMachine()` hook, and `useSlotMachine`/`PaytableSheet`/`Game` subscribe to it. `getActiveMachine()`
+reads the persisted id instead of being a const. No observable change today (one machine registered).
+
+## Inputs
+
+- **Files to read:**
+  - `src/machines/registry.ts` — `getActiveMachine`, `getMachine`, `MACHINES`, `DEFAULT_MACHINE_ID`.
+  - `src/ui/storage.ts` / `src/ui/audio/muteStorage.ts` — the safe-localStorage helper pattern to mirror.
+  - `src/ui/useSlotMachine.ts` — resolves `opts?.machine ?? getActiveMachine()` (line ~100).
+  - `src/ui/PaytableSheet.tsx` — reads `getActiveMachine()` at render (line ~45).
+  - `src/ui/regions/Game.tsx` — reads `getActiveMachine()` at render (line ~30).
+  - `src/main.tsx` — the app entry (`<StrictMode><App/></StrictMode>`); wrap in the provider.
+  - `src/machines/machine-parity.contract.test.ts` — uses `getActiveMachine()` (stays green: empty storage → default).
+- **Related code paths:** `src/machines/`, `src/ui/`.
+
+## Outputs
+
+- **Files created:**
+  - `src/machines/activeMachineStorage.ts` — `ACTIVE_MACHINE_KEY`, `readActiveMachineId`, `writeActiveMachineId` (safe localStorage, mirrors `storage.ts`).
+  - `src/machines/activeMachineStorage.test.ts`.
+  - `src/ui/machine/MachineProvider.tsx` — the Context, `MachineProvider`, and `useActiveMachine()`.
+  - `src/ui/machine/MachineProvider.test.tsx`.
+- **Files modified:**
+  - `src/machines/registry.ts` — `getActiveMachine()` reads the persisted id.
+  - `src/machines/registry.test.ts` — add persisted-id-reading assertions.
+  - `src/ui/useSlotMachine.ts` — resolve the machine from `useActiveMachine()` (keep the `opts.machine` test override).
+  - `src/ui/PaytableSheet.tsx` — read `useActiveMachine().machine`.
+  - `src/ui/regions/Game.tsx` — read `useActiveMachine().machine`.
+  - `src/main.tsx` — wrap `<App/>` in `<MachineProvider>`.
+- **New exports:** `ACTIVE_MACHINE_KEY`, `readActiveMachineId`, `writeActiveMachineId` (activeMachineStorage.ts);
+  `MachineProvider`, `useActiveMachine`, `ActiveMachineContextValue` (MachineProvider.tsx).
+- **Database changes:** none (localStorage only; DEC-005).
+
+## Acceptance Criteria
+
+- [ ] `ACTIVE_MACHINE_KEY === 'zany:active-machine'`; `readActiveMachineId()` returns the stored id
+      or `null` (absent / storage unavailable — never throws); `writeActiveMachineId(id)` persists it
+      (best-effort, never throws).
+- [ ] `MachineProvider` initializes the active id from `readActiveMachineId()`, normalizing an
+      absent/unknown id to `DEFAULT_MACHINE_ID`; it exposes `{ machine, activeMachineId, setActiveMachineId }`.
+- [ ] `useActiveMachine()` returns the default machine when rendered WITHOUT a provider (default
+      context value) — so existing consumers/tests keep working (no-op).
+- [ ] `setActiveMachineId(id)` updates the context (re-rendering subscribers) AND persists via
+      `writeActiveMachineId`; an unknown id resolves `machine` to the default (via `getMachine`).
+- [ ] The persisted choice survives a reload: a fresh `MachineProvider` mount reads the stored id.
+- [ ] `getActiveMachine()` reads the persisted id (`getMachine(readActiveMachineId() ?? DEFAULT_MACHINE_ID)`)
+      — no longer a module const; with empty storage it still returns the default.
+- [ ] `useSlotMachine`, `PaytableSheet`, `Game` source the active machine from `useActiveMachine()`;
+      `useSlotMachine` still honors `opts.machine` (tests) first.
+- [ ] No observable change today: the full existing suite passes; `git diff main..HEAD -- src/engine/`
+      is EMPTY (DEC-001). `just typecheck && just lint && just test && just build && just validate && just cost-audit` pass.
+
+## Failing Tests
+
+Written now, BEFORE build.
+
+- **`src/machines/activeMachineStorage.test.ts`** (jsdom; `beforeEach(() => localStorage.clear())`):
+  - `"ACTIVE_MACHINE_KEY is the namespaced key"` — `expect(ACTIVE_MACHINE_KEY).toBe('zany:active-machine')`.
+  - `"read returns null when absent"` — `expect(readActiveMachineId()).toBeNull()`.
+  - `"write then read round-trips the id"` — `writeActiveMachineId('wild-and-whimsical')`;
+    `expect(readActiveMachineId()).toBe('wild-and-whimsical')`; and assert
+    `localStorage.getItem('zany:active-machine') === 'wild-and-whimsical'`.
+  - `"read/write never throw when storage is unavailable"` — temporarily stub `localStorage.getItem`/
+    `setItem` to throw; assert `readActiveMachineId()` toBe `null` and `writeActiveMachineId('x')`
+    does not throw; restore.
+
+- **`src/machines/registry.test.ts`** (ADD; `beforeEach/afterEach(() => localStorage.clear())`):
+  - `"getActiveMachine returns the default when nothing is persisted"` — `expect(getActiveMachine()).toBe(WILD_AND_WHIMSICAL)`.
+  - `"getActiveMachine reflects the persisted id"` — `writeActiveMachineId('wild-and-whimsical')`;
+    `expect(getActiveMachine().id).toBe('wild-and-whimsical')`.
+  - `"getActiveMachine falls back to the default for an unknown persisted id"` —
+    `writeActiveMachineId('nope')`; `expect(getActiveMachine()).toBe(WILD_AND_WHIMSICAL)`.
+
+- **`src/ui/machine/MachineProvider.test.tsx`** (renderHook with a wrapper; `beforeEach(() => localStorage.clear())`):
+  - `"useActiveMachine without a provider returns the default machine"` — render the hook with no
+    wrapper; `expect(result.current.machine).toBe(WILD_AND_WHIMSICAL)` and
+    `result.current.activeMachineId` toBe `DEFAULT_MACHINE_ID`.
+  - `"provider initializes activeMachineId from localStorage"` — `writeActiveMachineId('wild-and-whimsical')`;
+    render the hook wrapped in `<MachineProvider>`; `expect(result.current.activeMachineId).toBe('wild-and-whimsical')`.
+  - `"provider normalizes an unknown persisted id to the default"` — `writeActiveMachineId('nope')`;
+    wrapped render; `expect(result.current.activeMachineId).toBe(DEFAULT_MACHINE_ID)` and
+    `result.current.machine` toBe `WILD_AND_WHIMSICAL`.
+  - `"setActiveMachineId persists and updates the context"` — wrapped render;
+    `act(() => result.current.setActiveMachineId('wild-and-whimsical'))`; assert
+    `readActiveMachineId()` toBe `'wild-and-whimsical'` and `result.current.activeMachineId` toBe it
+    (proves re-render + persistence — the "survives reload" guarantee).
+
+## Implementation Context
+
+### Decisions that apply
+
+- `DEC-001` (engine-no-dom) — the context + storage live in `src/ui` / `src/machines`; the engine is
+  untouched. `git diff main..HEAD -- src/engine/` must be EMPTY.
+- `DEC-005` (no backend) — persistence is localStorage only, guarded (never throws), no network.
+- `DEC-015` (config-driven machine model) — the active machine becomes a reactive, persisted
+  selection; still pure data + registry lookup, no engine logic.
+
+### Constraints that apply
+
+- `engine-no-dom` — presentation/registry layer only.
+
+### Prior related work
+
+- `SPEC-042` (shipped) — introduced the registry + `getActiveMachine()` seam "STAGE-008's selector
+  plugs into." This is that plug: it makes the seam reactive + persisted.
+- `SPEC-047` / `SPEC-048` (shipped) — parameterized the engine reads and added the theme/audio slice;
+  both read the active machine each render, so once the context makes a switch re-render, reels +
+  paytable + theme + audio all update together (the SPEC-050 payoff).
+
+### Out of scope (for this spec specifically)
+
+- **The selector UI** — **SPEC-050**. This spec ships the context + `setActiveMachineId`; nothing in
+  the app calls the setter yet.
+- **The themed machines** — SPEC-051/052/053. Only the default is registered, so a "switch" resolves
+  to the default today; the switch is exercised end-to-end once a second machine exists.
+- **Resetting balance/bet on a machine switch** — the wallet persists across a switch for now; any
+  switch-time reset semantics belong to SPEC-050's selector UX, not this seam.
+- **Cross-tab sync** (a `storage` event listener) — not needed; a reload reads the persisted id.
+
+## Notes for the Implementer
+
+**Toolchain brief:** ESLint has NO react-hooks plugin (no exhaustive-deps disables). NO
+`@testing-library/user-event` — use `renderHook`/`act` + a `wrapper`. JSX/`renderHook` test files are
+`.tsx`; the storage test is plain `.ts`. `tsconfig` include is `["src"]`. No new dependency. No new DEC.
+All localStorage access is guarded (try/catch → null / no-op), mirroring `src/ui/storage.ts`.
+
+**`src/machines/activeMachineStorage.ts`** (mirror `storage.ts` exactly):
+
+```ts
+// activeMachineStorage.ts — safe localStorage for the active-machine selection (SPEC-049).
+// Namespaced key (zany:*) so STAGE-009's stats keys can't collide. Never throws (DEC-005).
+
+export const ACTIVE_MACHINE_KEY = 'zany:active-machine';
+
+/** The persisted active-machine id, or null when absent / storage unavailable. Never throws. */
+export function readActiveMachineId(): string | null {
+  try {
+    return localStorage.getItem(ACTIVE_MACHINE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Persist the active-machine id. Silently ignores quota / unavailable storage. Never throws. */
+export function writeActiveMachineId(id: string): void {
+  try {
+    localStorage.setItem(ACTIVE_MACHINE_KEY, id);
+  } catch {
+    // ignore quota / unavailable
+  }
+}
+```
+
+**`src/machines/registry.ts`** — repoint `getActiveMachine()` (add the import; keep everything else):
+
+```ts
+import { readActiveMachineId } from './activeMachineStorage';
+// ...
+/** The active machine — resolves the persisted selection (SPEC-049), default when absent/unknown. */
+export function getActiveMachine(): Machine {
+  return getMachine(readActiveMachineId() ?? DEFAULT_MACHINE_ID);
+}
+```
+
+(`getMachine` already falls back to the default for an unknown id, so an unknown persisted id is safe.)
+
+**`src/ui/machine/MachineProvider.tsx`** — the Context (default value = default machine, so consumers
+work with no provider):
+
+```tsx
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import type { Machine } from '../../machines/types';
+import { getMachine, MACHINES, DEFAULT_MACHINE_ID } from '../../machines/registry';
+import { readActiveMachineId, writeActiveMachineId } from '../../machines/activeMachineStorage';
+
+export interface ActiveMachineContextValue {
+  machine: Machine;
+  activeMachineId: string;
+  setActiveMachineId: (id: string) => void;
+}
+
+/** Normalize a candidate id to a KNOWN machine id (unknown/absent → default). */
+function normalizeId(id: string | null): string {
+  return id && MACHINES[id] ? id : DEFAULT_MACHINE_ID;
+}
+
+const ActiveMachineContext = createContext<ActiveMachineContextValue>({
+  machine: getMachine(DEFAULT_MACHINE_ID),
+  activeMachineId: DEFAULT_MACHINE_ID,
+  setActiveMachineId: () => {}, // no-op default — real behavior comes from the provider
+});
+
+export function MachineProvider({ children }: { children: ReactNode }) {
+  const [activeMachineId, setId] = useState<string>(() => normalizeId(readActiveMachineId()));
+
+  const setActiveMachineId = useCallback((id: string) => {
+    const next = normalizeId(id);
+    setId(next);
+    writeActiveMachineId(next);
+  }, []);
+
+  const machine = getMachine(activeMachineId);
+  const value = useMemo<ActiveMachineContextValue>(
+    () => ({ machine, activeMachineId, setActiveMachineId }),
+    [machine, activeMachineId, setActiveMachineId],
+  );
+
+  return <ActiveMachineContext.Provider value={value}>{children}</ActiveMachineContext.Provider>;
+}
+
+/** Subscribe to the active machine. Returns the default (no-op setter) when used without a provider. */
+export function useActiveMachine(): ActiveMachineContextValue {
+  return useContext(ActiveMachineContext);
+}
+```
+
+(Note `setActiveMachineId` normalizes, so an unknown id snaps to the default id — satisfying "unknown
+id falls back to the default" at the id level, not just the resolved machine.)
+
+**`src/ui/useSlotMachine.ts`** — replace the `getActiveMachine()` import + call:
+
+```ts
+import { useActiveMachine } from './machine/MachineProvider';
+// ...remove: import { getActiveMachine } from '../machines/registry';
+// inside useSlotMachine, BEFORE the useState calls (hooks run unconditionally):
+const activeMachine = useActiveMachine().machine;
+const machine = opts?.machine ?? activeMachine;
+```
+
+**`src/ui/PaytableSheet.tsx`** and **`src/ui/regions/Game.tsx`** — replace
+`const machine = getActiveMachine();` with `const machine = useActiveMachine().machine;` and swap the
+import (`import { useActiveMachine } from '../machine/MachineProvider';` /
+`'../../machine/MachineProvider'` — mind the relative depth: PaytableSheet is `src/ui/`, Game is
+`src/ui/regions/`). Remove the now-unused `getActiveMachine` import from each.
+
+**`src/main.tsx`** — wrap the app so the whole tree shares one provider:
+
+```tsx
+import { MachineProvider } from './ui/machine/MachineProvider';
+// ...
+createRoot(rootElement).render(
+  <StrictMode>
+    <MachineProvider>
+      <App />
+    </MachineProvider>
+  </StrictMode>,
+);
+```
+
+**Why no observable change:** only `WILD_AND_WHIMSICAL` is registered, so `normalizeId` and
+`getMachine` always resolve to the default; localStorage starts empty → default. Every existing test
+renders its consumer without a provider → the default context value → default machine. So the app is
+byte-identical today; the reactivity only manifests once SPEC-050 adds a selector and SPEC-051+ add
+machines.
+
+**Verify-cycle adversarial checks (teeth):** (a) make `MachineProvider`'s `setActiveMachineId` skip
+`writeActiveMachineId` → the "persists and updates" test must FAIL; revert. (b) make `normalizeId`
+return `id` unconditionally (no unknown→default) → the "normalizes an unknown persisted id" test must
+FAIL; revert. (c) make `getActiveMachine()` ignore storage and return the const default → the
+"reflects the persisted id" registry test must FAIL; revert. Each mutation must break a test.
+
+---
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:**
+- **All acceptance criteria met?** yes/no
+- **New decisions emitted:** none expected (reactive seam under DEC-015; DEC-005 unchanged).
+- **Deviations from spec:**
+- **Follow-up work identified:**
+
+### Build-phase reflection (3 questions, short answers)
+
+1. **What was unclear in the spec that slowed you down?** — <answer>
+2. **Was there a constraint or decision that should have been listed but wasn't?** — <answer>
+3. **If you did this task again, what would you do differently?** — <answer>
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
+
+1. **What would I do differently next time?** — <answer>
+2. **Does any template, constraint, or decision need updating?** — <answer>
+3. **Is there a follow-up spec I should write now before I forget?** — <answer>

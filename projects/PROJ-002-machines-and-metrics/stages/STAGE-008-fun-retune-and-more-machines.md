@@ -175,7 +175,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       Default machine = no-op (theme `{}` + audio by reference); DEC-001 clean (engine diff EMPTY);
       DEC-013 graph unchanged. Preview-verified unchanged campfire render; all 3 guard-mutations had
       teeth; 0 defects. No new dep, no new DEC. **[L]**
-- [ ] (not yet written) SPEC-049 — **Reactive active-machine context**: lift the active
+- [ ] SPEC-049 (build) — **Reactive active-machine context**: lift the active
       machine into a React Context backed by localStorage; `useSlotMachine` + presentation
       subscribe; `getActiveMachine` is no longer a module const. Persisted choice survives
       reload. **[M]**
