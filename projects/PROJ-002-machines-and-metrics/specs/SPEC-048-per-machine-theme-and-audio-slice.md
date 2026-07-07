@@ -59,7 +59,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 138540   # from Agent result subagent_tokens
+      estimated_usd: 0.91    # 138540 tok × $6.6/M (Sonnet)
+      duration_minutes: 13.2 # 793403 ms
       recorded_at: 2026-07-06
       note: >-
         Implemented the spec's Notes verbatim: new src/ui/theme/{machineTheme,useMachineTheme}.ts
@@ -79,7 +81,9 @@ cost:
     - cycle: verify
       interface: claude-code
       agent: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 93332    # from Agent result subagent_tokens
+      estimated_usd: 0.62    # 93332 tok × $6.6/M (Sonnet)
+      duration_minutes: 11.7 # 704734 ms
       recorded_at: 2026-07-06
       note: >-
         Cold, independent re-verification. Re-ran the full gate (typecheck, lint, test, build,
@@ -96,10 +100,24 @@ cost:
         EMPTY: `git diff main..HEAD -- src/engine/` and `git diff main..HEAD --
         src/machines/machine.ts src/machines/registry.ts`. Full gate re-run green after all
         reverts. Defect count: 0.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 14
+      recorded_at: 2026-07-06
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents
+        against git/disk (reviewed the full diff, re-ran the gate + engine guard, confirmed the
+        two build-added mutation-teeth assertions are legitimate), filled build+verify cost from
+        subagent_tokens, ran a preview check (default machine renders the campfire palette
+        unchanged — .device-stage carries 0 inline theme vars, --color-bg resolves to #1a1008),
+        PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 231872   # build 138540 + verify 93332
+    estimated_usd: 1.53    # build $0.91 + verify $0.62
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-048: Per-machine theme + audio slice
@@ -565,6 +583,25 @@ expected. All three guards have teeth; reverted after confirming.
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?**
+   — Prescribe the adversarial mutations against tests that already have teeth. The build agent
+     found that two of the three mutations the spec named (getChannel's active-gain read; applyMix's
+     active-bed restore) weren't distinguished by the spec's *literal* test text, and added one
+     assertion each to close the gap — a good catch, but the design should have paired each "revert
+     X → test Y fails" with a test Y that actually pins X. Same lesson SPEC-045 logged
+     ([[adversarial-mutation-must-be-behavior-distinguishing]]): write the distinguishing assertion
+     first, then name the mutation that breaks it.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No new DEC (deferred SPEC-041 slice under DEC-015; DEC-013 graph untouched — params only). No
+     template/constraint change. The `recorded_at` gate added earlier this session did its job: all
+     four sessions carry it and `cost-audit` stayed green throughout.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The seam is inert until reactive: **SPEC-049** lifts the active machine into a
+     React Context + localStorage so a *switch* re-runs `useMachineTheme`/`useMachineAudio` (today
+     they read the module-const default once at load); **SPEC-050** adds the selector that triggers
+     it; then **SPEC-051/052/053** supply real `theme`/`audio` values. One note for SPEC-049 to
+     honor: `applyTheme` is self-clearing and `setChannelGains`/`setMix`/`setBedMusic` are
+     idempotent, so a switch back to Wild & Whimsical (`theme:{}`) correctly restores the campfire
+     palette + default audio — no extra reset logic needed.
