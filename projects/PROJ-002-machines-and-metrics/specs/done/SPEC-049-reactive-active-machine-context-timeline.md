@@ -21,7 +21,7 @@ Cycle prompts live in `prompts/SPEC-049-<cycle>.md`.
       choice survives reload. Complete drop-in code for all files + failing tests (activeMachineStorage /
       registry / MachineProvider). No new dep, no new DEC. **[M]** Build prompt written.
 
-- [~] **build** — (Sonnet) implemented the spec's drop-in code verbatim on
+- [x] **build** — (Sonnet) implemented the spec's drop-in code verbatim on
       `feat/spec-049-reactive-active-machine-context`: new
       `src/machines/activeMachineStorage.ts` (+ 4 tests), new
       `src/ui/machine/MachineProvider.tsx` (+ 4 tests), `registry.ts`'s `getActiveMachine()`
@@ -35,7 +35,7 @@ Cycle prompts live in `prompts/SPEC-049-<cycle>.md`.
       throwaway spy; see spec's Build Completion for the full write-up. All local commits only — no
       push, no PR, no `gh`, no `just advance-cycle`. Left `[~]` for the orchestrator to flip to `[x]`.
 
-- [~] **verify** — (Sonnet, cold review) re-ran the full gate independently: typecheck, lint, test
+- [x] **verify** — (Sonnet, cold review) re-ran the full gate independently: typecheck, lint, test
       (59 files / 352 tests — 351 + 1 new), build, validate, cost-audit all exit 0. Confirmed spec
       conformance by reading every changed file: `activeMachineStorage.ts` (key, guarded read/write,
       never throws), `MachineProvider.tsx` (default context = default machine, `normalizeId`
@@ -64,3 +64,12 @@ Cycle prompts live in `prompts/SPEC-049-<cycle>.md`.
       (the (c) teeth gap was a documented, expected coverage gap per the spec's Notes/Build Completion,
       not an undisclosed defect — now closed). All local commits only — no push, no PR, no `gh`, no
       `just advance-cycle`. Left `[~]` for the orchestrator to flip to `[x]`.
+- [x] **ship** — completed 2026-07-07 (Opus): reconciled both sub-agents against git/disk (reviewed
+      the full diff, re-ran the gate + engine guard, confirmed the new `vi.spyOn` delegation test gives
+      mutation (c) teeth), filled build/verify cost from subagent_tokens (build 124405 tok / $0.82;
+      verify 95435 tok / $0.63 — verify duration recorded as an active-work estimate since the raw
+      duration_ms was idle-inflated; totals 219840 tok / $1.45 / 4 sessions). Squash-merged PR #59 (CI
+      CLEAN — all 7 checks SUCCESS), synced main. 0 defects; all three adversarial guard-mutations
+      proved teeth. Sixth STAGE-008 spec shipped (6/10). No observable change; no frozen-seed
+      re-baseline; no new dep; no new DEC. The reactive keystone is in place — SPEC-050's selector +
+      SPEC-051/052/053's machines light it up.
