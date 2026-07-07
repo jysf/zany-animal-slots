@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './styles/tokens.css';
 import './styles/reduced-motion.css';
 import App from './ui/App';
+import { MachineProvider } from './ui/machine/MachineProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,6 +12,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <MachineProvider>
+      <App />
+    </MachineProvider>
   </StrictMode>,
 );

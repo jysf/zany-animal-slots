@@ -56,10 +56,74 @@ cost:
         + an empty `git diff src/engine/` are the proof. Verified the consumers (useSlotMachine,
         PaytableSheet, Game) and their tests render without a provider, so a default context value
         keeps them green.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 124405   # from Agent result subagent_tokens
+      estimated_usd: 0.82    # 124405 tok × $6.6/M (Sonnet)
+      duration_minutes: 13.8 # 826008 ms
+      recorded_at: 2026-07-07
+      note: >-
+        Implemented the spec's drop-in code verbatim: src/machines/activeMachineStorage.ts (+ test,
+        4 cases), src/ui/machine/MachineProvider.tsx (+ test, 4 cases), registry.ts's getActiveMachine
+        repointed to getMachine(readActiveMachineId() ?? DEFAULT_MACHINE_ID) (+ 3 new registry.test.ts
+        cases under a localStorage.clear() beforeEach/afterEach), useSlotMachine/PaytableSheet/Game
+        swapped to useActiveMachine().machine, main.tsx wrapped in <MachineProvider>. Gate green:
+        typecheck, lint, test (59 files / 351 tests, up from 56/338), build, validate, cost-audit all
+        exit 0. `git diff main..HEAD -- src/engine/` confirmed EMPTY. Ran all three verify-cycle
+        adversarial mutations from the spec's Notes: (a) skip writeActiveMachineId → broke the
+        "persists and updates" test as predicted; (b) normalizeId returns id unconditionally → broke
+        the "normalizes an unknown persisted id" test as predicted; (c) getActiveMachine ignores
+        storage → did NOT break the "reflects the persisted id" registry test, because that test
+        persists 'wild-and-whimsical', which IS today's DEFAULT_MACHINE_ID (only one machine is
+        registered), so the mutation is unobservable through that specific assertion — independently
+        confirmed via a throwaway spy test that getActiveMachine() does call readActiveMachineId()
+        (wiring is correct); see Build Completion deviations for the honest writeup. All mutations
+        reverted; final diff matches the spec's drop-ins exactly.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 95435    # from Agent result subagent_tokens
+      estimated_usd: 0.63    # 95435 tok × $6.6/M (Sonnet)
+      duration_minutes: 30   # active work est.; raw duration_ms (~500 min) is inflated by idle wait, not compute (cf. SPEC-045 verify)
+      recorded_at: 2026-07-07
+      note: >-
+        Cold, independent re-verification on feat/spec-049-reactive-active-machine-context. Re-ran the
+        full gate: typecheck, lint, test (59 files / 352 tests, up from 351 after the new structural
+        test), build, validate, cost-audit — all exit 0. Confirmed spec conformance by reading every
+        changed file (activeMachineStorage.ts, MachineProvider.tsx, registry.ts, useSlotMachine.ts,
+        PaytableSheet.tsx, Game.tsx, main.tsx) against the Acceptance Criteria and Notes' drop-in code —
+        byte-for-byte match. No .skip/.only/xit in touched tests. git diff main..HEAD -- src/engine/
+        EMPTY; machine-parity.contract.test.ts untouched and green. Re-ran all three adversarial
+        mutations from Notes: (a) and (b) failed their target tests as predicted, reverted clean. (c)
+        (getActiveMachine ignores storage, returns the const default) confirmed the build agent's
+        finding — no existing test failed, because the "reflects the persisted id" test's fixture id
+        equals DEFAULT_MACHINE_ID in this single-machine registry. Closed this teeth gap permanently:
+        added "getActiveMachine delegates to readActiveMachineId (structural spy)" to
+        src/machines/registry.test.ts, using vi.spyOn on `import * as activeMachineStorage from
+        './activeMachineStorage'` to assert getActiveMachine() calls readActiveMachineId(). The spyOn
+        approach worked on the first attempt in this Vitest/Vite SSR-transform setup — no vi.mock
+        fallback needed. New test passes on correct code, fails under mutation (c)
+        ("expected readActiveMachineId to be called at least once"). Mutation (c) reverted; full gate
+        re-run green after adding the test. Defect count: 0 (the (c) gap was a disclosed, expected
+        coverage limitation, not an undisclosed defect — now closed with a permanent structural test).
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 14
+      recorded_at: 2026-07-07
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents against
+        git/disk (reviewed the full diff, re-ran the gate + engine guard, confirmed the new structural
+        spy test gives mutation (c) teeth), filled build+verify cost from subagent_tokens (verify
+        duration recorded as active-work estimate — raw duration_ms was idle-inflated), PR + CI-poll +
+        squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 219840   # build 124405 + verify 95435
+    estimated_usd: 1.45    # build $0.82 + verify $0.63
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-049: Reactive active-machine context
@@ -354,17 +418,39 @@ FAIL; revert. (c) make `getActiveMachine()` ignore storage and return the const 
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:** none expected (reactive seam under DEC-015; DEC-005 unchanged).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-049-reactive-active-machine-context`
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (reactive seam under DEC-015; DEC-005 unchanged).
+- **Deviations from spec:** None in the shipped code — every file matches the Notes' drop-in code
+  verbatim. One honest note on the verify-cycle adversarial checks: mutation (c) ("make
+  `getActiveMachine()` ignore storage and return the const default") does NOT fail the "reflects the
+  persisted id" registry test today, because that test's fixture value (`'wild-and-whimsical'`) is
+  identical to `DEFAULT_MACHINE_ID` — with only one machine registered, persisting the default id and
+  ignoring storage are indistinguishable through that specific assertion. This is the same
+  "no-observable-change-today" property the spec calls out elsewhere (single-machine registry), so it
+  isn't a functional bug — the wiring is real (independently confirmed with a throwaway spy asserting
+  `getActiveMachine()` calls `readActiveMachineId()`) — but the test as specified has a coverage gap
+  until a second machine exists (SPEC-051+). Flagging for verify rather than silently deviating from
+  the spec's exact test text.
+- **Follow-up work identified:** Once a second machine is registered (SPEC-051+), consider
+  strengthening the "reflects the persisted id" registry test to persist an id that differs from
+  `DEFAULT_MACHINE_ID` so mutation (c) is actually caught — not required for this spec since no second
+  machine exists yet.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** — <answer>
-2. **Was there a constraint or decision that should have been listed but wasn't?** — <answer>
-3. **If you did this task again, what would you do differently?** — <answer>
+1. **What was unclear in the spec that slowed you down?** — Nothing was unclear; the Notes' drop-in
+   code was complete and unambiguous for every file, including the relative-import depths for
+   PaytableSheet vs. Game. The only friction was procedural: verifying the mutation-test predictions
+   required actually running them, and one (mutation c) doesn't reproduce today given the
+   single-machine registry — worth flagging explicitly rather than silently declaring all three "as
+   predicted."
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No. DEC-001,
+   DEC-005, and DEC-015 fully covered the seam; no additional constraint was needed.
+3. **If you did this task again, what would you do differently?** — I'd suggest the design cycle add
+   a second, distinct fixture id (even one not registered, used only to prove fallback) to the
+   "reflects the persisted id" test's mutation coverage, so the adversarial check in Notes is fully
+   provable pre-SPEC-051 rather than deferred to "once a second machine exists."
 
 ---
 
@@ -372,6 +458,29 @@ FAIL; revert. (c) make `getActiveMachine()` ignore storage and return the const 
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?**
+   — Anticipate that a "no-op seam" spec has un-observable guards while only one machine is
+     registered, and design the teeth accordingly UP FRONT. The design named three adversarial
+     mutations, but (c) — "getActiveMachine ignores storage" — can't be distinguished by any
+     return-value assertion when the only registered id equals the default. Both the build and
+     verify agents caught it; verify closed it with a `vi.spyOn` structural test ("getActiveMachine
+     delegates to readActiveMachineId"). Next time, for a single-registered-item reactive seam,
+     write the structural/delegation test in the spec's Failing Tests from the start rather than
+     discovering the gap in build/verify. This is the third instance of the adversarial-mutation
+     lesson ([[adversarial-mutation-must-be-behavior-distinguishing]]) — now N=3.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No new DEC (reactive seam under DEC-015; DEC-005 no-backend intact — localStorage only,
+     guarded). No template/constraint change. Worth reinforcing in the signals set: when a spec's
+     "prove it's wired" guard is unobservable via behavior under current data (single machine),
+     specify a delegation/spy test as the teeth, not a return-value assertion.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The reactive seam is live but un-exercised until there's something to switch to:
+     **SPEC-050** (the selector UI) calls `setActiveMachineId` — it should preview-verify that a
+     switch re-renders reels + paytable + theme + audio together and persists across reload;
+     **SPEC-051/052/053** register the second/third/fourth machines that finally give a switch an
+     observable destination (and retroactively give mutation (c) behavioral teeth, not just
+     structural). One note for SPEC-050: it will need a list of registered machines to render
+     options — `MACHINES` (from the registry) + the context's `activeMachineId`/`setActiveMachineId`
+     are the exact surface it consumes.

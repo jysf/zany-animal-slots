@@ -4,10 +4,12 @@
 // DEC-004: slide-up animation; reduced-motion handled in CSS.
 // constraint: touch-targets-44 — trigger and ✕ are ≥44px.
 // constraint: respect-reduced-motion — handled in paytable.css.
+// SPEC-049: reads the active machine from useActiveMachine() (reactive, persisted context)
+// instead of the getActiveMachine() module-const read, so a future machine switch re-renders.
 
 import { useState, useEffect, useRef } from 'react';
 import { paytableRows, paylineCount } from './paytable';
-import { getActiveMachine } from '../machines/registry';
+import { useActiveMachine } from './machine/MachineProvider';
 import PaylineMap from './PaylineMap';
 import './paytable.css';
 
@@ -42,7 +44,7 @@ export function PaytableSheet() {
     };
   }, [open]);
 
-  const machine = getActiveMachine();
+  const machine = useActiveMachine().machine;
   const rows = paytableRows(machine.math, machine.presentation.symbolDisplay);
 
   return (

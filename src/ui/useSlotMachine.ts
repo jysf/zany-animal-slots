@@ -25,10 +25,14 @@
 // SPEC-042: the hook resolves the ACTIVE machine (opts.machine ?? getActiveMachine()) and
 // threads it into the engine + its own balance/bet init + reset (DEC-015). The default
 // machine's math is today's STARTING_BALANCE/DEFAULT_BET, so behavior is unchanged.
+// SPEC-049: the active machine now comes from useActiveMachine() (a reactive, persisted
+// React Context) instead of the getActiveMachine() module-const read, so a future machine
+// switch re-renders this hook. opts.machine still overrides for tests. useActiveMachine()
+// is called unconditionally (hooks run in the same order every render).
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { spin as engineSpin, canAfford, nextBet, prevBet } from '../engine/index';
 import type { Grid, BetLevel, LineWin, WinTier } from '../engine/index';
-import { getActiveMachine } from '../machines/registry';
+import { useActiveMachine } from './machine/MachineProvider';
 import type { Machine } from '../machines/types';
 import { INITIAL_GRID } from './reels/symbols';
 import { readBalance, writeBalance } from './storage';
@@ -97,7 +101,8 @@ export interface UseSlotMachineOpts {
 
 export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult {
   const nextSeed = opts?.nextSeed ?? _defaultNextSeed;
-  const machine = opts?.machine ?? getActiveMachine();
+  const activeMachine = useActiveMachine().machine;
+  const machine = opts?.machine ?? activeMachine;
 
   const [grid, setGrid] = useState<Grid>(INITIAL_GRID);
   // Init: explicit opts.initialBalance (used in tests) → persisted value → machine default.
