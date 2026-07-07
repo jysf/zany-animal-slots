@@ -12,9 +12,11 @@
 // SPEC-041: supplies ReelGrid's symbolDisplay from the default machine's presentation slice.
 // SPEC-042: sources the active machine from the registry instead of importing the default
 // machine directly — the seam STAGE-008's selector plugs into.
+// SPEC-049: reads the active machine from useActiveMachine() (reactive, persisted context)
+// instead of the getActiveMachine() module-const read, so a future machine switch re-renders.
 import type { Grid, LineWin } from '../../engine/index';
 import type { Celebration } from '../useSlotMachine';
-import { getActiveMachine } from '../../machines/registry';
+import { useActiveMachine } from '../machine/MachineProvider';
 import ReelGrid from '../reels/ReelGrid';
 import ParticleBurst from '../reels/ParticleBurst';
 
@@ -27,7 +29,7 @@ interface Props {
 }
 
 export default function Game({ grid, spinning = false, lineWins = [], celebration }: Props) {
-  const machine = getActiveMachine();
+  const machine = useActiveMachine().machine;
 
   return (
     <main className="cabinet__game">

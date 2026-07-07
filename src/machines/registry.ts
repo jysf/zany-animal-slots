@@ -2,6 +2,7 @@
 // STAGE-007 registers the default machine only (no selector). STAGE-008 makes the active
 // machine selectable + persisted; getActiveMachine() is the seam it plugs into.
 import { WILD_AND_WHIMSICAL } from './wildAndWhimsical';
+import { readActiveMachineId } from './activeMachineStorage';
 import type { Machine } from './types';
 
 export const DEFAULT_MACHINE_ID = WILD_AND_WHIMSICAL.id;
@@ -16,7 +17,7 @@ export function getMachine(id: string): Machine {
   return MACHINES[id] ?? WILD_AND_WHIMSICAL;
 }
 
-/** The active machine. Default only in STAGE-007 — STAGE-008 makes this selectable + persisted. */
+/** The active machine — resolves the persisted selection (SPEC-049), default when absent/unknown. */
 export function getActiveMachine(): Machine {
-  return MACHINES[DEFAULT_MACHINE_ID];
+  return getMachine(readActiveMachineId() ?? DEFAULT_MACHINE_ID);
 }

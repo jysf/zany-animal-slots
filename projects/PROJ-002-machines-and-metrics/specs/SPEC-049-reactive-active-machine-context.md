@@ -56,6 +56,28 @@ cost:
         + an empty `git diff src/engine/` are the proof. Verified the consumers (useSlotMachine,
         PaytableSheet, Game) and their tests render without a provider, so a default context value
         keeps them green.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      recorded_at: 2026-07-07
+      note: >-
+        Implemented the spec's drop-in code verbatim: src/machines/activeMachineStorage.ts (+ test,
+        4 cases), src/ui/machine/MachineProvider.tsx (+ test, 4 cases), registry.ts's getActiveMachine
+        repointed to getMachine(readActiveMachineId() ?? DEFAULT_MACHINE_ID) (+ 3 new registry.test.ts
+        cases under a localStorage.clear() beforeEach/afterEach), useSlotMachine/PaytableSheet/Game
+        swapped to useActiveMachine().machine, main.tsx wrapped in <MachineProvider>. Gate green:
+        typecheck, lint, test (59 files / 351 tests, up from 56/338), build, validate, cost-audit all
+        exit 0. `git diff main..HEAD -- src/engine/` confirmed EMPTY. Ran all three verify-cycle
+        adversarial mutations from the spec's Notes: (a) skip writeActiveMachineId → broke the
+        "persists and updates" test as predicted; (b) normalizeId returns id unconditionally → broke
+        the "normalizes an unknown persisted id" test as predicted; (c) getActiveMachine ignores
+        storage → did NOT break the "reflects the persisted id" registry test, because that test
+        persists 'wild-and-whimsical', which IS today's DEFAULT_MACHINE_ID (only one machine is
+        registered), so the mutation is unobservable through that specific assertion — independently
+        confirmed via a throwaway spy test that getActiveMachine() does call readActiveMachineId()
+        (wiring is correct); see Build Completion deviations for the honest writeup. All mutations
+        reverted; final diff matches the spec's drop-ins exactly.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -354,17 +376,39 @@ FAIL; revert. (c) make `getActiveMachine()` ignore storage and return the const 
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:** none expected (reactive seam under DEC-015; DEC-005 unchanged).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-049-reactive-active-machine-context`
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (reactive seam under DEC-015; DEC-005 unchanged).
+- **Deviations from spec:** None in the shipped code — every file matches the Notes' drop-in code
+  verbatim. One honest note on the verify-cycle adversarial checks: mutation (c) ("make
+  `getActiveMachine()` ignore storage and return the const default") does NOT fail the "reflects the
+  persisted id" registry test today, because that test's fixture value (`'wild-and-whimsical'`) is
+  identical to `DEFAULT_MACHINE_ID` — with only one machine registered, persisting the default id and
+  ignoring storage are indistinguishable through that specific assertion. This is the same
+  "no-observable-change-today" property the spec calls out elsewhere (single-machine registry), so it
+  isn't a functional bug — the wiring is real (independently confirmed with a throwaway spy asserting
+  `getActiveMachine()` calls `readActiveMachineId()`) — but the test as specified has a coverage gap
+  until a second machine exists (SPEC-051+). Flagging for verify rather than silently deviating from
+  the spec's exact test text.
+- **Follow-up work identified:** Once a second machine is registered (SPEC-051+), consider
+  strengthening the "reflects the persisted id" registry test to persist an id that differs from
+  `DEFAULT_MACHINE_ID` so mutation (c) is actually caught — not required for this spec since no second
+  machine exists yet.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** — <answer>
-2. **Was there a constraint or decision that should have been listed but wasn't?** — <answer>
-3. **If you did this task again, what would you do differently?** — <answer>
+1. **What was unclear in the spec that slowed you down?** — Nothing was unclear; the Notes' drop-in
+   code was complete and unambiguous for every file, including the relative-import depths for
+   PaytableSheet vs. Game. The only friction was procedural: verifying the mutation-test predictions
+   required actually running them, and one (mutation c) doesn't reproduce today given the
+   single-machine registry — worth flagging explicitly rather than silently declaring all three "as
+   predicted."
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No. DEC-001,
+   DEC-005, and DEC-015 fully covered the seam; no additional constraint was needed.
+3. **If you did this task again, what would you do differently?** — I'd suggest the design cycle add
+   a second, distinct fixture id (even one not registered, used only to prove fallback) to the
+   "reflects the persisted id" test's mutation coverage, so the adversarial check in Notes is fully
+   provable pre-SPEC-051 rather than deferred to "once a second machine exists."
 
 ---
 
