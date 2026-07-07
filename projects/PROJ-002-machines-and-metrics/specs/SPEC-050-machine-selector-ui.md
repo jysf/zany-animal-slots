@@ -60,7 +60,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 90710    # from Agent result subagent_tokens
+      estimated_usd: 0.60    # 90710 tok × $6.6/M (Sonnet)
+      duration_minutes: 12.7 # 760789 ms
       recorded_at: 2026-07-07
       note: >-
         Implemented the spec's drop-in code verbatim: listMachines() in src/machines/registry.ts,
@@ -74,7 +76,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill from subagent_tokens
+      tokens_total: 78562    # from Agent result subagent_tokens
+      estimated_usd: 0.52    # 78562 tok × $6.6/M (Sonnet)
+      duration_minutes: 37.5 # 2247420 ms
       recorded_at: 2026-07-07
       note: >-
         Cold re-verification: re-ran the full gate independently (typecheck, lint, test — 60 files /
@@ -87,10 +91,22 @@ cost:
         port 5173: selector renders with one option "Wild & Whimsical", aria-label "Machine"; at 375px
         `.cabinet__header` does not overflow (scrollWidth == clientWidth). Full gate re-run green after
         reverting all mutations. Defect count: 0.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 18
+      recorded_at: 2026-07-07
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents against
+        git/disk, ran the preview check that surfaced a mobile header-overflow regression + applied
+        the flex-wrap fix (src/ui/regions/regions.css) + re-previewed clean at 375px/desktop, filled
+        build+verify cost from subagent_tokens, PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 169272   # build 90710 + verify 78562
+    estimated_usd: 1.12    # build $0.60 + verify $0.52
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-050: Machine selector UI
@@ -393,6 +409,26 @@ a test.
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?**
+   — Budget for layout in the design when a spec ADDS a control to a fixed-width, crowded container.
+     The spec nailed the control's behavior/a11y/theming but didn't consider that a ~164px `<select>`
+     (sized to "Wild & Whimsical") would overflow the 359px phone cabinet's header. Preview-verify
+     caught it and a one-line `flex-wrap: wrap` on `.cabinet__header` fixed it, but the design should
+     have flagged the header's width budget up front (or specified a `max-width`/wrap for the control
+     cluster) rather than discovering it at preview. Lesson: for a visible addition to a
+     portrait-phone-first layout, reason about the narrowest target's width in the design.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No new DEC (UI control under DEC-015/DEC-010; DEC-001 intact — engine diff EMPTY). No
+     constraint/template change. Logged a signal to the PROJ-002 set: a spec that adds a control to a
+     fixed-width container must reason about the narrowest viewport's width budget at design time, and
+     preview-verify at 375px is the backstop that catches it.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The selector is live and the reactive plumbing (SPEC-047/048/049) is all wired, so
+     **SPEC-051 (Arctic)** is the immediate next step — it registers the second machine, at which point
+     the selector shows two options and a switch becomes visibly/audibly real (reels + paytable + theme
+     + audio all changing together). SPEC-051's preview-verify should exercise exactly that end-to-end
+     switch (pick Arctic → assert the theme CSS vars, paytable, and reels update; reload → Arctic
+     persists). SPEC-052 (Desert) + SPEC-053 (Ocean) follow the same pattern to complete the
+     4-machine set.
