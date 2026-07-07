@@ -76,6 +76,26 @@ cost:
         all three broke a test as required, then reverted. Gate green: typecheck, lint, test
         (340 tests / 57 files), build, validate, cost-audit all exit 0.
         `git diff main..HEAD -- src/engine/` confirmed EMPTY.
+    - cycle: verify
+      interface: claude-code
+      agent: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      recorded_at: 2026-07-06
+      note: >-
+        Cold, independent re-verification. Re-ran the full gate (typecheck, lint, test, build,
+        validate, cost-audit) — all exit 0; 340 tests / 57 files. Confirmed spec conformance by
+        reading every changed source file against the spec's Notes (types.ts, wildAndWhimsical.ts,
+        machineTheme.ts, useMachineTheme.ts, audioEngine.ts, mixer.ts, ambientBed.ts,
+        useMachineAudio.ts, App.tsx) — all match verbatim. No .skip/.only/xit in touched test files.
+        Ran all three adversarial guard-mutations by hand: (a) applyTheme's clear-branch made a
+        no-op broke machineTheme.test.ts's self-clearing test; (b) getChannel reading
+        CHANNEL_GAINS[name] instead of activeGains[name] broke audioEngine.test.ts's
+        machine-overridden-gain test; (c) applyMix restoring to CHANNEL_GAINS.bed instead of
+        getActiveChannelGain('bed') broke mixer.test.ts's active-bed-gain restore test. All three
+        had teeth; all three cleanly reverted (git diff empty after each). Hard guards confirmed
+        EMPTY: `git diff main..HEAD -- src/engine/` and `git diff main..HEAD --
+        src/machines/machine.ts src/machines/registry.ts`. Full gate re-run green after all
+        reverts. Defect count: 0.
   totals:
     tokens_total: 0
     estimated_usd: 0
