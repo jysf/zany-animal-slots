@@ -78,6 +78,31 @@ cost:
         confirmed via a throwaway spy test that getActiveMachine() does call readActiveMachineId()
         (wiring is correct); see Build Completion deviations for the honest writeup. All mutations
         reverted; final diff matches the spec's drop-ins exactly.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      recorded_at: 2026-07-07
+      note: >-
+        Cold, independent re-verification on feat/spec-049-reactive-active-machine-context. Re-ran the
+        full gate: typecheck, lint, test (59 files / 352 tests, up from 351 after the new structural
+        test), build, validate, cost-audit — all exit 0. Confirmed spec conformance by reading every
+        changed file (activeMachineStorage.ts, MachineProvider.tsx, registry.ts, useSlotMachine.ts,
+        PaytableSheet.tsx, Game.tsx, main.tsx) against the Acceptance Criteria and Notes' drop-in code —
+        byte-for-byte match. No .skip/.only/xit in touched tests. git diff main..HEAD -- src/engine/
+        EMPTY; machine-parity.contract.test.ts untouched and green. Re-ran all three adversarial
+        mutations from Notes: (a) and (b) failed their target tests as predicted, reverted clean. (c)
+        (getActiveMachine ignores storage, returns the const default) confirmed the build agent's
+        finding — no existing test failed, because the "reflects the persisted id" test's fixture id
+        equals DEFAULT_MACHINE_ID in this single-machine registry. Closed this teeth gap permanently:
+        added "getActiveMachine delegates to readActiveMachineId (structural spy)" to
+        src/machines/registry.test.ts, using vi.spyOn on `import * as activeMachineStorage from
+        './activeMachineStorage'` to assert getActiveMachine() calls readActiveMachineId(). The spyOn
+        approach worked on the first attempt in this Vitest/Vite SSR-transform setup — no vi.mock
+        fallback needed. New test passes on correct code, fails under mutation (c)
+        ("expected readActiveMachineId to be called at least once"). Mutation (c) reverted; full gate
+        re-run green after adding the test. Defect count: 0 (the (c) gap was a disclosed, expected
+        coverage limitation, not an undisclosed defect — now closed with a permanent structural test).
   totals:
     tokens_total: 0
     estimated_usd: 0

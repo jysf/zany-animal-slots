@@ -3,6 +3,7 @@
 import { MACHINES, DEFAULT_MACHINE_ID, getMachine, getActiveMachine } from './registry';
 import { WILD_AND_WHIMSICAL } from './wildAndWhimsical';
 import { writeActiveMachineId } from './activeMachineStorage';
+import * as activeMachineStorage from './activeMachineStorage';
 
 describe('registry', () => {
   it('getActiveMachine returns the default machine', () => {
@@ -40,6 +41,24 @@ describe('registry', () => {
     it('getActiveMachine falls back to the default for an unknown persisted id', () => {
       writeActiveMachineId('nope');
       expect(getActiveMachine()).toBe(WILD_AND_WHIMSICAL);
+    });
+
+    // VERIFY (SPEC-049): structural teeth-gap closer. The two assertion-based tests
+    // above can't distinguish "getActiveMachine reads storage" from "getActiveMachine
+    // always returns the const default" because this single-machine registry's
+    // DEFAULT_MACHINE_ID happens to equal the fixture id used above
+    // ('wild-and-whimsical'). This test proves the DELEGATION itself — that
+    // getActiveMachine() actually calls readActiveMachineId() — independent of what
+    // machines happen to be registered today. It fails under a mutation that makes
+    // getActiveMachine() ignore storage and return getMachine(DEFAULT_MACHINE_ID) directly.
+    it('getActiveMachine delegates to readActiveMachineId (structural spy)', () => {
+      const spy = vi.spyOn(activeMachineStorage, 'readActiveMachineId');
+
+      getActiveMachine();
+
+      expect(spy).toHaveBeenCalled();
+
+      spy.mockRestore();
     });
   });
 });
