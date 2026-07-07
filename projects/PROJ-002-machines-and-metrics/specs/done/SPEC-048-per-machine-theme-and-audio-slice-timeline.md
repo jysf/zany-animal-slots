@@ -22,8 +22,17 @@ Cycle prompts live in `prompts/SPEC-048-<cycle>.md`.
       ~10 files + failing tests (machineTheme / useMachineTheme / useMachineAudio / audioEngine / mixer /
       ambientBed / default-machine parity). No new dep, no new DEC. **[L]** — two independent slices
       shipped together per the stage plan. Build prompt written.
-- [~] **build** — in progress (Sonnet): implementing the theme + audio slice verbatim per spec Notes.
-- [~] **verify** — (Sonnet, cold review) re-ran the full gate independently: `just typecheck &&
+- [x] **build** — (Sonnet) implemented the theme + audio slice verbatim per the spec Notes: 3 new
+      files (`theme/machineTheme.ts`, `theme/useMachineTheme.ts`, `audio/useMachineAudio.ts`) + their
+      tests; extended `types.ts` (ThemeVar/ThemeTokens/MachineAudio + required theme/audio),
+      `wildAndWhimsical.ts` (theme:{} + audio by reference), the audio singleton
+      (`audioEngine.ts`/`mixer.ts`/`ambientBed.ts` gain mutable active layers + setters), and
+      `App.tsx` (stageRef + both hooks). Added/extended tests (each restoring singleton defaults after
+      mutating). Ran all three adversarial mutations locally (all broke a test); added one assertion
+      each to `audioEngine.test.ts` + `mixer.test.ts` so mutations (b)/(c) have teeth against the
+      literal test text (the one deviation from verbatim). Gate green: 57 files / 340 tests; `git diff
+      main..HEAD -- src/engine/` EMPTY. Branch `feat/spec-048-per-machine-theme-and-audio-slice`.
+- [x] **verify** — (Sonnet, cold review) re-ran the full gate independently: `just typecheck &&
       just lint && just test && just build && just validate && just cost-audit` all exit 0 — 57
       test files, 340 tests passed. Conformance confirmed by reading the changed source: `types.ts`
       has `ThemeVar` (the 11 `--color-*` tokens), `ThemeTokens = Partial<Record<ThemeVar,string>>`,
@@ -59,3 +68,13 @@ Cycle prompts live in `prompts/SPEC-048-<cycle>.md`.
       not exist in this repo — the math slice lives in `wildAndWhimsical.ts`/`types.ts`, neither of
       which touches engine math; `registry.ts` diff confirmed empty). Full gate re-run green after
       all reverts. Defect count: 0. Left `[~]` for the orchestrator to flip to `[x]`.
+- [x] **ship** — completed 2026-07-06 (Opus): reconciled both sub-agents against git/disk (reviewed
+      the full diff, re-ran the gate + engine guard, confirmed the two build-added mutation-teeth
+      assertions are legitimate), filled build/verify cost from subagent_tokens (build 138540 tok /
+      $0.91; verify 93332 tok / $0.62; totals 231872 tok / $1.53 / 4 sessions). **Preview-verified**
+      the default machine renders unchanged: `.device-stage` carries 0 inline theme vars, `--color-bg`
+      resolves to `#1a1008` (campfire), no console errors. Squash-merged PR #58 (CI CLEAN — all 7
+      checks SUCCESS), synced main. 0 defects; all three adversarial guard-mutations proved teeth.
+      Fifth STAGE-008 spec shipped (5/10). No observable change; no frozen-seed re-baseline; no new
+      dep; no new DEC. The theme/audio seam is in place — inert until SPEC-049 (reactive context) +
+      SPEC-050 (selector) light it up for the themed machines (051/052/053).

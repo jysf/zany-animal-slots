@@ -167,10 +167,14 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       "optional-param-defaulting-to-default" pattern as SPEC-039/040. NO behavior change for the
       default machine → **no frozen-seed re-baseline** (empty git-diff guard). Both adversarial
       guard-mutations proved teeth; 0 defects. No new dep, no new DEC. **[S–M]**
-- [ ] SPEC-048 (build) — **Per-machine theme + audio slice**: extend
-      `MachinePresentation` with `theme` (token overrides applied at runtime as CSS vars)
-      + `audio` (channel gains / mix / music params); wire the UI + the audio singleton
-      (`audioEngine.ts`, `mixer.ts`) to the active machine (deferred STAGE-007/SPEC-041). **[L]**
+- [x] SPEC-048 (shipped 2026-07-06, PR #58) — **Per-machine theme + audio slice**: extended
+      `MachinePresentation` with `theme` (CSS `--color-*` overrides applied at runtime to the
+      `.device-stage` root via a self-clearing `applyTheme`/`useMachineTheme`) + `audio` (channel
+      gains / mix / generative-bed music); the audio singleton (`audioEngine.ts`/`mixer.ts`/
+      `ambientBed.ts`) + `useMachineAudio` now read the active machine (deferred STAGE-007/SPEC-041).
+      Default machine = no-op (theme `{}` + audio by reference); DEC-001 clean (engine diff EMPTY);
+      DEC-013 graph unchanged. Preview-verified unchanged campfire render; all 3 guard-mutations had
+      teeth; 0 defects. No new dep, no new DEC. **[L]**
 - [ ] (not yet written) SPEC-049 — **Reactive active-machine context**: lift the active
       machine into a React Context backed by localStorage; `useSlotMachine` + presentation
       subscribe; `getActiveMachine` is no longer a module const. Persisted choice survives
@@ -185,7 +189,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 - [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 4 shipped / 0 active / 6 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 5 shipped / 0 active / 5 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs

@@ -7,7 +7,7 @@
 task:
   id: SPEC-048
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: L                    # S | M | L  (L: two independent slices — theme + audio — shipped together per the stage plan)
