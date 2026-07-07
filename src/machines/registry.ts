@@ -17,6 +17,11 @@ export function getMachine(id: string): Machine {
   return MACHINES[id] ?? WILD_AND_WHIMSICAL;
 }
 
+/** All registered machines, in registration order — the selector's option list (SPEC-050). */
+export function listMachines(): Machine[] {
+  return Object.values(MACHINES);
+}
+
 /** The active machine — resolves the persisted selection (SPEC-049), default when absent/unknown. */
 export function getActiveMachine(): Machine {
   return getMachine(readActiveMachineId() ?? DEFAULT_MACHINE_ID);

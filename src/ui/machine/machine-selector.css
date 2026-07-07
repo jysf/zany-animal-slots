@@ -1,0 +1,28 @@
+/*
+ * Machine selector — header <select> to switch the active machine (SPEC-050).
+ * DEC-010: token-only, prefixed class, no raw hex — re-themes with the active machine.
+ * constraint touch-targets-44: ≥44px hit area (min-height + min-width).
+ */
+
+.machine-selector {
+  /* ≥44px hit area (constraint: touch-targets-44). */
+  min-height: var(--space-7);   /* 3rem = 48px */
+  min-width: var(--space-7);
+  padding: var(--space-1) var(--space-2);
+
+  background: transparent;
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+.machine-selector:hover,
+.machine-selector:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-text);
+}

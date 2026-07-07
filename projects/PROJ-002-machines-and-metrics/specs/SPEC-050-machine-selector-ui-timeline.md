@@ -18,3 +18,8 @@ Cycle prompts live in `prompts/SPEC-050-<cycle>.md`.
       persists (SPEC-049). DEC-001 clean (`git diff src/engine/` EMPTY). Complete drop-in code + failing
       tests (listMachines; selector renders/selects-active/switches via mocked deps; touch-target
       entry). No new dep, no new DEC. **[M]** Build prompt written.
+- [~] **build** — (Sonnet): implemented the spec's drop-in code verbatim (listMachines, MachineSelector
+      + machine-selector.css + its tests, Header wiring, touch-target CONTROLS entry). Gate green:
+      typecheck/lint/test (60 files, 356 tests)/build/validate/cost-audit all exit 0.
+      `git diff main..HEAD -- src/engine/` EMPTY. Branch `feat/spec-050-machine-selector-ui`, local
+      commit only (no push/PR). Left `[~]` for the orchestrator to flip to `[x]`.

@@ -57,6 +57,20 @@ cost:
         .cabinet__header-controls), the touch-target contract test enumerates control classes (add
         .machine-selector), and consumers render without a provider (default context) so existing
         tests stay green.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      recorded_at: 2026-07-07
+      note: >-
+        Implemented the spec's drop-in code verbatim: listMachines() in src/machines/registry.ts,
+        the new src/ui/machine/MachineSelector.tsx + machine-selector.css + MachineSelector.test.tsx,
+        Header.tsx rendering MachineSelector first in .cabinet__header-controls, and the
+        controls.touch-target.test.ts CONTROLS entry for .machine-selector. Gate green: typecheck,
+        lint, test (60 files / 356 tests, all passing, including the 3 new MachineSelector tests +
+        the new listMachines test), build, validate, and cost-audit all exit 0.
+        `git diff main..HEAD -- src/engine/` confirmed EMPTY (DEC-001). No new dependency, no new DEC,
+        no raw hex in machine-selector.css (DEC-010).
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -331,17 +345,25 @@ a test.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:** none expected (UI control under DEC-015/DEC-010).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-050-machine-selector-ui`
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (UI control under DEC-015/DEC-010, as expected).
+- **Deviations from spec:** none — implemented the drop-in code verbatim (`MachineSelector.tsx`,
+  `machine-selector.css`, the registry `listMachines()` addition, `Header.tsx`, and the
+  `controls.touch-target.test.ts` entry). `MachineSelector.test.tsx` follows the mocking sketch;
+  the third test also asserts `screen.getAllByRole('option')` has length 2 as a light extra check
+  before firing the change event.
+- **Follow-up work identified:** none beyond what the spec already calls out (SPEC-051 Arctic makes
+  the switch visibly/audibly meaningful with a second option).
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** — <answer>
-2. **Was there a constraint or decision that should have been listed but wasn't?** — <answer>
-3. **If you did this task again, what would you do differently?** — <answer>
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes section's drop-in
+   code was complete and unambiguous for every file, so this was a direct transcription task.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No gaps found;
+   DEC-001/DEC-010/DEC-015 and the touch-targets-44 constraint fully covered the surface area touched.
+3. **If you did this task again, what would you do differently?** — Nothing material; the spec's
+   "Notes for the Implementer" section made this a low-risk, mechanical build.
 
 ---
 

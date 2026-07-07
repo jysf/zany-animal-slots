@@ -48,10 +48,12 @@ function has44pxValue(block: string, property: string): boolean {
 const CONTROLS_CSS = resolve(__dirname, 'regions/controls.css');
 const AUDIO_CSS    = resolve(__dirname, 'audio/audio.css');
 const PAYTABLE_CSS = resolve(__dirname, 'paytable.css');
+const MACHINE_SELECTOR_CSS = resolve(__dirname, 'machine/machine-selector.css');
 
 const controlsCss  = readFileSync(CONTROLS_CSS, 'utf-8');
 const audioCss     = readFileSync(AUDIO_CSS, 'utf-8');
 const paytableCss  = readFileSync(PAYTABLE_CSS, 'utf-8');
+const machineSelectorCss = readFileSync(MACHINE_SELECTOR_CSS, 'utf-8');
 
 interface ControlEntry {
   label: string;
@@ -66,6 +68,7 @@ const CONTROLS: ControlEntry[] = [
   { label: '.reset-btn (controls.css)',        cssSource: controlsCss,  selector: '.reset-btn' },
   { label: '.mute-toggle (audio.css)',         cssSource: audioCss,     selector: '.mute-toggle' },
   { label: '.paytable__trigger (paytable.css)', cssSource: paytableCss, selector: '.paytable__trigger' },
+  { label: '.machine-selector (machine-selector.css)', cssSource: machineSelectorCss, selector: '.machine-selector' },
 ];
 
 // ─── Tests ───────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 // Registry unit tests (SPEC-042; SPEC-049 adds persisted-id-reading assertions).
 // Plain Vitest, no DOM/JSX — jsdom provides localStorage.
-import { MACHINES, DEFAULT_MACHINE_ID, getMachine, getActiveMachine } from './registry';
+import { MACHINES, DEFAULT_MACHINE_ID, getMachine, getActiveMachine, listMachines } from './registry';
 import { WILD_AND_WHIMSICAL } from './wildAndWhimsical';
 import { writeActiveMachineId } from './activeMachineStorage';
 import * as activeMachineStorage from './activeMachineStorage';
@@ -18,6 +18,11 @@ describe('registry', () => {
   it('getMachine resolves by id, falls back for unknown', () => {
     expect(getMachine('wild-and-whimsical')).toBe(WILD_AND_WHIMSICAL);
     expect(getMachine('nope')).toBe(WILD_AND_WHIMSICAL);
+  });
+
+  it('listMachines returns the registered machines', () => {
+    expect(listMachines()).toContain(WILD_AND_WHIMSICAL);
+    expect(listMachines().length).toBeGreaterThanOrEqual(1);
   });
 
   describe('getActiveMachine (SPEC-049: persisted id)', () => {
