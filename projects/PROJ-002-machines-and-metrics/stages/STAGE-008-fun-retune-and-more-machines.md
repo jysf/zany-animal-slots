@@ -183,7 +183,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       today (one machine registered). DEC-001 clean (engine diff EMPTY); DEC-005 clean (localStorage,
       guarded). All 3 guard-mutations had teeth (mutation-(c) gap closed with a `vi.spyOn` delegation
       test); 0 defects. No new dep, no new DEC. **[M]**
-- [ ] (not yet written) SPEC-050 — **Machine-selector UI**: an in-app control to switch
+- [ ] SPEC-050 (build) — **Machine-selector UI**: an in-app control to switch
       machines; switching re-renders reels + paytable + theme + audio together
       (preview-verified). **[M]**
 - [ ] (not yet written) SPEC-051 — **Arctic machine**: theme + music + math as data + a
