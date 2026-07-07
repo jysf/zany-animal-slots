@@ -460,6 +460,42 @@ spec_missing_cost_cycles() {
     echo "${out# }"
 }
 
+# Print the recorded_at date of a spec's SHIP cost session; empty if the spec
+# has no ship session or that session omits recorded_at. This is the field
+# `specs-by-stage` reads for a spec's ship date (falling back to the stage's
+# shipped_at), so an active-stage spec that omits it renders "—".
+ship_recorded_at() {
+    local file="$1"
+    awk '
+        /^---$/ { fm = !fm; next }
+        !fm { next }
+        /^cost:/ { in_cost = 1; next }
+        in_cost && /^[a-zA-Z_]/ { in_cost = 0 }
+        in_cost && /^  sessions:/ { in_s = 1; next }
+        in_cost && in_s && /^  [a-zA-Z_]/ { in_s = 0 }
+        in_s && /^    - cycle:/ { cur = $3 }
+        in_s && cur == "ship" && /^      recorded_at:/ { print $2; exit }
+    ' "$file"
+}
+
+# Specs that predate the ship-session-with-recorded_at convention (SPEC-001..003
+# recorded per-cycle dates on design/build/verify but never carried a ship
+# session at all). Their stages are shipped, so specs-by-stage resolves their
+# ship date from the stage's shipped_at and display is unaffected — the audit
+# skips them. Override via the env var if adopting the check mid-project.
+SHIP_DATE_GRANDFATHERED="${SHIP_DATE_GRANDFATHERED:-SPEC-001 SPEC-002 SPEC-003}"
+
+# True if a spec is grandfathered out of the ship-recorded_at audit. Accepts a
+# bare id ("SPEC-002") or a full file stem ("SPEC-002-some-slug").
+is_grandfathered_ship_date() {
+    local rest="${1#SPEC-}"
+    local id="SPEC-${rest%%-*}"
+    case " ${SHIP_DATE_GRANDFATHERED} " in
+        *" $id "*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # Extract value_link from a spec's front-matter. Empty string if null
 # or missing.
 extract_value_link() {

@@ -34,6 +34,11 @@ For each metered cycle (build, verify), write the real values into cost.sessions
                     I/O split).
 Leave design/ship (orchestrator main-loop) numerics null with a
 "main-loop, not separately metered" note.
+Append the ship session itself with recorded_at: <today's date, i.e. the ship
+date>. This is the field `just specs-by-stage` reads for the spec's ship date —
+an active stage has no shipped_at to fall back on, so omitting it renders "—".
+Every session should carry a recorded_at; `just cost-audit` FAILS if the ship
+session lacks one.
 Compute cost.totals: tokens_total = sum of non-null sessions (use 0, not null,
 for the placeholder), estimated_usd = sum, session_count = number of cycles.
 Then `just cost-audit` must pass before the spec is considered shipped.

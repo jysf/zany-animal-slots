@@ -97,15 +97,22 @@ make it stick. Full reference: `docs/cost-tracking.md`.
   `api` (the `usage` object), `ollama`/`other`. Only genuinely un-metered
   cycles may be null-with-note.
 
+- **Every session carries `recorded_at`** (the date it was recorded). The
+  **ship** session's `recorded_at` is the spec's ship date that
+  `just specs-by-stage` reads — an *active* stage has no `shipped_at` to
+  fall back on, so a ship session missing it renders the ship date as `—`.
+  Write it during ship bookkeeping (it is today's date).
+
 The cycle-prompt wording lives in
 `projects/_templates/prompts/cost-snippet.md` — use it so prompts don't
 re-introduce the "null numerics" loophole. **Ship computes `cost.totals`**
 (sum of non-null sessions; `tokens_total` uses `0`, never `null`) and runs
 `just cost-audit`, which **fails if any shipped spec lacks build/verify
-cost** (constraint `cost-captured-per-cycle`; CI job `cost-data`; surfaced
-in `just status` and `report-weekly`). Pre-process specs can be
-grandfathered via `COST_AUDIT_GRANDFATHERED` in `scripts/_lib.sh` (empty
-by default).
+cost, or a `recorded_at` on its ship session** (constraint
+`cost-captured-per-cycle`; CI job `cost-data`; surfaced in `just status`
+and `report-weekly`). Pre-process specs can be grandfathered via
+`COST_AUDIT_GRANDFATHERED` (missing cost) or `SHIP_DATE_GRANDFATHERED`
+(pre-ship-session specs) in `scripts/_lib.sh`.
 
 Reports aggregate cost by cycle, by interface, by spec, and by stage.
 

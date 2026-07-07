@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # scripts/cost-audit.sh — the mechanical backstop for the Cost Tracking
 # Discipline (AGENTS.md §4). Fails if any SHIPPED spec is missing real
-# build/verify cost data (a positive `tokens_total` on those cycles).
+# build/verify cost data (a positive `tokens_total` on those cycles) OR the
+# recorded_at date on its ship session (the ship date `specs-by-stage` reads;
+# an active-stage spec that omits it renders "—" — the drift this check stops).
 #
 # Why this exists: documentation alone tells agents to record cost, and
 # documentation alone is skippable — cost tracking silently goes empty
@@ -44,10 +46,17 @@ while IFS= read -r f; do
         printf "  %-58s missing cost on: %s\n" "$name" "$missing"
         offenders=$((offenders + 1))
     fi
+    # Ship session must carry recorded_at — it is the ship date `specs-by-stage`
+    # reads (active stages have no shipped_at to fall back on). Written at ship
+    # bookkeeping per the cost-snippet template; grandfathered pre-convention specs skip.
+    if ! is_grandfathered_ship_date "$name" && [ -z "$(ship_recorded_at "$f")" ]; then
+        printf "  %-58s missing ship recorded_at\n" "$name"
+        offenders=$((offenders + 1))
+    fi
 done < <(find_all_specs "$project_dir")
 
 if [ "$offenders" -gt 0 ]; then
     echo ""
-    die "cost-audit: ${offenders} shipped spec(s) missing build/verify cost. Record tokens_total per AGENTS.md §4 / docs/cost-tracking.md."
+    die "cost-audit: ${offenders} shipped spec(s) with incomplete cost capture (build/verify tokens_total, or the ship session's recorded_at). See AGENTS.md §4 / docs/cost-tracking.md."
 fi
-success "cost-audit: all shipped specs have build/verify cost recorded."
+success "cost-audit: all shipped specs have build/verify cost + a ship recorded_at."

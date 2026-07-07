@@ -50,9 +50,16 @@ numerics" reintroduce the gap). The enforcement makes it mechanical — in layer
 1. **Rule** — AGENTS.md §4 (capture real numbers; null only for main-loop cycles)
    + constraint `cost-captured-per-cycle` in `guidance/constraints.yaml`.
 2. **Check (the teeth)** — `just cost-audit` (`scripts/cost-audit.sh`) fails if any
-   *shipped* spec lacks a positive `tokens_total` on its build/verify cycles. It
-   runs in CI (the `cost-data` job) and is surfaced in `just status` ("Specs
-   missing cost data"); `report-weekly` flags the same.
+   *shipped* spec lacks a positive `tokens_total` on its build/verify cycles, **or a
+   `recorded_at` on its ship session**. It runs in CI (the `cost-data` job) and is
+   surfaced in `just status` ("Specs missing cost data"); `report-weekly` flags the
+   same.
+
+   The ship session's `recorded_at` is the ship date `just specs-by-stage` reads
+   (`get_spec_ship_date`); an *active* stage has no `shipped_at` to fall back on, so a
+   ship session missing it renders the ship date as `—`. This was the drift that
+   motivated the check: SPEC-044 recorded it but SPEC-045/046/047 dropped it, so they
+   showed `—` under the still-active STAGE-008.
 3. **No-regression** — the cost wording lives in
    `projects/_templates/prompts/cost-snippet.md`, so new cycle prompts don't
    re-introduce the "null numerics" line.
@@ -64,7 +71,7 @@ numerics" reintroduce the gap). The enforcement makes it mechanical — in layer
 | The rule | `AGENTS.md` §4 |
 | The constraint | `guidance/constraints.yaml` → `cost-captured-per-cycle` |
 | The gate | `scripts/cost-audit.sh` (recipe `just cost-audit`) |
-| Audit helpers | `scripts/_lib.sh` (`is_grandfathered_cost`, `cycle_tokens_total`, `spec_missing_cost_cycles`) |
+| Audit helpers | `scripts/_lib.sh` (`is_grandfathered_cost`, `cycle_tokens_total`, `spec_missing_cost_cycles`, `ship_recorded_at`, `is_grandfathered_ship_date`) |
 | Status surfacing | `scripts/status.sh` → "Specs missing cost data" |
 | Weekly surfacing | `scripts/report_weekly.sh` → "Shipped without cost data" |
 | Per-stage / grand totals | `scripts/specs-by-stage.sh` → cost column + stage subtotal + "Recorded cost" |
@@ -79,6 +86,12 @@ cost-capture process and whose real numbers are unrecoverable; the audit skips
 them. **It starts empty** — a fresh project has no pre-process history. Populate
 it (space-separated `SPEC-NNN` ids, or override via the env var) only if you adopt
 the gate after already shipping specs without cost data.
+
+`SHIP_DATE_GRANDFATHERED` (same file) is the parallel list for the ship-`recorded_at`
+check — specs that predate the ship-session convention (they carried per-cycle
+`recorded_at` on design/build/verify but never a ship session at all). It holds
+`SPEC-001 SPEC-002 SPEC-003`; their stages are shipped, so `specs-by-stage` resolves
+their ship date from the stage's `shipped_at` and display is unaffected.
 
 ## Reports
 
