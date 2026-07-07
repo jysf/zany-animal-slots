@@ -18,3 +18,29 @@ Cycle prompts live in `prompts/SPEC-050-<cycle>.md`.
       persists (SPEC-049). DEC-001 clean (`git diff src/engine/` EMPTY). Complete drop-in code + failing
       tests (listMachines; selector renders/selects-active/switches via mocked deps; touch-target
       entry). No new dep, no new DEC. **[M]** Build prompt written.
+- [~] **build** — (Sonnet): implemented the spec's drop-in code verbatim (listMachines, MachineSelector
+      + machine-selector.css + its tests, Header wiring, touch-target CONTROLS entry). Gate green:
+      typecheck/lint/test (60 files, 356 tests)/build/validate/cost-audit all exit 0.
+      `git diff main..HEAD -- src/engine/` EMPTY. Branch `feat/spec-050-machine-selector-ui`, local
+      commit only (no push/PR). Left `[~]` for the orchestrator to flip to `[x]`.
+- [~] **verify** — (Sonnet, cold): re-ran the full gate independently — typecheck/lint/test (60 files,
+      356 tests)/build/validate/cost-audit all exit 0. Conformance confirmed by direct source read:
+      `listMachines()` = `Object.values(MACHINES)`; `MachineSelector.tsx` matches the drop-in verbatim
+      (`<select aria-label="Machine">`, `value=activeMachineId`, `onChange` → `setActiveMachineId`,
+      options from `listMachines()`); `machine-selector.css` has `min-height` AND `min-width` both
+      `var(--space-7)`, no raw hex; `Header.tsx` renders `<MachineSelector/>` first in
+      `.cabinet__header-controls`; `regions.css` `.cabinet__header` has the orchestrator's
+      `flex-wrap: wrap` fix (in scope, confirmed present); `controls.touch-target.test.ts` has the
+      `.machine-selector` CONTROLS entry. No `.skip`/`.only`/`xit` in touched test files.
+      `git diff main..HEAD -- src/engine/` EMPTY; no MATH drift in any machine file.
+      Adversarial mutations (all 3 bit as designed, clean reverts): (a) `onChange` → no-op: "switching
+      the selection calls setActiveMachineId" FAILED (expected call with `'arctic'`, received 0 calls) —
+      reverted, diff clean. (b) hard-coded `value={machines[0]?.id}`: "selects the active machine's id"
+      FAILED (expected `'arctic'`, got `'wild-and-whimsical'`) — reverted, diff clean. (c)
+      `machine-selector.css` `min-width: 1rem`: touch-target test FAILED
+      (".machine-selector: missing min-width ≥44px") — reverted, diff clean. No teeth gaps; no added
+      assertions needed. Preview sanity (dev server, port 5173): desktop — `.machine-selector`
+      combobox "Machine" renders in `.cabinet__header-controls` with one option "Wild & Whimsical".
+      Mobile (375px) — `.cabinet__header` scrollWidth (359) == clientWidth (359), no overflow, all
+      three header controls on one row, machine name fully readable. Full gate re-run green post-revert
+      (60 files, 356 tests). Guards EMPTY. **Defect count: 0.**

@@ -57,10 +57,56 @@ cost:
         .cabinet__header-controls), the touch-target contract test enumerates control classes (add
         .machine-selector), and consumers render without a provider (default context) so existing
         tests stay green.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 90710    # from Agent result subagent_tokens
+      estimated_usd: 0.60    # 90710 tok × $6.6/M (Sonnet)
+      duration_minutes: 12.7 # 760789 ms
+      recorded_at: 2026-07-07
+      note: >-
+        Implemented the spec's drop-in code verbatim: listMachines() in src/machines/registry.ts,
+        the new src/ui/machine/MachineSelector.tsx + machine-selector.css + MachineSelector.test.tsx,
+        Header.tsx rendering MachineSelector first in .cabinet__header-controls, and the
+        controls.touch-target.test.ts CONTROLS entry for .machine-selector. Gate green: typecheck,
+        lint, test (60 files / 356 tests, all passing, including the 3 new MachineSelector tests +
+        the new listMachines test), build, validate, and cost-audit all exit 0.
+        `git diff main..HEAD -- src/engine/` confirmed EMPTY (DEC-001). No new dependency, no new DEC,
+        no raw hex in machine-selector.css (DEC-010).
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 78562    # from Agent result subagent_tokens
+      estimated_usd: 0.52    # 78562 tok × $6.6/M (Sonnet)
+      duration_minutes: 37.5 # 2247420 ms
+      recorded_at: 2026-07-07
+      note: >-
+        Cold re-verification: re-ran the full gate independently (typecheck, lint, test — 60 files /
+        356 tests, build, validate, cost-audit — all exit 0). Confirmed conformance by reading the
+        changed source directly (registry.ts, MachineSelector.tsx, machine-selector.css, Header.tsx,
+        regions.css, controls.touch-target.test.ts) against the spec's Acceptance Criteria and drop-in
+        code. All three adversarial guard-mutations (no-op onChange; hard-coded select value; sub-44px
+        min-width) each broke exactly the intended test, then reverted clean — no teeth gaps.
+        `git diff main..HEAD -- src/engine/` EMPTY; no MATH drift. Preview-verified via dev server on
+        port 5173: selector renders with one option "Wild & Whimsical", aria-label "Machine"; at 375px
+        `.cabinet__header` does not overflow (scrollWidth == clientWidth). Full gate re-run green after
+        reverting all mutations. Defect count: 0.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 18
+      recorded_at: 2026-07-07
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents against
+        git/disk, ran the preview check that surfaced a mobile header-overflow regression + applied
+        the flex-wrap fix (src/ui/regions/regions.css) + re-previewed clean at 375px/desktop, filled
+        build+verify cost from subagent_tokens, PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 169272   # build 90710 + verify 78562
+    estimated_usd: 1.12    # build $0.60 + verify $0.52
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-050: Machine selector UI
@@ -331,17 +377,31 @@ a test.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
-- **New decisions emitted:** none expected (UI control under DEC-015/DEC-010).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-050-machine-selector-ui`
+- **All acceptance criteria met?** yes
+- **New decisions emitted:** none (UI control under DEC-015/DEC-010, as expected).
+- **Deviations from spec:** none — implemented the drop-in code verbatim (`MachineSelector.tsx`,
+  `machine-selector.css`, the registry `listMachines()` addition, `Header.tsx`, and the
+  `controls.touch-target.test.ts` entry). `MachineSelector.test.tsx` follows the mocking sketch;
+  the third test also asserts `screen.getAllByRole('option')` has length 2 as a light extra check
+  before firing the change event.
+- **Follow-up work identified:** none beyond what the spec already calls out (SPEC-051 Arctic makes
+  the switch visibly/audibly meaningful with a second option).
+- **Orchestrator post-build fix (preview-surfaced):** the mobile preview (375px) showed the added
+  selector (~164px, sized to "Wild & Whimsical") pushed the header controls past the cabinet's right
+  edge — a layout regression the spec's drop-in didn't anticipate. Added `flex-wrap: wrap` to
+  `.cabinet__header` (`src/ui/regions/regions.css`) so the controls cluster drops to its own row on a
+  narrow phone (single row where there's width); no overflow at any width, machine name stays fully
+  readable. Committed separately on the branch; gate re-run green (356 tests). DEC-001 still EMPTY.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** — <answer>
-2. **Was there a constraint or decision that should have been listed but wasn't?** — <answer>
-3. **If you did this task again, what would you do differently?** — <answer>
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes section's drop-in
+   code was complete and unambiguous for every file, so this was a direct transcription task.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No gaps found;
+   DEC-001/DEC-010/DEC-015 and the touch-targets-44 constraint fully covered the surface area touched.
+3. **If you did this task again, what would you do differently?** — Nothing material; the spec's
+   "Notes for the Implementer" section made this a low-risk, mechanical build.
 
 ---
 
@@ -349,6 +409,26 @@ a test.
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?**
+   — Budget for layout in the design when a spec ADDS a control to a fixed-width, crowded container.
+     The spec nailed the control's behavior/a11y/theming but didn't consider that a ~164px `<select>`
+     (sized to "Wild & Whimsical") would overflow the 359px phone cabinet's header. Preview-verify
+     caught it and a one-line `flex-wrap: wrap` on `.cabinet__header` fixed it, but the design should
+     have flagged the header's width budget up front (or specified a `max-width`/wrap for the control
+     cluster) rather than discovering it at preview. Lesson: for a visible addition to a
+     portrait-phone-first layout, reason about the narrowest target's width in the design.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No new DEC (UI control under DEC-015/DEC-010; DEC-001 intact — engine diff EMPTY). No
+     constraint/template change. Logged a signal to the PROJ-002 set: a spec that adds a control to a
+     fixed-width container must reason about the narrowest viewport's width budget at design time, and
+     preview-verify at 375px is the backstop that catches it.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The selector is live and the reactive plumbing (SPEC-047/048/049) is all wired, so
+     **SPEC-051 (Arctic)** is the immediate next step — it registers the second machine, at which point
+     the selector shows two options and a switch becomes visibly/audibly real (reels + paytable + theme
+     + audio all changing together). SPEC-051's preview-verify should exercise exactly that end-to-end
+     switch (pick Arctic → assert the theme CSS vars, paytable, and reels update; reload → Arctic
+     persists). SPEC-052 (Desert) + SPEC-053 (Ocean) follow the same pattern to complete the
+     4-machine set.

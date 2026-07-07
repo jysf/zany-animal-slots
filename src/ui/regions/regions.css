@@ -44,10 +44,14 @@
 .cabinet__header {
   background-color: var(--color-surface);
   padding: var(--space-3) var(--space-4);
-  /* Flex row: title centred, controls cluster on the right (SPEC-026). */
+  /* Flex row: title centred, controls cluster on the right (SPEC-026).
+   * SPEC-050: wrap so the controls cluster (now incl. the machine selector) drops
+   * to its own row on a narrow phone instead of overflowing the cabinet, while
+   * staying a single row where there's width (desktop). */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
