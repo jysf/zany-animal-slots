@@ -22,3 +22,4 @@ Cycle prompts live in `prompts/SPEC-048-<cycle>.md`.
       ~10 files + failing tests (machineTheme / useMachineTheme / useMachineAudio / audioEngine / mixer /
       ambientBed / default-machine parity). No new dep, no new DEC. **[L]** — two independent slices
       shipped together per the stage plan. Build prompt written.
+- [~] **build** — in progress (Sonnet): implementing the theme + audio slice verbatim per spec Notes.

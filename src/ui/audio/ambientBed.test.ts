@@ -71,3 +71,29 @@ describe('stopBed', () => {
     expect(loopDisposeMock).toHaveBeenCalled();
   });
 });
+
+describe('setBedMusic', () => {
+  it('changes the chord the next startBed uses', async () => {
+    const { startBed, setBedMusic, getActiveBedMusic, DEFAULT_BED_MUSIC } = await import(
+      './ambientBed'
+    );
+
+    setBedMusic({ chord: ['A2'], noteDuration: '4n', loopInterval: '1m' });
+    expect(getActiveBedMusic()).toEqual({ chord: ['A2'], noteDuration: '4n', loopInterval: '1m' });
+
+    startBed();
+    const { Loop } = await import('tone');
+    expect(Loop).toHaveBeenCalledWith(expect.any(Function), '1m');
+
+    // Trigger the loop callback to confirm it uses the new chord/duration.
+    const loopCallback = (Loop as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0] as (
+      time: number,
+    ) => void;
+    loopCallback(0);
+    expect(padTriggerMock).toHaveBeenCalledWith(['A2'], '4n', 0);
+
+    // Restore the default so later tests see the baseline.
+    setBedMusic(DEFAULT_BED_MUSIC);
+    expect(getActiveBedMusic()).toEqual(DEFAULT_BED_MUSIC);
+  });
+});

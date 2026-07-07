@@ -11,6 +11,8 @@ import {
 import { PAYLINES, PAYTABLE } from '../engine/paylines';
 import { BET_LEVELS, DEFAULT_BET, STARTING_BALANCE } from '../engine/balance';
 import { SYMBOL_DISPLAY } from '../ui/reels/symbols';
+import { CHANNEL_GAINS } from '../ui/audio/audioEngine';
+import { MIX } from '../ui/audio/mixer';
 
 const { math, presentation } = WILD_AND_WHIMSICAL;
 
@@ -57,6 +59,20 @@ describe('SPEC-038 default machine parity — extracted data == current constant
 
   it('presentation symbolDisplay', () => {
     expect(presentation.symbolDisplay).toEqual(SYMBOL_DISPLAY);
+  });
+
+  it("the default machine's audio equals today's engine/audio constants", () => {
+    expect(presentation.audio.channelGains).toEqual(CHANNEL_GAINS);
+    expect(presentation.audio.mix).toEqual(MIX);
+    expect(presentation.audio.music).toEqual({
+      chord: ['C3', 'G3', 'C4', 'E4'],
+      noteDuration: '2n',
+      loopInterval: '2m',
+    });
+  });
+
+  it("the default machine's theme is empty (defers to tokens.css)", () => {
+    expect(presentation.theme).toEqual({});
   });
 
   it('structural completeness — every symbol has a tier, weight, and display', () => {

@@ -1,8 +1,11 @@
 // mixer.ts — bus-level bed automation (SPEC-030, DEC-013).
 // Ramps the bed channel gain on a big win (swell) or jackpot (duck),
-// then restores to the CHANNEL_GAINS.bed baseline after holdMs.
+// then restores to the active bed gain baseline after holdMs.
 // All operations are best-effort — never throws into the caller.
-import { getChannel, CHANNEL_GAINS } from './audioEngine';
+// SPEC-048: MIX stays the baseline/default; a mutable `activeMix` layer lets a
+// machine override the levels/timings, and the restore target follows whatever
+// channel gain is currently active (so a themed machine's own bed gain "wins").
+import { getChannel, getActiveChannelGain } from './audioEngine';
 import type { WinTier } from '../../engine/index';
 
 export const MIX = {
@@ -13,16 +16,23 @@ export const MIX = {
   holdMs: 3000,     // ms before restoring (≈ jackpot moment span)
 };
 
+let activeMix = { ...MIX };
+
+/** Set the active per-machine bed-automation params. */
+export function setMix(mix: typeof MIX): void {
+  activeMix = { ...mix };
+}
+
 export function applyMix(tier: WinTier): void {
   if (tier !== 'big' && tier !== 'jackpot') return; // small / none: flat mix
   try {
     const gain = getChannel('bed').gain;
-    const target = tier === 'jackpot' ? MIX.duckLevel : MIX.swellLevel;
-    gain.rampTo(target, MIX.rampS);
+    const target = tier === 'jackpot' ? activeMix.duckLevel : activeMix.swellLevel;
+    gain.rampTo(target, activeMix.rampS);
     setTimeout(() => {
       try {
-        gain.rampTo(CHANNEL_GAINS.bed, MIX.restoreS);
+        gain.rampTo(getActiveChannelGain('bed'), activeMix.restoreS);
       } catch { /* audio is best-effort */ }
-    }, MIX.holdMs);
+    }, activeMix.holdMs);
   } catch { /* audio is best-effort */ }
 }
