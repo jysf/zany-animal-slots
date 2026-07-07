@@ -59,7 +59,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 124405   # from Agent result subagent_tokens
+      estimated_usd: 0.82    # 124405 tok × $6.6/M (Sonnet)
+      duration_minutes: 13.8 # 826008 ms
       recorded_at: 2026-07-07
       note: >-
         Implemented the spec's drop-in code verbatim: src/machines/activeMachineStorage.ts (+ test,
@@ -81,7 +83,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 95435    # from Agent result subagent_tokens
+      estimated_usd: 0.63    # 95435 tok × $6.6/M (Sonnet)
+      duration_minutes: 30   # active work est.; raw duration_ms (~500 min) is inflated by idle wait, not compute (cf. SPEC-045 verify)
       recorded_at: 2026-07-07
       note: >-
         Cold, independent re-verification on feat/spec-049-reactive-active-machine-context. Re-ran the
@@ -103,10 +107,23 @@ cost:
         ("expected readActiveMachineId to be called at least once"). Mutation (c) reverted; full gate
         re-run green after adding the test. Defect count: 0 (the (c) gap was a disclosed, expected
         coverage limitation, not an undisclosed defect — now closed with a permanent structural test).
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      duration_minutes: 14
+      recorded_at: 2026-07-07
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled both sub-agents against
+        git/disk (reviewed the full diff, re-ran the gate + engine guard, confirmed the new structural
+        spy test gives mutation (c) teeth), filled build+verify cost from subagent_tokens (verify
+        duration recorded as active-work estimate — raw duration_ms was idle-inflated), PR + CI-poll +
+        squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 219840   # build 124405 + verify 95435
+    estimated_usd: 1.45    # build $0.82 + verify $0.63
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-049: Reactive active-machine context
@@ -441,6 +458,29 @@ FAIL; revert. (c) make `getActiveMachine()` ignore storage and return the const 
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?**
+   — Anticipate that a "no-op seam" spec has un-observable guards while only one machine is
+     registered, and design the teeth accordingly UP FRONT. The design named three adversarial
+     mutations, but (c) — "getActiveMachine ignores storage" — can't be distinguished by any
+     return-value assertion when the only registered id equals the default. Both the build and
+     verify agents caught it; verify closed it with a `vi.spyOn` structural test ("getActiveMachine
+     delegates to readActiveMachineId"). Next time, for a single-registered-item reactive seam,
+     write the structural/delegation test in the spec's Failing Tests from the start rather than
+     discovering the gap in build/verify. This is the third instance of the adversarial-mutation
+     lesson ([[adversarial-mutation-must-be-behavior-distinguishing]]) — now N=3.
+
+2. **Does any template, constraint, or decision need updating?**
+   — No new DEC (reactive seam under DEC-015; DEC-005 no-backend intact — localStorage only,
+     guarded). No template/constraint change. Worth reinforcing in the signals set: when a spec's
+     "prove it's wired" guard is unobservable via behavior under current data (single machine),
+     specify a delegation/spy test as the teeth, not a return-value assertion.
+
+3. **Is there a follow-up spec I should write now before I forget?**
+   — No new spec. The reactive seam is live but un-exercised until there's something to switch to:
+     **SPEC-050** (the selector UI) calls `setActiveMachineId` — it should preview-verify that a
+     switch re-renders reels + paytable + theme + audio together and persists across reload;
+     **SPEC-051/052/053** register the second/third/fourth machines that finally give a switch an
+     observable destination (and retroactively give mutation (c) behavioral teeth, not just
+     structural). One note for SPEC-050: it will need a list of registered machines to render
+     options — `MACHINES` (from the registry) + the context's `activeMachineId`/`setActiveMachineId`
+     are the exact surface it consumes.
