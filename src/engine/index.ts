@@ -22,7 +22,8 @@ export type { BetLevel } from './balance';
 export type { MachineMath, JackpotRule, TierBoundaries } from './machine';
 
 // ── Re-exports: values ───────────────────────────────────────────────────────
-export { SYMBOLS, SYMBOL_TIER } from './strips';
+export { SYMBOLS, SYMBOL_TIER, REEL_COUNT } from './strips';
+export { buildStrip } from './stripBuilder';
 export { PAYLINES, PAYTABLE } from './paylines';
 export { BET_LEVELS, DEFAULT_BET, STARTING_BALANCE, nextBet, prevBet, canAfford } from './balance';
 export { WILD_AND_WHIMSICAL_MATH } from './machine';

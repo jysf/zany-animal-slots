@@ -21,3 +21,12 @@ Cycle prompts live in `prompts/SPEC-051-<cycle>.md`.
       spin/paylines/tiers/balance/strips/machine EMPTY). Complete drop-in code + DEC-017 body + failing
       tests (registration / vocabulary / RTP-band / strip-integrity / distinct-from-W&W / theme-contrast).
       No new dep. **[M]** Build prompt written.
+- [~] **build** — completed 2026-07-07 (Sonnet, branch `feat/spec-051-arctic-machine`): transcribed
+      the spec's drop-in code verbatim — `engine/index.ts` (+`buildStrip`, +`REEL_COUNT` re-exports),
+      `src/machines/arctic.ts` (`ARCTIC_WEIGHTS`, `ARCTIC_PAYTABLE`, `ARCTIC_STRIP`, `ARCTIC_MATH`,
+      theme, audio), `registry.ts` (Arctic registered, W&W stays first/default), `DEC-017`, and the 6
+      failing tests in `src/machines/arctic.test.ts`. No re-tuning, no engine-logic change (guard diff
+      on spin/paylines/tiers/balance/strips/machine EMPTY). Gate green: typecheck, lint, test (362
+      tests / 61 files), build, validate, cost-audit all pass; `just simulate arctic --spins 50000`
+      reports RTP 89.92% / hit 29.82% / jackpot 1-in-50000. Local commits only — no push, no PR, no
+      `just advance-cycle` (orchestrator to flip this to `[x]` and hand off to verify).

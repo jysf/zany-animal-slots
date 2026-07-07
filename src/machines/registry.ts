@@ -2,14 +2,16 @@
 // STAGE-007 registers the default machine only (no selector). STAGE-008 makes the active
 // machine selectable + persisted; getActiveMachine() is the seam it plugs into.
 import { WILD_AND_WHIMSICAL } from './wildAndWhimsical';
+import { ARCTIC } from './arctic';
 import { readActiveMachineId } from './activeMachineStorage';
 import type { Machine } from './types';
 
 export const DEFAULT_MACHINE_ID = WILD_AND_WHIMSICAL.id;
 
-/** All registered machines, keyed by id. Default only in STAGE-007. */
+/** All registered machines, keyed by id. Wild & Whimsical stays first (default; selector order). */
 export const MACHINES: Record<string, Machine> = {
   [WILD_AND_WHIMSICAL.id]: WILD_AND_WHIMSICAL,
+  [ARCTIC.id]: ARCTIC,
 };
 
 /** Look up a machine by id; falls back to the default for an unknown id. */
