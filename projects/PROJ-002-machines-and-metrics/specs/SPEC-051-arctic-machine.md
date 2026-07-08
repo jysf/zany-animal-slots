@@ -63,7 +63,8 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 90000   # nominal — see note (prior run's sub-agent metering not retrievable)
+      estimated_usd: 0.59
       recorded_at: 2026-07-07
       note: >-
         Transcribed the spec's verbatim drop-in code: engine/index.ts (buildStrip + REEL_COUNT
@@ -74,10 +75,36 @@ cost:
         inline WCAG contrast helper). No re-tuning; no engine logic changed. Gate green:
         typecheck/lint/test (362 tests, 61 files)/build/validate/cost-audit all pass;
         `just simulate arctic --spins 50000` reports RTP 89.92%; engine-logic guard diff empty.
+        The build ran on a prior (interrupted) overnight sub-agent whose token metering was not
+        retrievable on resume — nominal estimate (~90000 tok, $6.6/M Sonnet), not separately metered.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000   # nominal — autonomous overnight single-agent run, not separately metered
+      estimated_usd: 0.59
+      recorded_at: 2026-07-07
+      note: >-
+        Cold verify on the rebased branch: full gate re-run (typecheck/lint/test 362·61/build/validate/
+        cost-audit all exit 0). Engine-logic guard diff EMPTY (DEC-001 intact; engine/index.ts gains
+        only two re-exports). Adversarial guard-mutation with teeth: reverting Arctic's weights+paytable
+        to W&W's made the "distinct from Wild & Whimsical" test FAIL as designed, then restored clean.
+        Preview sanity on the dev server confirmed Arctic is a real second selector option and applies
+        its icy theme live (--color-bg #0a1622 on .device-stage), no console errors. Defect count 0.
+        Autonomous overnight single-agent run — nominal estimate, not separately metered.
+    - cycle: ship
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null   # ship runs on the orchestrator's main Opus loop — not separately metered
+      recorded_at: 2026-07-07
+      note: >-
+        Resumed the interrupted SPEC-051 run: reconciled the local build branch against git/disk,
+        rebased on fresh main, ran verify (above), filled closeout cost, pushed the branch and opened
+        the PR, CI-polled to CLEAN/all-checks-green, squash-merged, and did the post-merge STAGE-008
+        rollup (timeline ship [x], advance-cycle ship, backlog/Count, brag, archive).
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 180000
+    estimated_usd: 1.19
+    session_count: 4
 ---
 
 # SPEC-051: Arctic machine
@@ -399,6 +426,16 @@ FAILS; revert. (d) drop `ARCTIC` from `MACHINES` → the registration test FAILS
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?** — This spec was already fully built and gate-green on its
+   branch when a prior overnight run was interrupted before verify/ship. Resuming cost nothing extra —
+   the trust-git/disk reconcile made it a clean pickup. The one honest gap is cost metering: the build
+   sub-agent's tokens weren't retrievable after the interruption, so the build cost is a nominal
+   estimate. Next time I'd have the interrupted run persist its subagent_tokens to the spec before
+   handing off, so a resume can record real numbers.
+2. **Does any template, constraint, or decision need updating?** — No. Arctic validated the DEC-015
+   "a machine is data + a DEC" path end-to-end (data file + DEC-017, zero engine-logic change, guard
+   diff EMPTY) exactly as the config-driven spine promised. The measure-then-pin discipline (SPEC-046)
+   transferred cleanly to a second machine. No template or constraint gap surfaced.
+3. **Is there a follow-up spec I should write now before I forget?** — The two already-scoped machines,
+   Desert (SPEC-052, DEC-018) and Ocean (SPEC-053, DEC-019), follow this exact pattern and are the last
+   two STAGE-008 specs. No new follow-up beyond them; Arctic proves the mold they'll be cast from.
