@@ -60,10 +60,51 @@ cost:
         20k/seed-1 = rtp 0.9435 / hit 0.3015 for the sanity test. Verified all 8 theme contrast pairs
         pass WCAG AA (text-on-bg 16.4:1; min 7.0:1). Distinct from W&W (flatter weights, bigger
         5-of-a-kind payouts, icy palette, colder chord).
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 90000   # nominal — see note (prior run's sub-agent metering not retrievable)
+      estimated_usd: 0.59
+      recorded_at: 2026-07-07
+      note: >-
+        Transcribed the spec's verbatim drop-in code: engine/index.ts (buildStrip + REEL_COUNT
+        re-exports), src/machines/arctic.ts (ARCTIC_WEIGHTS, ARCTIC_PAYTABLE, ARCTIC_STRIP,
+        ARCTIC_MATH, theme, audio), registry.ts registration, DEC-017, and the 6 failing tests in
+        src/machines/arctic.test.ts (registration, 8-symbol vocabulary, RTP-band via
+        simulateMachine 20k/seed1, strip count-exactness + no adjacent dups, distinct-from-W&W,
+        inline WCAG contrast helper). No re-tuning; no engine logic changed. Gate green:
+        typecheck/lint/test (362 tests, 61 files)/build/validate/cost-audit all pass;
+        `just simulate arctic --spins 50000` reports RTP 89.92%; engine-logic guard diff empty.
+        The build ran on a prior (interrupted) overnight sub-agent whose token metering was not
+        retrievable on resume — nominal estimate (~90000 tok, $6.6/M Sonnet), not separately metered.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000   # nominal — autonomous overnight single-agent run, not separately metered
+      estimated_usd: 0.59
+      recorded_at: 2026-07-07
+      note: >-
+        Cold verify on the rebased branch: full gate re-run (typecheck/lint/test 362·61/build/validate/
+        cost-audit all exit 0). Engine-logic guard diff EMPTY (DEC-001 intact; engine/index.ts gains
+        only two re-exports). Adversarial guard-mutation with teeth: reverting Arctic's weights+paytable
+        to W&W's made the "distinct from Wild & Whimsical" test FAIL as designed, then restored clean.
+        Preview sanity on the dev server confirmed Arctic is a real second selector option and applies
+        its icy theme live (--color-bg #0a1622 on .device-stage), no console errors. Defect count 0.
+        Autonomous overnight single-agent run — nominal estimate, not separately metered.
+    - cycle: ship
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null   # ship runs on the orchestrator's main Opus loop — not separately metered
+      recorded_at: 2026-07-07
+      note: >-
+        Resumed the interrupted SPEC-051 run: reconciled the local build branch against git/disk,
+        rebased on fresh main, ran verify (above), filled closeout cost, pushed the branch and opened
+        the PR, CI-polled to CLEAN/all-checks-green, squash-merged, and did the post-merge STAGE-008
+        rollup (timeline ship [x], advance-cycle ship, backlog/Count, brag, archive).
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 180000
+    estimated_usd: 1.19
+    session_count: 4
 ---
 
 # SPEC-051: Arctic machine
@@ -356,17 +397,28 @@ FAILS; revert. (d) drop `ARCTIC` from `MACHINES` → the registration test FAILS
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-051-arctic-machine`
+- **All acceptance criteria met?** yes
 - **New decisions emitted:** DEC-017 (Arctic machine).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Deviations from spec:** None. All drop-in code (engine/index.ts re-exports, arctic.ts,
+  registry.ts, DEC-017 body) transcribed verbatim from the spec's Notes. The six failing tests
+  were implemented as specified, with the WCAG contrast helper written inline as directed.
+- **Follow-up work identified:** None beyond what the spec already scopes out (Desert/Ocean —
+  SPEC-052/053; per-reel asymmetric strips; a themed selector option style).
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** — <answer>
-2. **Was there a constraint or decision that should have been listed but wasn't?** — <answer>
-3. **If you did this task again, what would you do differently?** — <answer>
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes section had
+   complete drop-in code for every file, so this was a transcription + test-writing exercise
+   exactly as advertised.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No. DEC-001,
+   DEC-013, DEC-015 covered the relevant boundaries; `just decisions-audit` flags an expected
+   DEC-015/DEC-017 scope overlap (same pattern as other machine-model DECs), not a gap.
+3. **If you did this task again, what would you do differently?** — Nothing structurally; would
+   run the same measure-then-pin discipline. One minor note: `just simulate arctic --spins 50000`
+   (unseeded) reports RTP 89.92%, slightly under the "~90–95%" prose in the spec's Goal, but the
+   pinned 20k/seed=1 acceptance criterion (0.9435) and the [0.85, 1.02] band are both satisfied —
+   consistent with variance across different seeds/spin counts, not a transcription error.
 
 ---
 
@@ -374,6 +426,16 @@ FAILS; revert. (d) drop `ARCTIC` from `MACHINES` → the registration test FAILS
 
 *Appended during the **ship** cycle. Outcome-focused, distinct from the build reflection.*
 
-1. **What would I do differently next time?** — <answer>
-2. **Does any template, constraint, or decision need updating?** — <answer>
-3. **Is there a follow-up spec I should write now before I forget?** — <answer>
+1. **What would I do differently next time?** — This spec was already fully built and gate-green on its
+   branch when a prior overnight run was interrupted before verify/ship. Resuming cost nothing extra —
+   the trust-git/disk reconcile made it a clean pickup. The one honest gap is cost metering: the build
+   sub-agent's tokens weren't retrievable after the interruption, so the build cost is a nominal
+   estimate. Next time I'd have the interrupted run persist its subagent_tokens to the spec before
+   handing off, so a resume can record real numbers.
+2. **Does any template, constraint, or decision need updating?** — No. Arctic validated the DEC-015
+   "a machine is data + a DEC" path end-to-end (data file + DEC-017, zero engine-logic change, guard
+   diff EMPTY) exactly as the config-driven spine promised. The measure-then-pin discipline (SPEC-046)
+   transferred cleanly to a second machine. No template or constraint gap surfaced.
+3. **Is there a follow-up spec I should write now before I forget?** — The two already-scoped machines,
+   Desert (SPEC-052, DEC-018) and Ocean (SPEC-053, DEC-019), follow this exact pattern and are the last
+   two STAGE-008 specs. No new follow-up beyond them; Arctic proves the mold they'll be cast from.
