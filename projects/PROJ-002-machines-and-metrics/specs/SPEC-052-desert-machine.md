@@ -67,20 +67,47 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 92298   # metered from the build sub-agent's subagent_tokens
+      estimated_usd: 0.61
       recorded_at: 2026-07-07
       note: >-
-        Transcribed the spec Notes' drop-in code verbatim into src/machines/desert.ts (DESERT_WEIGHTS,
-        DESERT_PAYTABLE, DESERT_STRIP = buildStrip(...), DESERT_MATH, theme, audio), registered DESERT
-        in src/machines/registry.ts after ARCTIC, and wrote src/machines/desert.test.ts mirroring
-        arctic.test.ts's 6 tests plus the "distinct from Arctic" assertions. DEC-018 already existed
-        from design and matched the Notes verbatim — left unchanged. Gate: just typecheck && just lint
-        && just test (368 tests, incl. the 6 new Desert tests) && just build && just validate all
-        passed. git diff main..HEAD -- src/engine/ is EMPTY (no engine files touched).
+        Fresh Sonnet sub-agent (metered: 92298 tok, ~240s). Transcribed the spec Notes' drop-in code
+        verbatim into src/machines/desert.ts (DESERT_WEIGHTS, DESERT_PAYTABLE, DESERT_STRIP =
+        buildStrip(...), DESERT_MATH, theme, audio), registered DESERT in src/machines/registry.ts after
+        ARCTIC, and wrote src/machines/desert.test.ts mirroring arctic.test.ts's 6 tests plus the
+        "distinct from Arctic" assertions. DEC-018 already existed from design and matched the Notes
+        verbatim — left unchanged. Gate: just typecheck && just lint && just test (368 tests, incl. the
+        6 new Desert tests) && just build && just validate && just cost-audit all passed. git diff
+        main..HEAD -- src/engine/ is EMPTY (no engine files touched).
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000   # nominal — autonomous overnight single-agent run, not separately metered
+      estimated_usd: 0.59
+      recorded_at: 2026-07-07
+      note: >-
+        Cold verify (Opus, single-agent overnight). Reconciled the sub-agent's branch against git/disk;
+        full gate re-run green (typecheck/lint/test 368·62/build/validate/cost-audit all exit 0). Engine
+        guard diff EMPTY (DEC-001 intact). Read desert.ts + desert.test.ts — both match the measured pins
+        verbatim. Adversarial guard-mutation with teeth: reverting Desert's weights+paytable to Arctic's
+        made the "distinct from W&W and Arctic" test FAIL as designed, then restored clean. Preview sanity
+        confirmed all three machines list in the selector and switching to Desert applies its warm theme
+        live (--color-bg #1c1206) + persists to localStorage; default falls back to W&W; no console
+        errors. Defect count 0. Autonomous overnight single-agent run — nominal estimate, not separately
+        metered.
+    - cycle: ship
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null   # ship runs on the orchestrator's main Opus loop — not separately metered
+      recorded_at: 2026-07-07
+      note: >-
+        Filled build (metered) + verify (nominal) cost, pushed the branch, opened + CI-polled + squash-
+        merged the PR (CLEAN, all 7 checks SUCCESS), and did the post-merge STAGE-008 rollup (timeline
+        ship [x], advance-cycle ship, backlog/Count, brag, archive).
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 182298
+    estimated_usd: 1.20
+    session_count: 4
 ---
 
 # SPEC-052: Desert machine
@@ -405,10 +432,20 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — The measure-then-pin sweep was the real work; the build was pure transcription (metered 92k tok,
+   one Sonnet pass, zero defects). What took iterations was landing a *distinct* paytable that also hit
+   the RTP band — my first passes overshot 100% RTP or accidentally reused Arctic's paytable rows. Next
+   time I'd start the sweep from flatter weights (the "sparse" lever) and treat the mid-tier 3-of-a-kind
+   multiplier as the coarse RTP knob and the high-tier as the fine knob — that's the sensitivity I only
+   discovered mid-sweep.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. Desert confirmed the DEC-015/DEC-017 mold holds for a *second* machine with zero engine change
+   (guard diff EMPTY) — SPEC-051 having already exposed `buildStrip`/`REEL_COUNT` meant Desert touched
+   only `src/machines/`. The Arctic test template ported cleanly (just add the Arctic-distinctness
+   assertions). The three-machine selector switch is now proven live.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — Only Ocean (SPEC-053, DEC-019) remains — the last STAGE-008 spec, same mold: teal/deep-blue theme,
+   flowing audio, its own tuned math, measured before pinning. After it ships, STAGE-008 is complete
+   (4-machine set) and gets its stage-ship. No other follow-up.
