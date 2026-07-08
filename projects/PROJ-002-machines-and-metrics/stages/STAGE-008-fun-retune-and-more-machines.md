@@ -195,8 +195,10 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       default). Makes the selector a real two-option switch — reels + paytable + theme + audio all
       change together, preview-verified live. DEC-001 clean (engine-logic diff EMPTY); guard-mutation
       bit; 0 defects. No new dep. **[M]**
-- [ ] (not yet written) SPEC-052 — **Desert machine**: theme + music + math as data + a
-      DEC + a parity/metrics-sanity test. **[M]**
+- [ ] SPEC-052 (design) — **Desert machine**: the second themed machine — a warm sand/amber theme +
+      warm dry audio + its own sparse, higher-variance tuned math (avg RTP ~90%, hit ~28%), as pure
+      data + **DEC-018** + a 6-test parity/metrics-sanity suite (distinct from W&W AND Arctic);
+      selectable via the registry (third; W&W stays default). No engine change. **[M]**
 - [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
