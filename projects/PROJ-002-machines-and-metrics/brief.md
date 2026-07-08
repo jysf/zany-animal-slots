@@ -173,7 +173,7 @@ is the most separable and could be deferred or split off if the wave runs long.
       Food & Drink machines parked as a future fast-follow. **10 specs (SPEC-044–053), 0
       defects, no engine-logic regressions (DEC-001 held throughout).** See the STAGE-008
       stage file.
-- [ ] STAGE-009 (framed 2026-07-08, proposed) — **Player session stats**: client-side,
+- [ ] STAGE-009 (framed 2026-07-08, active) — **Player session stats**: client-side,
       aggregate session stats (spins, biggest win, cash-ins, win rate, net winnings) +
       a winnings-over-time sparkline, in an in-app panel; recorded automatically from the
       `SpinResult`, persisted under `zany:stats:*` (reusing SPEC-049's React-Context +
@@ -189,7 +189,7 @@ is the most separable and could be deferred or split off if the wave runs long.
       private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
       apply ONLY when a remote sink is enabled.
 
-**Count:** 2 shipped / 0 active / 3 pending (STAGE-009 framed 2026-07-08, proposed —
+**Count:** 2 shipped / 1 active / 2 pending (STAGE-009 framed 2026-07-08, active —
 4 specs SPEC-054–057; STAGE-010/011 not yet framed).
 
 ## Dependencies
