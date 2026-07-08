@@ -201,10 +201,16 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       parity/metrics-sanity suite (distinct from W&W AND Arctic); selectable via the registry (third;
       W&W stays default). Makes the selector a real three-option switch, preview-verified live (theme +
       persistence). DEC-001 clean (engine diff EMPTY); guard-mutation bit; 0 defects. No new dep. **[M]**
-- [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
-      DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
+- [~] SPEC-053 (build) — **Ocean machine**: the fourth and final themed machine — a teal/deep-blue
+      flowing theme + flowing spacious A-major audio + its own steady, low-variance tuned math (the
+      HIGHEST hit-freq of the four: avg RTP ~94%, hit ~37% — the inverse of Desert's sparseness), as
+      pure data + **DEC-019** + a 6-test parity/metrics-sanity suite (distinct from W&W AND Arctic AND
+      Desert); selectable via the registry (fourth; W&W stays default). Completes the 4-machine set →
+      the selector becomes a four-option switch. Math MEASURED before pinning (weights DEER10/FOX9/
+      SQUIRREL7/BEAR4/EAGLE3/OWL3/BISON3/WOLF3; paytable low[1,2,6]/mid[2,4,12]/high[3,9,32]/
+      jackpot[6,30,150]). **[M]**
 
-**Count:** 9 shipped / 0 active / 1 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 9 shipped / 1 active / 0 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs
