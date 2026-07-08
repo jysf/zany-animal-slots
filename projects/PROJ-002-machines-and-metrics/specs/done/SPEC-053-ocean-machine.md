@@ -7,7 +7,7 @@
 task:
   id: SPEC-053
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -108,7 +108,7 @@ cost:
       interface: claude-code
       model: claude-opus-4-8
       tokens_total: null   # ship runs on the orchestrator's main Opus loop — not separately metered
-      recorded_at: 2026-07-07
+      recorded_at: 2026-07-08
       note: >-
         Filled build (metered $0.63) + verify (metered $0.53) cost, pushed the branch, opened + CI-polled +
         squash-merged the PR (CLEAN, all 7 checks SUCCESS), and did the post-merge STAGE-008 rollup

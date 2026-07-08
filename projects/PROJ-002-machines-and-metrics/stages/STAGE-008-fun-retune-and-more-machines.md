@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-008                     # stable, zero-padded, continuous across the repo
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-05
-shipped_at: null
+shipped_at: 2026-07-08
 
 # What part of the project's value thesis this stage advances.
 # If you can't articulate value_contribution, the stage may be
@@ -201,16 +201,17 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       parity/metrics-sanity suite (distinct from W&W AND Arctic); selectable via the registry (third;
       W&W stays default). Makes the selector a real three-option switch, preview-verified live (theme +
       persistence). DEC-001 clean (engine diff EMPTY); guard-mutation bit; 0 defects. No new dep. **[M]**
-- [~] SPEC-053 (build) — **Ocean machine**: the fourth and final themed machine — a teal/deep-blue
-      flowing theme + flowing spacious A-major audio + its own steady, low-variance tuned math (the
-      HIGHEST hit-freq of the four: avg RTP ~94%, hit ~37% — the inverse of Desert's sparseness), as
-      pure data + **DEC-019** + a 6-test parity/metrics-sanity suite (distinct from W&W AND Arctic AND
-      Desert); selectable via the registry (fourth; W&W stays default). Completes the 4-machine set →
-      the selector becomes a four-option switch. Math MEASURED before pinning (weights DEER10/FOX9/
-      SQUIRREL7/BEAR4/EAGLE3/OWL3/BISON3/WOLF3; paytable low[1,2,6]/mid[2,4,12]/high[3,9,32]/
-      jackpot[6,30,150]). **[M]**
+- [x] SPEC-053 (shipped 2026-07-08, PR #63) — **Ocean machine**: the fourth and final themed machine —
+      a teal/deep-blue flowing theme + flowing spacious A-major audio + its own steady, low-variance tuned
+      math (the HIGHEST hit-freq of the four: measured avg RTP ~94%, hit ~37% — the inverse of Desert's
+      sparseness), as pure data + **DEC-019** + a 6-test parity/metrics-sanity suite (distinct from W&W
+      AND Arctic AND Desert); selectable via the registry (fourth; W&W stays default). Completes the
+      4-machine set → the selector is now a real four-option switch, preview-verified live (theme +
+      persistence + fallback). Math MEASURED before pinning (weights DEER10/FOX9/SQUIRREL7/BEAR4/EAGLE3/
+      OWL3/BISON3/WOLF3; paytable low[1,2,6]/mid[2,4,12]/high[3,9,32]/jackpot[6,30,150]). DEC-001 clean
+      (engine diff EMPTY); all 4 guard-mutations bit; 0 defects. No new dep. **[M]**
 
-**Count:** 9 shipped / 1 active / 0 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 10 shipped / 0 active / 0 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs
@@ -293,13 +294,35 @@ fast-follow the 4th) — same deferral logic the brief applies to STAGE-011.
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1c (Stage Ship) in
-FIRST_SESSION_PROMPTS.md to draft this.*
+*Filled in when status moves to shipped (2026-07-08).*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan of 9>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes.** A player can now pick among four
+  visibly and aurally distinct, deliberately-fun machines (Wild & Whimsical / Arctic / Desert / Ocean),
+  each with its own theme + audio + tuned math, and the choice persists across reloads. The default was
+  retuned in place from "too hard to win, wins too small" (measured RTP 13% / hit 10% / never-jackpot) to
+  a genuinely generous RTP 93.8% / hit 34.4% / jackpot ~1-in-25k, re-baselined into the frozen-seed
+  contract under DEC-016. The simulator (SPEC-044) made every tuning decision evidence-driven, not
+  guessed. All success criteria met; DEC-001 (engine-no-dom) held for all 10 specs (every machine's
+  engine-diff guard was EMPTY).
+- **How many specs did it actually take?** **10** (SPEC-044–053), vs. the plan of 9 — the extra spec was
+  SPEC-045 (the deterministic strip-builder), split out of the retune so the "generate strips from
+  weights" mechanism could be tested in isolation before SPEC-046 consumed it. Sizes: 2×L, 7×M, 1×S–M.
+- **What changed between starting and shipping?** The retune split into a tested strip-builder (SPEC-045)
+  + the retune that consumes it (SPEC-046); otherwise the stage shipped as framed, and the four
+  themed-machine specs (051–053) proved as cheap as predicted once the theme/audio/selector infra
+  (048–050) landed — each was a pure data-file + DEC + a 6-test sanity suite.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - The **measure-then-pin** discipline (compute pinned values against the real engine via `vite-node`
+    BEFORE writing the failing tests, so the build is pure transcription) worked flawlessly across four
+    machine retunes — 0 defects, gates green on first pass. Worth promoting to a named convention in
+    AGENTS §12 for any data-tuning spec.
+  - For math tuning specifically: **weight-steepness is the hit-frequency knob; the paytable is the RTP
+    knob** — tuning them as two near-independent axes converged each machine in ~5–10 candidates. A
+    reusable note for future machine specs.
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - From SPEC-053's ship reflection: **when resuming an interrupted spec, reconcile the branch's intent
+    against the stage backlog + the shipped DECs — not just "is the gate green".** A prior interrupted run
+    had started an off-script reinterpretation of SPEC-053 (per-machine `symbolDisplay` remaps) that
+    contradicted the fixed 8-symbol vocabulary and DEC-017/018's explicitly-rejected "new symbol set"
+    alternative; grounding against the source-of-truth stage file caught it. The stray idea is logged to
+    the signals file as a possible future-wave direction (needs its own superseding DEC).

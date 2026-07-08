@@ -58,6 +58,11 @@ Cycle prompts live in `prompts/SPEC-053-<cycle>.md`.
       vocabulary is unchanged (deer/bear/bison/squirrel/owl/fox/eagle/wolf — the shared `SYMBOL_DISPLAY`);
       an unknown persisted id (`nonexistent-xyz`) correctly falls back to the default Wild & Whimsical (no
       theme override); no console errors.
-- [~] **ship** — closeout committed (cost sessions filled: build 94856 tok / verify 79873 tok, both
-      metered Sonnet; ship on Opus loop; totals 174729 tok / $1.16 / 4 sessions), branch pushed, PR
-      opening + CI-poll next.
+- [x] **ship** — shipped 2026-07-08 (Opus), **PR #63** squash-merged to main (CI CLEAN — all 7 check runs
+      SUCCESS: app checks / cost-capture audit / supply-chain / Workers Builds). Build + verify were both
+      metered Sonnet sub-agents (94856 + 79873 tok); design/ship on the Opus orchestrator loop. Filled
+      closeout cost (build $0.63, verify $0.53, totals 174729 tok / $1.16 / 4 sessions) and merged.
+      **Fourth themed machine live** — the selector is now a real four-option switch (Wild & Whimsical /
+      Arctic / Desert / Ocean), each with its own theme + audio + tuned math. 0 defects; DEC-001 clean
+      (engine diff EMPTY); no new dep. **Tenth and final STAGE-008 spec shipped (10/10)** — completes the
+      4-machine set and triggers the STAGE-008 stage-ship.

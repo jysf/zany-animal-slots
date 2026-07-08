@@ -162,18 +162,17 @@ is the most separable and could be deferred or split off if the wave runs long.
       parameterized the engine + presentation; a machine = config; migrated the current
       game to the default machine "Wild & Whimsical", behavior-preserving (frozen-seed
       contract). 6 specs (SPEC-038–043), 0 defects. Foundation for everything else.
-- [~] STAGE-008 (active, framed 2026-07-05) — **Fun retune + more machines**: tune the
-      default (Wild & Whimsical, **in place**) for fun (hit-rate, medium band, jackpots)
-      to a **measured** target (~94% RTP / ~40% hit-freq, via a new machine-metrics
-      simulator), **re-baselining** the frozen-seed contract to the retuned numbers under
-      a retune DEC; ship **4 machines** (tuned W&W + Arctic + Desert + Ocean) with
-      theme+music+math; machine selector + persistence (React Context + localStorage).
-      **Absorbs the per-machine theme-token + audio-param wiring deferred from STAGE-007/
-      SPEC-041** (the runtime-application mechanism pays off here, where distinct themed
-      variants exist) — extend the `MachinePresentation` slice with `theme` + `audio` and
-      wire the UI/audio engine to read the active machine — plus the bet-level-stepping +
-      paytable-math-source deferrals. Food & Drink machines parked as a future fast-follow.
-      9-spec backlog (SPEC-044–052). See the STAGE-008 stage file.
+- [x] STAGE-008 (shipped 2026-07-08) — **Fun retune + more machines**: tuned the
+      default (Wild & Whimsical, **in place**) for fun to a **measured** target (RTP 93.8% /
+      hit 34.4% / jackpot ~1-in-25k, via a new machine-metrics simulator), **re-baselined**
+      the frozen-seed contract to the retuned numbers under DEC-016; shipped **4 machines**
+      (tuned W&W + Arctic + Desert + Ocean) with distinct theme+music+math; machine selector
+      + persistence (React Context + localStorage). Absorbed the STAGE-007 deferrals
+      (per-machine `theme`+`audio` presentation slice with runtime CSS-var theming + the
+      audio singleton reading the active machine; bet-level-stepping + paytable-math-source).
+      Food & Drink machines parked as a future fast-follow. **10 specs (SPEC-044–053), 0
+      defects, no engine-logic regressions (DEC-001 held throughout).** See the STAGE-008
+      stage file.
 - [ ] STAGE-009 (not yet framed) — **Player session stats**: client-side
       winnings-over-time, biggest win, cash-ins, spins; in-app panel.
 - [ ] STAGE-010 (not yet framed) — **Help / how-to-play**: onboarding surface that
@@ -184,7 +183,7 @@ is the most separable and could be deferred or split off if the wave runs long.
       private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
       apply ONLY when a remote sink is enabled.
 
-**Count:** 1 shipped / 1 active (STAGE-008) / 3 pending.
+**Count:** 2 shipped / 0 active / 3 pending (STAGE-009/010/011 not yet framed).
 
 ## Dependencies
 
