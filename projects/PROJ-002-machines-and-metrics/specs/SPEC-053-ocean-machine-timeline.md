@@ -35,5 +35,20 @@ Cycle prompts live in `prompts/SPEC-053-<cycle>.md`.
       just cost-audit` all exit 0 (374 tests / 63 files, incl. 6 new Ocean tests). `just simulate ocean
       --spins 50000` → RTP 94.10% / hit 37.70% (in band). `git diff main..HEAD -- src/engine/` EMPTY — no
       engine change. Local commit only (no push/PR per build-cycle scope).
-- [ ] **verify**
+- [x] **verify** — completed 2026-07-07 (Sonnet, cold): re-ran the FULL gate — `typecheck && lint && test &&
+      build && validate && cost-audit` all exit 0 (374 tests / 63 files, incl. Ocean's 6). Engine guard diff
+      (`git diff main..HEAD -- src/engine/`) EMPTY — DEC-001 intact; `--stat` vs main shows only `ocean.ts`
+      (new), `ocean.test.ts` (new), a 2-line `registry.ts` edit, and the two SPEC-053 docs — Wild & Whimsical/
+      Arctic/Desert and their tests untouched. Reconciled pins in `ocean.ts`: weights DEER10/FOX9/SQUIRREL7/
+      BEAR4/EAGLE3/OWL3/BISON3/WOLF3 (sum 42), paytable low[1,2,6]/mid[2,4,12]/high[3,9,32]/jackpot[6,30,150],
+      chord `['A2','E3','C#4','E4']` — all match the spec verbatim; `simulateMachine(OCEAN.math,{spins:20000,
+      seed:1})` reproduces rtp 0.94185 / hit 0.37165 exactly (bands [0.88,1.00]/[0.35,0.40]). **Four
+      adversarial guard-mutations, all bit as designed:** (a) reverted weights+paytable to Desert's →
+      hit-band test FAILED (`expected 0.27975 to be greater than or equal to 0.35`) AND distinct-test FAILED
+      on paytable; (b) `theme: {}` → distinct-test FAILED (`expected {} to not deeply equal {}`) AND
+      theme-contrast test FAILED (`expected undefined to be truthy`); (c) chord → Desert's `['G3','B3','D4',
+      'A4']` → distinct-test FAILED on the chord assertion; (d) removed `[OCEAN.id]: OCEAN` from
+      `registry.ts` → registration test FAILED (`getMachine('ocean')` fell back to the default machine).
+      All four reverted (`git checkout --`); full suite re-confirmed green (374/374); working tree clean
+      after each. `just simulate ocean --spins 50000` → RTP 94.10% / hit 37.70% (in band). **0 defects.**
 - [ ] **ship**
