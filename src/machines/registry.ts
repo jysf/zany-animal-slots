@@ -4,6 +4,7 @@
 import { WILD_AND_WHIMSICAL } from './wildAndWhimsical';
 import { ARCTIC } from './arctic';
 import { DESERT } from './desert';
+import { OCEAN } from './ocean';
 import { readActiveMachineId } from './activeMachineStorage';
 import type { Machine } from './types';
 
@@ -14,6 +15,7 @@ export const MACHINES: Record<string, Machine> = {
   [WILD_AND_WHIMSICAL.id]: WILD_AND_WHIMSICAL,
   [ARCTIC.id]: ARCTIC,
   [DESERT.id]: DESERT,
+  [OCEAN.id]: OCEAN,
 };
 
 /** Look up a machine by id; falls back to the default for an unknown id. */

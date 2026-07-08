@@ -28,6 +28,12 @@ Cycle prompts live in `prompts/SPEC-053-<cycle>.md`.
       already public since SPEC-051 (guard diff on `src/engine/` EMPTY). Complete drop-in code + DEC-019
       body + 6 failing tests (registration / vocabulary / RTP-band / strip-integrity /
       distinct-from-W&W-AND-Arctic-AND-Desert / theme-contrast). No new dep. **[M]** Build prompt written.
-- [ ] **build**
+- [x] **build** — completed 2026-07-07 (Sonnet): created `src/machines/ocean.ts` + `src/machines/
+      ocean.test.ts` verbatim from the spec Notes; registered `OCEAN` in `src/machines/registry.ts`
+      (after Desert). DEC-019 already existed from design and verified to match the Notes exactly — left
+      unchanged. Gate green: `just typecheck && just lint && just test && just build && just validate &&
+      just cost-audit` all exit 0 (374 tests / 63 files, incl. 6 new Ocean tests). `just simulate ocean
+      --spins 50000` → RTP 94.10% / hit 37.70% (in band). `git diff main..HEAD -- src/engine/` EMPTY — no
+      engine change. Local commit only (no push/PR per build-cycle scope).
 - [ ] **verify**
 - [ ] **ship**

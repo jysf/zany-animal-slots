@@ -77,7 +77,13 @@ cost:
       tokens_total: null   # orchestrator to fill tokens_total from the build sub-agent's subagent_tokens
       recorded_at: 2026-07-07
       note: >-
-        (to be filled at ship from the build sub-agent's metered subagent_tokens)
+        Transcribed src/machines/ocean.ts, the registry.ts registration, and src/machines/ocean.test.ts
+        verbatim from the spec's Notes for the Implementer — no re-tuning. DEC-019 already existed from
+        design and matched the Notes' body exactly; left unchanged. Gate green on first pass: typecheck,
+        lint, test (374 tests / 63 files, 6 new Ocean tests), build, validate, cost-audit all exit 0.
+        `just simulate ocean --spins 50000` measured RTP 94.10% / hit 37.70% (within the ~92–96% /
+        [0.35, 0.40] bands). `git diff main..HEAD -- src/engine/` confirmed EMPTY — no engine logic
+        touched. (tokens_total to be filled at ship from the build sub-agent's metered subagent_tokens)
     - cycle: verify
       interface: claude-code
       model: claude-opus-4-8
@@ -414,28 +420,35 @@ registration test FAILS; revert.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-053-ocean-machine`
+- **PR (if applicable):** none — local-only build cycle, no push/PR opened per orchestrator instructions.
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-019` — Ocean machine (if any)
+  - `DEC-019` — Ocean machine (already existed from design, verified matches the spec Notes verbatim;
+    left unchanged)
 - **Deviations from spec:**
-  - [list]
+  - none — `ocean.ts`, `registry.ts`, and `ocean.test.ts` transcribed verbatim from the Notes.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond what's already scoped out in the spec (fifth machine / Food & Drink, per-reel asymmetric
+    strips, new audio nodes, themed selector styling, STAGE-008 stage-ship — all explicitly out of scope).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing; the Notes for the Implementer contained complete drop-in code for `ocean.ts`, the
+   `registry.ts` edit, and the DEC-019 body, so this was a pure transcription task mirroring
+   `desert.ts`/`desert.test.ts`. Zero ambiguity.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001/013/015/017/018 covered everything needed; DEC-019 itself was pre-created during
+   design and matched the spec exactly, so there was nothing to reconcile.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing — the fourth iteration of this exact pattern (W&W → Arctic → Desert → Ocean) is about as
+   frictionless as a build cycle gets. The measure-then-pin discipline from design meant the RTP/hit-band
+   assertions passed on the first `just test` run with no back-and-forth.
 
 ---
 
