@@ -3,6 +3,7 @@
 // machine selectable + persisted; getActiveMachine() is the seam it plugs into.
 import { WILD_AND_WHIMSICAL } from './wildAndWhimsical';
 import { ARCTIC } from './arctic';
+import { DESERT } from './desert';
 import { readActiveMachineId } from './activeMachineStorage';
 import type { Machine } from './types';
 
@@ -12,6 +13,7 @@ export const DEFAULT_MACHINE_ID = WILD_AND_WHIMSICAL.id;
 export const MACHINES: Record<string, Machine> = {
   [WILD_AND_WHIMSICAL.id]: WILD_AND_WHIMSICAL,
   [ARCTIC.id]: ARCTIC,
+  [DESERT.id]: DESERT,
 };
 
 /** Look up a machine by id; falls back to the default for an unknown id. */
