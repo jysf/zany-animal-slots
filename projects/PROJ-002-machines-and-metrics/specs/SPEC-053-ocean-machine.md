@@ -74,28 +74,50 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from the build sub-agent's subagent_tokens
+      tokens_total: 94856   # metered from the build sub-agent's subagent_tokens
+      estimated_usd: 0.63
       recorded_at: 2026-07-07
       note: >-
-        (to be filled at ship from the build sub-agent's metered subagent_tokens)
+        Fresh Sonnet sub-agent (metered: 94856 tok, ~299s). Transcribed src/machines/ocean.ts, the
+        registry.ts registration, and src/machines/ocean.test.ts verbatim from the spec's Notes for the
+        Implementer — no re-tuning. DEC-019 already existed from design and matched the Notes' body
+        exactly; left unchanged. Gate green on first pass: typecheck, lint, test (374 tests / 63 files,
+        6 new Ocean tests), build, validate, cost-audit all exit 0. `just simulate ocean --spins 50000`
+        measured RTP 94.10% / hit 37.70% (within the ~92–96% / [0.35, 0.40] bands). `git diff
+        main..HEAD -- src/engine/` confirmed EMPTY — no engine logic touched. Local commit 6e6ba12 only —
+        no push/PR.
     - cycle: verify
       interface: claude-code
-      model: claude-opus-4-8
-      tokens_total: null   # orchestrator to fill at ship
+      model: claude-sonnet-4-6
+      tokens_total: 79873   # metered from the cold-verify sub-agent's subagent_tokens
+      estimated_usd: 0.53
       recorded_at: 2026-07-07
       note: >-
-        (to be filled at ship)
+        Cold verify — fresh Sonnet sub-agent (metered: 79873 tok, ~786s) re-ran the FULL gate
+        (typecheck/lint/test 374·63/build/validate/cost-audit all exit 0), reconciled the pins in
+        ocean.ts against the real engine (simulateMachine 20k/seed-1 reproduces rtp 0.94185 / hit 0.37165
+        exactly), confirmed the engine guard diff EMPTY and only ocean.ts/ocean.test.ts/registry.ts + the
+        two SPEC-053 docs changed, and ran FOUR adversarial guard-mutations that ALL bit (weights+paytable
+        →Desert's fails the hit-band + distinct tests; theme:{} fails distinct + contrast; chord→Desert's
+        fails distinct; drop OCEAN from registry fails registration), reverting each. Committed the verify
+        timeline entry (74a0df6, docs only). The Opus orchestrator then added a live preview check (dev
+        server port 5173): the selector lists all four machines, switching to Ocean applies its teal theme
+        live (--color-bg #041a26) + persists to localStorage, the 8-symbol vocabulary is unchanged, and an
+        unknown persisted id falls back to Wild & Whimsical; no console errors. Defect count 0.
     - cycle: ship
       interface: claude-code
       model: claude-opus-4-8
       tokens_total: null   # ship runs on the orchestrator's main Opus loop — not separately metered
       recorded_at: 2026-07-07
       note: >-
-        (to be filled at ship)
+        Filled build (metered $0.63) + verify (metered $0.53) cost, pushed the branch, opened + CI-polled +
+        squash-merged the PR (CLEAN, all 7 checks SUCCESS), and did the post-merge STAGE-008 rollup
+        (timeline ship [x], advance-cycle ship, backlog/Count, brag, archive). Ocean is the tenth and final
+        STAGE-008 spec — its ship triggers the STAGE-008 stage-ship (4-machine set complete).
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 174729
+    estimated_usd: 1.16
+    session_count: 4
 ---
 
 # SPEC-053: Ocean machine
@@ -414,28 +436,35 @@ registration test FAILS; revert.
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-053-ocean-machine`
+- **PR (if applicable):** none — local-only build cycle, no push/PR opened per orchestrator instructions.
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-019` — Ocean machine (if any)
+  - `DEC-019` — Ocean machine (already existed from design, verified matches the spec Notes verbatim;
+    left unchanged)
 - **Deviations from spec:**
-  - [list]
+  - none — `ocean.ts`, `registry.ts`, and `ocean.test.ts` transcribed verbatim from the Notes.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none beyond what's already scoped out in the spec (fifth machine / Food & Drink, per-reel asymmetric
+    strips, new audio nodes, themed selector styling, STAGE-008 stage-ship — all explicitly out of scope).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing; the Notes for the Implementer contained complete drop-in code for `ocean.ts`, the
+   `registry.ts` edit, and the DEC-019 body, so this was a pure transcription task mirroring
+   `desert.ts`/`desert.test.ts`. Zero ambiguity.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001/013/015/017/018 covered everything needed; DEC-019 itself was pre-created during
+   design and matched the spec exactly, so there was nothing to reconcile.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing — the fourth iteration of this exact pattern (W&W → Arctic → Desert → Ocean) is about as
+   frictionless as a build cycle gets. The measure-then-pin discipline from design meant the RTP/hit-band
+   assertions passed on the first `just test` run with no back-and-forth.
 
 ---
 
@@ -445,10 +474,29 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Very little. The measure-then-pin design sweep was again the real work, and Ocean's identity ("the
+   inverse of Desert's sparseness — highest hit-frequency, gentlest highs") gave the sweep a clear
+   direction: raise hit-frequency by concentrating low-symbol weight, then pull the paytable multipliers
+   down to claw RTP back into band. The one thing worth noting for future machines: concentrating weight
+   to lift hit-frequency drives RTP up *fast* (first candidates hit 112–128%), so the paytable is the
+   RTP knob and the weight-steepness is the hit-frequency knob — tuning them as two near-independent axes
+   converged in ~10 candidates instead of a blind sweep. The build itself was pure transcription (metered
+   Sonnet, 0 defects, gate green first pass).
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. Ocean is the fourth confirmation that the DEC-015/017/018 data-only machine mold holds with zero
+   engine change (guard diff EMPTY). One process note for the signals log: a prior interrupted run had
+   started an OFF-SCRIPT reinterpretation of SPEC-053 ("machine identities" — remapping each machine's
+   `symbolDisplay` to new emoji), which directly contradicts the stage's fixed 8-symbol vocabulary and
+   DEC-017/018's explicitly-rejected "new symbol set per machine" alternative. Grounding against the stage
+   file (source of truth) + the shipped DECs caught it; the stray WIP was preserved in `git stash`, not
+   shipped. Lesson: when resuming an interrupted spec, reconcile the branch's intent against the stage
+   backlog + DECs, not just against "is the gate green".
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — None for STAGE-008 — Ocean is the last spec; its ship completes the 4-machine set and triggers the
+   stage-ship. The only parked idea is the "per-machine symbol identities" concept from the interrupted
+   run (distinct reel faces per machine): it's a genuinely interesting *future-wave* direction but would
+   need its own DEC superseding the 8-symbol-vocabulary decision and a re-baseline of the Arctic/Desert
+   parity tests — a deliberate product call for a later stage, not a STAGE-008 item. Logged to the signals
+   file for the user to weigh.
