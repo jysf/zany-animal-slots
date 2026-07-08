@@ -24,3 +24,6 @@ Cycle prompts live in `prompts/SPEC-052-<cycle>.md`.
       `src/engine/` EMPTY). Complete drop-in code + DEC-018 body + 6 failing tests (registration /
       vocabulary / RTP-band / strip-integrity / distinct-from-W&W-AND-Arctic / theme-contrast). No new
       dep. **[M]** Build prompt written.
+- [~] **build** — in progress (Sonnet, branch `feat/spec-052-desert-machine`): transcribing the Notes'
+      drop-in code verbatim into `src/machines/desert.ts` + `desert.test.ts`, registering in
+      `registry.ts`, confirming DEC-018.

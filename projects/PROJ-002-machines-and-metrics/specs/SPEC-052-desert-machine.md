@@ -64,6 +64,19 @@ cost:
         dups. Pinned 20k/seed-1 = rtp 0.9556 / hit 0.2797 for the sanity test. Verified all 7 theme
         contrast pairs pass WCAG AA (text-on-bg 15.76:1; min 8.2:1). Distinct from W&W AND Arctic
         (flatter weights, stingy-low/juicy-high payouts, warm amber palette, warm major chord).
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      recorded_at: 2026-07-07
+      note: >-
+        Transcribed the spec Notes' drop-in code verbatim into src/machines/desert.ts (DESERT_WEIGHTS,
+        DESERT_PAYTABLE, DESERT_STRIP = buildStrip(...), DESERT_MATH, theme, audio), registered DESERT
+        in src/machines/registry.ts after ARCTIC, and wrote src/machines/desert.test.ts mirroring
+        arctic.test.ts's 6 tests plus the "distinct from Arctic" assertions. DEC-018 already existed
+        from design and matched the Notes verbatim — left unchanged. Gate: just typecheck && just lint
+        && just test (368 tests, incl. the 6 new Desert tests) && just build && just validate all
+        passed. git diff main..HEAD -- src/engine/ is EMPTY (no engine files touched).
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -356,28 +369,33 @@ FAILS; revert. (b) set `theme: {}` → the "distinct" + theme-contrast tests FAI
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-052-desert-machine`
+- **PR (if applicable):** none (local-only cycle, per orchestrator instructions)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - `DEC-018` — Desert machine (if built as designed)
+  - `DEC-018` — Desert machine (already existed from design, verified to match the spec Notes' body
+    verbatim; left as-is, not recreated)
 - **Deviations from spec:**
-  - [list]
+  - None. `src/machines/desert.ts`, `src/machines/registry.ts`, and `src/machines/desert.test.ts` were
+    transcribed verbatim from the spec's Notes / Failing Tests sections.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None beyond what the spec already scopes out (Ocean — SPEC-053).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing; the Notes section had complete drop-in code and the Failing Tests section fully specified
+   the 6 assertions, so this was pure transcription plus mirroring `arctic.test.ts`'s structure.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No gaps found. DEC-001/013/015/017/018 and the `engine-no-dom` constraint covered everything
+   touched.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing — the spec's measure-then-pin discipline plus the Arctic template made this a clean,
+   low-risk transcription build.
 
 ---
 
