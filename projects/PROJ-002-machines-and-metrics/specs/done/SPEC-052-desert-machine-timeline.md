@@ -47,3 +47,10 @@ Cycle prompts live in `prompts/SPEC-052-<cycle>.md`.
       `.device-stage` (`--color-bg #1c1206`, `--color-accent #e0a53a`, `--color-text #f7ecd8` — Desert's
       exact palette) and persisted to `localStorage['zany:active-machine']='desert'`; default (cleared
       storage) correctly falls back to Wild & Whimsical; no console errors. **Defect count: 0.**
+- [x] **ship** — shipped 2026-07-07 (Opus), **PR #62** squash-merged to main (CI CLEAN — all 7 checks
+      SUCCESS). Build was a metered Sonnet sub-agent (92298 tok); verify + ship on the Opus orchestrator
+      loop. Filled closeout cost (build metered $0.61, verify nominal $0.59, totals 182298 tok / $1.20 /
+      4 sessions) and merged. **Second themed machine live** — the selector is now a real three-option
+      switch (Wild & Whimsical / Arctic / Desert), each with its own theme + audio + tuned math. 0
+      defects; DEC-001 clean (engine diff EMPTY); no new dep. Ninth STAGE-008 spec shipped (9/10). Ocean
+      (SPEC-053) is the last one — after it, STAGE-008 completes the 4-machine set + gets its stage-ship.
