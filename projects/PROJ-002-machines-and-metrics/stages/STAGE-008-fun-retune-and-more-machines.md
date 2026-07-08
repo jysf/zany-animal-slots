@@ -189,14 +189,18 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
       of the wave (one option today; grows with SPEC-051/052/053). Preview-verified the selector
       renders + caught/fixed a mobile header-overflow regression (`flex-wrap` on `.cabinet__header`).
       DEC-001 clean (engine diff EMPTY); all 3 guard-mutations bit; 0 defects. No new dep, no new DEC. **[M]**
-- [ ] SPEC-051 (build) — **Arctic machine**: theme + music + math as data + a
-      DEC + a parity/metrics-sanity test; selectable via the registry. **[M]**
+- [x] SPEC-051 (shipped 2026-07-07, PR #61) — **Arctic machine**: the first themed machine — an icy
+      cool-blue theme + colder audio + its own tuned math (RTP ~91%, hit ~30%), all as pure data +
+      **DEC-017** + a 6-test parity/metrics-sanity suite; selectable via the registry (W&W stays
+      default). Makes the selector a real two-option switch — reels + paytable + theme + audio all
+      change together, preview-verified live. DEC-001 clean (engine-logic diff EMPTY); guard-mutation
+      bit; 0 defects. No new dep. **[M]**
 - [ ] (not yet written) SPEC-052 — **Desert machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. **[M]**
 - [ ] (not yet written) SPEC-053 — **Ocean machine**: theme + music + math as data + a
       DEC + a parity/metrics-sanity test. Completes the 4-machine set. **[M]**
 
-**Count:** 7 shipped / 0 active / 3 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
+**Count:** 8 shipped / 0 active / 2 pending — 2×L, 7×M, 1×S–M (10 specs total). **Above the
 3–8 typical range** — the "generate strips from weights" decision split the retune into a
 tested strip-builder (SPEC-045) + the retune that consumes it (SPEC-046), and the stage also
 absorbs three STAGE-007 deferrals and ships four machines. The three themed-machine specs

@@ -42,3 +42,13 @@ Cycle prompts live in `prompts/SPEC-051-<cycle>.md`.
       BOTH "Wild & Whimsical" and "Arctic"; selecting Arctic applies its theme live on `.device-stage`
       (`--color-bg #0a1622`, `--color-accent #3fc4ec`, `--color-text #eaf4fb` — Arctic's exact palette),
       icy dark-blue background rendered, no console errors. **Defect count: 0.**
+- [x] **ship** — shipped 2026-07-07 (Opus), **PR #61** squash-merged to main (CI CLEAN — all 7 checks
+      SUCCESS). Resumed an interrupted overnight run: the build was already gate-green on
+      `feat/spec-051-arctic-machine` (commit 2ffd444) but never verified/shipped, so this run reconciled
+      it against git/disk, rebased on fresh main, ran cold verify (full gate green, guard diff EMPTY,
+      adversarial mutation bit, preview confirmed the live two-machine switch), filled closeout cost
+      (build/verify nominal — prior sub-agent metering not retrievable; totals 180000 tok / $1.19 / 4
+      sessions), and merged. **First themed machine live** — the selector is now a real, visible/audible
+      two-option switch, so STAGE-008's variety thesis lands for the first time. 0 defects; DEC-001
+      clean (engine-logic diff EMPTY); no new dep. Eighth STAGE-008 spec shipped (8/10). Desert
+      (SPEC-052) + Ocean (SPEC-053) follow this exact mold.
