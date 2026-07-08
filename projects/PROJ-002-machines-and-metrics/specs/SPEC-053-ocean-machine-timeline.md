@@ -51,4 +51,13 @@ Cycle prompts live in `prompts/SPEC-053-<cycle>.md`.
       `registry.ts` → registration test FAILED (`getMachine('ocean')` fell back to the default machine).
       All four reverted (`git checkout --`); full suite re-confirmed green (374/374); working tree clean
       after each. `just simulate ocean --spins 50000` → RTP 94.10% / hit 37.70% (in band). **0 defects.**
-- [ ] **ship**
+      **Preview sanity (Opus orchestrator, dev server port 5173):** the header selector now lists all FOUR
+      machines (Wild & Whimsical / Arctic / Desert / Ocean); switching to Ocean applied its teal theme live
+      on `.device-stage` (`--color-bg #041a26`, `--color-accent #25c7c9`, `--color-text #e6f7fb` — Ocean's
+      exact palette) and persisted `localStorage['zany:active-machine']='ocean'`; the 8-animal symbol
+      vocabulary is unchanged (deer/bear/bison/squirrel/owl/fox/eagle/wolf — the shared `SYMBOL_DISPLAY`);
+      an unknown persisted id (`nonexistent-xyz`) correctly falls back to the default Wild & Whimsical (no
+      theme override); no console errors.
+- [~] **ship** — closeout committed (cost sessions filled: build 94856 tok / verify 79873 tok, both
+      metered Sonnet; ship on Opus loop; totals 174729 tok / $1.16 / 4 sessions), branch pushed, PR
+      opening + CI-poll next.
