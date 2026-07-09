@@ -72,7 +72,18 @@ cost:
       interface: claude-code
       model: claude-sonnet-4-6
       tokens_total: null   # filled at ship from the build sub-agent's subagent_tokens
-      recorded_at: null
+      recorded_at: 2026-07-08
+      note: >-
+        Transcribed the three drop-in files verbatim from the spec's Notes for the Implementer
+        (src/ui/stats/StatsProvider.tsx, StatsProvider.test.tsx, useSlotMachine.stats.test.tsx — 5 + 3
+        = 8 new tests) and made the two precise seam edits in src/ui/useSlotMachine.ts (useStats() call
+        + recordSpin at spin-resolve with recordSpin added to the spin useCallback deps; recordCashIn()
+        in reset() with recordCashIn added to the reset useCallback deps), plus nested <StatsProvider>
+        inside <MachineProvider> in src/main.tsx. Gate green: typecheck, lint, test (395/395 across 67
+        files, including the 8 new tests), build, validate, cost-audit all pass. Full existing suite
+        stayed green, including the provider-less useSlotMachine.test.tsx (35 tests unchanged) — the
+        useStats() no-op default holds. `git diff main -- src/engine/` and `git diff main -- src/stats/`
+        both empty. No new dependency. No deviations from spec.
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
@@ -541,28 +552,35 @@ describe('useSlotMachine × StatsProvider recording seam', () => {
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-055-reactive-stats-context`
+- **PR (if applicable):** none yet — local-only build cycle; PR opens at verify/ship.
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — rides DEC-020 + DEC-001/DEC-005
+  - none — rides DEC-020 + DEC-001/DEC-005, as designed
 - **Deviations from spec:**
-  - [list]
+  - none — all three files transcribed verbatim from the spec's Notes; the two `useSlotMachine.ts` seam
+    edits and the `main.tsx` nesting match the Notes exactly.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new — SPEC-056 (panel) and SPEC-057 (sparkline) are already queued in the stage backlog.
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing. The spec's drop-in code blocks and precise seam-edit instructions left no ambiguity;
+   this was a transcription task with a verification gate, not a design task.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001 (engine-no-dom), DEC-005 (localStorage-only), and DEC-020 (the stats model) covered
+   everything touched; the constraints.yaml `engine-no-dom` rule was already satisfied by construction
+   since `src/ui/stats/` only imports from `src/stats` and `react`.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing differently — a design cycle that ships complete drop-in files + exact edit locations is
+   the fastest possible build cycle. Ran the hard-constraint checks (`git diff main -- src/engine/`,
+   `git diff main -- src/stats/`) early, before the full gate, which caught nothing but confirmed
+   scope stayed clean throughout.
 
 ---
 

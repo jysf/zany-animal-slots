@@ -26,3 +26,11 @@ Cycle prompts live in `prompts/SPEC-055-<cycle>.md`.
       precise seam edits in the spec's Notes. Three adversarial guard-mutations specified for verify
       (drop the recordSpin seam call, drop recordCashIn in reset, revert hydration to emptyStats).
       **[M]** Build prompt written to `prompts/SPEC-055-build.md`.
+- [x] **build** — completed 2026-07-08 (Sonnet, claude-code, local-only, branch
+      `feat/spec-055-reactive-stats-context`): transcribed the three drop-in files verbatim
+      (`StatsProvider.tsx`, `StatsProvider.test.tsx`, `useSlotMachine.stats.test.tsx` — 8 new tests) and
+      made the two precise seam edits in `useSlotMachine.ts` (`useStats()` + `recordSpin` at
+      spin-resolve, `recordCashIn()` in `reset()`, both added to their `useCallback` deps), plus nested
+      `<StatsProvider>` inside `<MachineProvider>` in `main.tsx`. Full gate green: typecheck, lint, test
+      (395/395 across 67 files), build, validate, cost-audit. `git diff main -- src/engine/` and
+      `git diff main -- src/stats/` both empty. No new dependency, no new DEC, no deviations.

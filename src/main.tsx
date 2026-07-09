@@ -4,6 +4,7 @@ import './styles/tokens.css';
 import './styles/reduced-motion.css';
 import App from './ui/App';
 import { MachineProvider } from './ui/machine/MachineProvider';
+import { StatsProvider } from './ui/stats/StatsProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,7 +14,9 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <MachineProvider>
-      <App />
+      <StatsProvider>
+        <App />
+      </StatsProvider>
     </MachineProvider>
   </StrictMode>,
 );
