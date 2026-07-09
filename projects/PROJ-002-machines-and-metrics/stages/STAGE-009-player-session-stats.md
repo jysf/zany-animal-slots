@@ -133,9 +133,9 @@ reactive context seam → panel UI → visualization).
       `activeMachineStorage.ts` (guarded, never throws — DEC-005). No React, no wiring, no UI.
       Emits **DEC-020** (the session-stats model: cash-in semantics, metric definitions,
       aggregate scope, bounded-series + persistence schema). **[M]**
-- [ ] SPEC-055 (frame) — **Reactive stats context + recording seam** *(keystone)*: a
+- [~] SPEC-055 (build) — **Reactive stats context + recording seam** *(keystone)*: a
       `StatsProvider`/`useStats` (mirroring SPEC-049's `MachineProvider`) holding the reactive
-      stats, persisting on change, exposing `recordSpin(result)` + `recordCashIn()` +
+      stats, persisting on change, exposing `recordSpin(input, machineId)` + `recordCashIn()` +
       `resetStats()`; wire `recordSpin` into `useSlotMachine`'s spin-resolve and `recordCashIn`
       into the wallet Reset handler; wrap the app in the provider. Stats now accumulate and
       persist; still no display surface (proven by the existing suite + an EMPTY engine diff). **[M]**
