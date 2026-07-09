@@ -38,4 +38,6 @@ Cycle prompts live in `prompts/SPEC-054-<cycle>.md`.
       drop version check. `git diff main..HEAD -- src/engine/` empty; no `.only/.skip`. Defects: 0
       (the build's `bet:1`→`bet:10` deviation is a correct fix for a spec typo).
 
-- [ ] **ship** — in progress (PR + CI-poll + squash-merge).
+- [x] **ship** — shipped 2026-07-08 via PR #64 (squash-merged to main, commit `fed3e82`). CI CLEAN,
+      all 7 checks SUCCESS. Post-merge: cycle → ship, STAGE-009 backlog SPEC-054 [x], archived. First
+      spec of STAGE-009 (session stats). Next: SPEC-055 (reactive stats context + recording seam).
