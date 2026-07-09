@@ -24,8 +24,18 @@ Cycle prompts live in `prompts/SPEC-054-<cycle>.md`.
       adversarial guard-mutations specified for verify (biggestWin `>`→`>=`, drop FIFO trim, drop
       spins===0 guard, drop version check). No new dependency. **[M]** Build prompt written.
 
-- [ ] **build** — not started.
+- [x] **build** — completed 2026-07-08 (Sonnet, claude-code, local-only, branch
+      `feat/spec-054-session-stats-model`): both drop-in modules transcribed verbatim; 13 new tests
+      (7 sessionStats + 6 statsStorage), all passing; full gate (typecheck/lint/test/build/
+      validate/cost-audit) green; `git diff main..HEAD -- src/engine/` empty; no new dependency.
+      One deviation (FIFO test's `bet:1` swapped for a valid `BetLevel` — see Build Completion).
 
-- [ ] **verify** — not started.
+- [x] **verify** — completed 2026-07-08 (Opus, cold review): reconciled the build against git/disk
+      (both modules byte-for-byte the spec drop-ins; only `src/stats/**` + spec bookkeeping changed);
+      re-ran the FULL gate green (typecheck/lint/test 387/387/build/validate/cost-audit); ran all 4
+      adversarial guard-mutations — each broke EXACTLY its target test and reverted clean (13/13 stats
+      tests green after): biggestWin `>`→`>=`, drop `.slice(-SERIES_CAP)`, drop `spins===0` guard,
+      drop version check. `git diff main..HEAD -- src/engine/` empty; no `.only/.skip`. Defects: 0
+      (the build's `bet:1`→`bet:10` deviation is a correct fix for a spec typo).
 
-- [ ] **ship** — not started.
+- [ ] **ship** — in progress (PR + CI-poll + squash-merge).

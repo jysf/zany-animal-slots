@@ -7,7 +7,7 @@
 task:
   id: SPEC-054
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -57,10 +57,55 @@ cost:
         reducer semantics (e.g. two spins {bet:10,win:0} then {bet:10,win:50} ⇒ net 30, series
         [-10, 30], winRate 0.5, biggestWin {amount:50,...}). Authored DEC-020 (the model's semantics)
         as part of this design. Build is transcription of the drop-in code in ## Notes.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 98457    # from Agent result subagent_tokens
+      estimated_usd: 0.65    # 98457 tok × $6.6/M (Sonnet)
+      duration_minutes: 15.4 # 925216 ms
+      recorded_at: 2026-07-08
+      note: >-
+        Build transcribed both drop-in modules (sessionStats.ts, statsStorage.ts) verbatim from the
+        spec's Notes, wrote sessionStats.test.ts and statsStorage.test.ts to cover every case in the
+        Failing Tests section (7 + 6 tests, all passing), and confirmed the full gate: typecheck,
+        lint, test (387/387 passed across 65 files), build, validate, cost-audit all exit 0. One
+        deviation: the FIFO test's pinned bet:1 in the spec text doesn't typecheck against BetLevel
+        (10|25|50), so bet:10 was substituted with scaled expected values (see Build Completion).
+        git diff main..HEAD -- src/engine/ confirmed empty; no new dependency; touched only
+        src/stats/** plus this spec's own bookkeeping.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # nominal — see note
+      estimated_usd: 0.59    # nominal, 90000 tok × $6.6/M
+      recorded_at: 2026-07-08
+      note: >-
+        Cold re-verification on the main Opus loop (single-agent, not separately metered — nominal
+        90000-tok estimate per the run's cost convention). Reconciled the build against git/disk:
+        read both source modules (byte-for-byte the spec's drop-ins) and confirmed only src/stats/**
+        + spec bookkeeping changed. Re-ran the FULL gate green: typecheck, lint, test (387/387, 65
+        files), build, validate, cost-audit all exit 0. Ran all 4 adversarial guard-mutations from
+        the spec's Notes — each broke EXACTLY its target test and only that test, then reverted clean
+        (13/13 stats tests green after revert): (1) biggestWin > → >= broke "strictly larger"; (2)
+        dropping .slice(-SERIES_CAP) broke "FIFO-bounded"; (3) removing the spins===0 guard broke
+        "guarding spins === 0" (NaN); (4) removing the version check broke "version mismatch". Guards
+        have teeth. `git diff main..HEAD -- src/engine/` empty; no .only/.skip/xit in src/stats/.
+        Defect count: 0 (the build's one deviation — bet:1→bet:10 in the FIFO test — is a correct fix
+        for a spec typo, not a defect; the spec text should be treated as licensing valid BetLevels).
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-08
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled build + self-verify
+        against git/disk, filled build cost from the Agent result's subagent_tokens (98457) and verify
+        as a nominal main-loop estimate, PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 188457   # build 98457 + verify 90000 (nominal)
+    estimated_usd: 1.24    # build 0.65 + verify 0.59 (nominal)
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-054: Session-stats model and safe storage
@@ -164,9 +209,10 @@ Pinned values are deterministic arithmetic from the DEC-020 semantics (no simula
     `500` (arctic/jackpot) → updates to `{ amount: 500, machineId: 'arctic', tier: 'jackpot' }`; then
     a `500` again and a `0` loss → biggestWin unchanged (strict `>`).
   - `"series is FIFO-bounded to SERIES_CAP"` — fold `SERIES_CAP + 5` losing spins
-    (`{ totalWin: 0, bet: 1, tier: 'none' }`) from `emptyStats()`; assert `series.length === SERIES_CAP`
-    and `series[SERIES_CAP - 1] === -(SERIES_CAP + 5)` (latest cumulative net) and
-    `series[0] === -6` (oldest surviving point = after the 6th spin).
+    (`{ totalWin: 0, bet: 10, tier: 'none' }` — `bet` must be a valid `BetLevel`, so 10, not 1) from
+    `emptyStats()`; assert `series.length === SERIES_CAP` and
+    `series[SERIES_CAP - 1] === -10 * (SERIES_CAP + 5)` (latest cumulative net) and
+    `series[0] === -60` (oldest surviving point = after the 6th spin, at 10/spin).
   - `"deriveMetrics computes net and win rate, guarding spins === 0"` — `deriveMetrics(emptyStats())`
     ⇒ `{ spins: 0, winRate: 0, net: 0, biggestWin: null, cashIns: 0 }`; and for a record with
     `spins 2, winningSpins 1, totalWon 50, totalWagered 20` ⇒ `winRate 0.5, net 30`.
@@ -405,28 +451,42 @@ export function writeStats(stats: SessionStats): void {
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-054-session-stats-model`
+- **PR (if applicable):** none (local-only build session; PR deferred to a later cycle)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
   - `DEC-020` — The session-stats model (authored at design; no NEW dec expected at build)
 - **Deviations from spec:**
-  - [list]
+  - The `"series is FIFO-bounded to SERIES_CAP"` test in the spec's Failing Tests text pins
+    `{ totalWin: 0, bet: 1, tier: 'none' }`, but `SpinRecordInput['bet']` is `BetLevel` (`10 | 25 | 50`,
+    per `src/engine/balance.ts`) — a literal `bet: 1` fails `tsc --noEmit`. Wrote the test with
+    `bet: 10` (the smallest valid `BetLevel`) instead, scaling the expected pinned values by the same
+    factor (`series[0] === -60` instead of `-6`; `series[SERIES_CAP - 1] === -10 * totalSpins` instead
+    of `-totalSpins`). The test still exercises the same FIFO-cap + cumulative-net behavior; only the
+    magnitude of the pinned numbers changed. No other deviation — both drop-in modules
+    (`sessionStats.ts`, `statsStorage.ts`) were transcribed verbatim from the spec's Notes.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None beyond the stage backlog already queued (SPEC-055/056/057).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Only the `bet: 1` vs. `BetLevel` mismatch in the FIFO test description (see Deviations). The
+   two drop-in modules were unambiguous and pasted in cleanly; everything else in the Failing Tests
+   section matched the actual reducer behavior on the first try.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — Not really a missing constraint, but the Failing Tests prose could have said "use a valid
+   `BetLevel`" instead of the literal `bet: 1`, since `SpinRecordInput` already types `bet` via
+   `Pick<SpinResult, ...>`. A one-line note in `## Notes for the Implementer` would have saved the
+   two-minute typecheck failure and the need to record a deviation.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural — I'd typecheck the literal test inputs against the drop-in type signatures
+   mentally before writing the FIFO test, which would have caught the `bet: 1` issue before running
+   `tsc` the first time.
 
 ---
 
@@ -436,10 +496,16 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Typecheck pinned literal test inputs against the drop-in type signatures at design time. The
+   only friction all cycle was the FIFO test's `bet: 1` vs. `BetLevel` mismatch — a design typo the
+   build correctly fixed. When a spec pins numbers into a typed input, run them past the type first.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-020 held cleanly through build + verify (no new decisions needed). The pattern of
+   "pin values a valid domain type accepts" is worth carrying into SPEC-055–057 but doesn't warrant
+   a template change. DEC-001/DEC-005 both stayed clean (empty engine diff; guarded storage).
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec — SPEC-055 (reactive stats context + recording seam) is already framed and is the
+   natural next step, consuming these pure reducers exactly as designed. The versioned blob leaves
+   room for the deferred per-machine dimension (a possible PROJ-003 item) without a migration.
