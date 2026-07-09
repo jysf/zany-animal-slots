@@ -146,14 +146,16 @@ reactive context seam → panel UI → visualization).
       `deriveMetrics`, plus the "Clear stats" control calling `resetStats()`. Portrait-first,
       ≥44px targets, added to the touch-target guard. Preview-verified; 6 new tests, 401/401 green;
       4 adversarial guard-mutations proven. **[M]**
-- [ ] SPEC-057 (build) — **Winnings-over-time sparkline**: a dependency-free SVG sparkline
-      of the bounded balance/net series added to the panel, with an empty-state path and a
-      `prefers-reduced-motion`-respecting (non-animated) render. The "visible sense of
-      progress" visual. **[S–M]**
+- [x] SPEC-057 (shipped, PR #67) — **Winnings-over-time sparkline**: a dependency-free SVG sparkline
+      (`src/ui/stats/Sparkline.tsx`) of the bounded cumulative-net series (DEC-020) added to the panel —
+      polyline + dashed zero baseline (when crossing break-even) + up/down color by final net, an
+      empty-state below two points, and a static (non-animated) render. Pure presentation (engine +
+      stats-model diffs EMPTY); no new dep, no new DEC. Geometry pinned via a self-contained script;
+      preview-verified; 7 new tests, 408/408 green; 5 adversarial guard-mutations proven. **[S]**
 
-**Count:** 3 shipped (SPEC-054, SPEC-055, SPEC-056) / 0 active / 1 pending (SPEC-057) — 3×M, 1×S–M
-(4 specs total). Comfortably
-within the 3–8 typical range. **SPEC-057 (the sparkline) is the natural deferral boundary**
+**Count:** 4 shipped (SPEC-054, SPEC-055, SPEC-056, SPEC-057) / 0 active / 0 pending — 3×M, 1×S
+(4 specs total). **Backlog complete** — the stage is ready to ship. Comfortably
+within the 3–8 typical range. **SPEC-057 (the sparkline) was the natural deferral boundary**
 if the wave runs long: SPEC-054–056 already deliver the full numeric stats view and
 persistence; the sparkline is the separable polish (same deferral logic the brief applies
 to STAGE-011 and STAGE-008 applied to Ocean).

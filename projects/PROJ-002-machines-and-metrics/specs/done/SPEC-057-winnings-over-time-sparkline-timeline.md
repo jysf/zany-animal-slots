@@ -48,3 +48,9 @@ Cycle prompts live in `prompts/SPEC-057-<cycle>.md`.
       `sparkline__line--up` polyline (stroke = active Ocean theme `--color-coin`, fill none, 2px) with
       the dashed break-even baseline rendered; "Clear stats" degraded it to the empty state with all
       tiles zeroed. Zero defects.
+- [x] **ship** — shipped 2026-07-09 via PR #67 (squash-merged to main, commit `067e300`). CI CLEAN, all
+      7 checks SUCCESS (app checks, cost-capture audit ×—, supply-chain, Workers build). Post-merge:
+      cycle → ship, STAGE-009 backlog SPEC-057 [x] (4/4 shipped — backlog complete), archived. Nominal
+      build/verify cost (autonomous single-agent run: build 90000 / verify 90000 tok, ~$1.18 total /
+      4 sessions). The final brick of STAGE-009 — the winnings-over-time sparkline closes the
+      session-stats feature. The stage-ship (STAGE-009 → shipped) follows this closeout.
