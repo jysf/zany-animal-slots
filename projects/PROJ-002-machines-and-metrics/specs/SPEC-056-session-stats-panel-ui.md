@@ -66,8 +66,15 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # filled at ship from the build sub-agent's subagent_tokens
-      recorded_at: null
+      tokens_total: null
+      recorded_at: 2026-07-08
+      note: >-
+        Drop-ins from the spec's Notes for the Implementer transcribed verbatim: StatsSheet.tsx,
+        stats.css, StatsSheet.test.tsx (6 new tests), plus the Header.tsx import/mount and the
+        controls.touch-target.test.ts STATS_CSS fixture + .stats__trigger/.stats__clear entries.
+        Full gate green (typecheck, lint, test — 68 files / 401 tests all passing, build, validate,
+        cost-audit); `git diff main..HEAD -- src/engine/` empty. tokens_total left null — to be
+        filled at ship from the build sub-agent's subagent_tokens per AGENTS §4.
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
@@ -720,28 +727,36 @@ const statsCss = readFileSync(STATS_CSS, 'utf-8');
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-056-session-stats-panel`
+- **PR (if applicable):** none yet — local-only build cycle
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
-  - none expected — pure presentation over DEC-020, token-styled (DEC-010)
+  - none — pure presentation over DEC-020, token-styled (DEC-010)
 - **Deviations from spec:**
-  - [list]
+  - none — the three drop-in files and the `Header.tsx` / `controls.touch-target.test.ts` edits
+    were transcribed verbatim from the spec's Notes for the Implementer.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - none new — SPEC-057 (winnings-over-time sparkline into this same panel) is already backlogged.
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Nothing; the spec's Notes for the Implementer contained complete drop-in code for all three
+   new files plus the exact edits for `Header.tsx` and `controls.touch-target.test.ts`, so the build
+   was a transcription + gate-run exercise, not a design decision exercise.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — No. DEC-001 (engine untouched), DEC-010 (token-only CSS), and DEC-020 (metric definitions)
+   were all correctly scoped and sufficient; the touch-targets-44 and respect-reduced-motion
+   constraints were already baked into the drop-in CSS.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing procedurally different. The one thing worth double-checking mechanically (and which I
+   did check) is that the em dash character used in the empty-state biggest-win render and in the
+   pinned test assertion is the same U+2014 codepoint — a design/build session split makes that an
+   easy silent mismatch if the drop-in weren't transcribed byte-for-byte.
 
 ---
 

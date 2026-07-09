@@ -26,3 +26,10 @@ Cycle prompts live in `prompts/SPEC-056-<cycle>.md`.
       Notes. Four adversarial guard-mutations specified for verify (drop the net `+` sign, no-op the
       Clear onClick, render "0" instead of "—" empty-state, drop `.stats__trigger` min-width). **[M]**
       Build prompt written to `prompts/SPEC-056-build.md`.
+- [x] **build** — completed 2026-07-08 (Sonnet, claude-code, local-only, branch feat/spec-056-session-stats-panel):
+      transcribed the spec's drop-in `StatsSheet.tsx` + `stats.css` + `StatsSheet.test.tsx` (6 new
+      tests) verbatim, plus the `Header.tsx` mount (import + `<StatsSheet />` after `<PaytableSheet
+      />`) and the `controls.touch-target.test.ts` `STATS_CSS` fixture + `.stats__trigger` /
+      `.stats__clear` `CONTROLS` entries. Full gate green: typecheck, lint, test (68 files / 401
+      tests, all passing), build, validate, cost-audit. `git diff main..HEAD -- src/engine/` empty
+      (DEC-001). No deviations, no new DEC.
