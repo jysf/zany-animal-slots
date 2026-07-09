@@ -26,3 +26,25 @@ Cycle prompts live in `prompts/SPEC-057-<cycle>.md`.
       guard-mutations specified for verify (break y-inversion, loosen empty threshold, drop baseline
       guard, flip trend sign, break flat centering). **[S]** Build prompt written to
       `prompts/SPEC-057-build.md`.
+- [x] **build** — completed 2026-07-09 (Opus, single-agent autonomous run, branch
+      feat/spec-057-winnings-sparkline): transcribed the spec's drop-ins verbatim — `Sparkline.tsx`
+      (SVG: <2 points → empty state; else polyline + optional dashed zero baseline, up/down color by
+      final net, `.toFixed(2)` coords, `vector-effect: non-scaling-stroke`), `Sparkline.test.tsx`
+      (6 tests), the `stats.css` append (`.stats__sparkline-*` + `.sparkline*` token styles, no raw
+      hex), the `StatsSheet.tsx` import + `<Sparkline series={stats.series}/>` mount between the metric
+      grid and the Clear button, and 1 `StatsSheet.test.tsx` integration test. Full gate green:
+      typecheck, lint, test (69 files / 408 tests — +7 new all passing), build, validate, cost-audit.
+      Boundary diffs vs main EMPTY: `src/engine/` (DEC-001) and `src/stats/` (DEC-020 model frozen).
+      No new dependency, no new DEC, no raw hex. All coordinates matched their pins on first run; zero
+      deviations.
+- [x] **verify** — completed 2026-07-09 (Opus, cold review): full gate re-run green (typecheck, lint,
+      test 69 files / 408 tests, build, validate, cost-audit — all exit 0). All 5 spec'd adversarial
+      guard-mutations broke exactly their target test(s) then reverted clean: (1) drop the `1 -`
+      y-inversion → the 3 coordinate-asserting tests fail; (2) `MIN_POINTS` 2→1 → empty-state test fails
+      on the single-point case; (3) `crossesZero=false` → baseline test fails; (4) flip the trend sign →
+      up/down color test fails; (5) flat centering `VIEW_H/2`→`0` → flat test fails. `git diff main..HEAD`
+      on `src/engine/` and `src/stats/` EMPTY; no raw hex; no `.only`/`.skip`. Preview check: seeded a
+      13-point crossing series into `localStorage` `zany:stats`, reloaded, opened 📊 Stats — a rising
+      `sparkline__line--up` polyline (stroke = active Ocean theme `--color-coin`, fill none, 2px) with
+      the dashed break-even baseline rendered; "Clear stats" degraded it to the empty state with all
+      tiles zeroed. Zero defects.

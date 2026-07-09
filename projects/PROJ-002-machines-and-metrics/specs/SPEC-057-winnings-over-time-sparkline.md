@@ -64,10 +64,60 @@ cost:
         ⇒ flat "…,16.00" ×3; [5,-20] ⇒ trend down; <2 points ⇒ empty state. No new DEC (pure
         presentation over DEC-020's series; token-styled per DEC-010; static/non-animated render so
         respect-reduced-motion holds by construction; hand-rolled SVG so no new dep).
+    - cycle: build
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # NOMINAL — autonomous single-agent run, not separately metered (run cost convention)
+      estimated_usd: 0.59    # nominal: 90000 tok × the run's $6.6/M reference rate
+      recorded_at: 2026-07-09
+      note: >-
+        Autonomous overnight single-agent run — nominal estimate, not separately metered (no build
+        sub-agent to read subagent_tokens from; recorded per the run's cost convention).
+        Transcribed the spec's drop-ins verbatim: Sparkline.tsx + Sparkline.test.tsx (6 tests), the
+        stats.css append (.stats__sparkline-* + .sparkline* token styles, no raw hex), the StatsSheet.tsx
+        import + <Sparkline series={stats.series}/> mount between the metric grid and Clear button, and
+        1 StatsSheet.test.tsx integration test. Full gate green: typecheck, lint, test (69 files / 408
+        tests, +7 new all passing), build, validate, cost-audit. Boundary diffs vs main EMPTY:
+        src/engine/ (DEC-001) and src/stats/ (DEC-020 model frozen). No new dependency, no new DEC, no
+        raw hex. tokens_total left null — single-agent autonomous run, filled with a nominal estimate at
+        ship per the run's cost convention.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # NOMINAL — autonomous single-agent run, not separately metered (run cost convention)
+      estimated_usd: 0.59    # nominal: 90000 tok × the run's $6.6/M reference rate
+      recorded_at: 2026-07-09
+      note: >-
+        Autonomous overnight single-agent run — nominal estimate, not separately metered.
+        Cold adversarial review: full gate re-run green (typecheck, lint, test 69 files / 408 tests,
+        build, validate, cost-audit). All 5 spec'd guard-mutations broke exactly their target test(s)
+        then reverted clean: (1) dropping the `1 -` y-inversion failed the 3 coordinate-asserting tests
+        (points/baseline-y/omit-baseline-points); (2) MIN_POINTS 2→1 failed "shows an empty state below
+        two points" (the single-point [5] case); (3) crossesZero=false failed "draws a dashed zero
+        baseline"; (4) flipping the trend sign failed "colors an up trend and a down trend"; (5) flat
+        centering VIEW_H/2→0 failed "centers a flat series". `git diff main..HEAD` on src/engine/ and
+        src/stats/ EMPTY; no raw hex in stats.css; no .only/.skip in Sparkline.test.tsx. Preview check
+        (dev server via .claude/launch.json): seeded a 13-point crossing series into localStorage
+        zany:stats, reloaded, opened the 📊 Stats panel — the sparkline rendered a rising polyline
+        classed sparkline__line--up (stroke = the active Ocean theme's --color-coin token, fill none,
+        2px) with the dashed break-even baseline; clicked "Clear stats" and the panel degraded to the
+        empty state ("Spin a few times to see your winnings over time.") with all tiles zeroed. Server
+        stopped. Zero defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-09
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Filled build/verify with nominal
+        estimates (autonomous single-agent run — no sub-agents to meter), opened the PR, CI-polled to
+        CLEAN + all checks SUCCESS, squash-merged, post-merge rollup (cycle → ship, STAGE-009 backlog
+        SPEC-057 [x] 4/4, archive). Closes STAGE-009's backlog — the stage-ship follows.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 180000   # nominal build 90000 + verify 90000
+    estimated_usd: 1.18    # nominal build 0.59 + verify 0.59
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-057: Winnings-over-time sparkline
@@ -429,21 +479,29 @@ Adversarial guard-mutations for verify (each must fail exactly its target, then 
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:** none expected (pure presentation over DEC-020).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-057-winnings-sparkline`
+- **PR (if applicable):** opened at ship.
+- **All acceptance criteria met?** Yes — all 9 boxes. New `Sparkline` renders the pinned polyline for
+  ≥2 points, the empty state below 2, up/down color by final net, the dashed zero baseline iff the
+  series crosses break-even, flat series on the midline; mounted + visible in `StatsSheet`; static
+  (no animation); no new dep, no raw hex; engine + stats-model diffs EMPTY; full gate green (69 files /
+  408 tests).
+- **New decisions emitted:** none (pure presentation over DEC-020).
+- **Deviations from spec:** none — drop-ins transcribed verbatim; pinned coordinates matched on first run.
+- **Follow-up work identified:** none for this stage. (A future PROJ-003 spec could add point markers /
+  a hover read-out or a per-machine series once DEC-020's versioned `perMachine` dimension lands.)
 
 ### Build-phase reflection (3 questions, short answers)
 
 1. **What was unclear in the spec that slowed you down?**
-   —
+   — Nothing. Pinning the SVG geometry against a self-contained node script before writing the tests
+   made the build pure transcription; every pinned coordinate matched on the first `just test`.
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   —
+   — No. DEC-001/010/020 + respect-reduced-motion + no-new-dep covered the surface exactly; the
+   "measure-then-pin against the *geometry*" note correctly flagged there is no engine to measure here.
 3. **If you did this task again, what would you do differently?**
-   —
+   — Nothing material. Choosing a viewBox (100×32) whose projection yields clean round coordinates for
+   the seed series made the pinned strings readable — worth doing deliberately for any pinned-SVG spec.
 
 ---
 
@@ -452,8 +510,16 @@ Adversarial guard-mutations for verify (each must fail exactly its target, then 
 *Appended during the **ship** cycle.*
 
 1. **What would I do differently next time?**
-   —
+   — Little. The "measure-then-pin against the *geometry*" adaptation of the STAGE-008 discipline
+   generalized cleanly to a pure-SVG spec with no engine: pin the projection with a self-contained
+   node script, choose a viewBox that yields round coordinates for the seed data, and the build is
+   transcription with zero coordinate drift. Worth reusing verbatim for any future pinned-SVG spec.
 2. **Does any template, constraint, or decision need updating?**
-   —
+   — No new DEC or constraint. One small template-adjacent lesson (logged to signals): the
+   measure-then-pin convention should be framed as "pin the deterministic OUTPUT against real
+   computation" — engine RTP for math specs, SVG coordinates for viz specs — not specifically "the
+   engine", so it visibly covers non-engine deterministic surfaces like this sparkline.
 3. **Is there a follow-up spec I should write now before I forget?**
-   —
+   — Not for this stage (STAGE-009 closes with this spec). A future PROJ-003 candidate: point markers /
+   a hover read-out on the sparkline, and a per-machine series once DEC-020's versioned `perMachine`
+   dimension is added. Neither is needed now; the static aggregate trend is the framed deliverable.

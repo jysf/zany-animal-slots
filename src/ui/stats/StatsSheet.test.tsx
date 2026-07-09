@@ -85,6 +85,20 @@ describe('StatsSheet', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('renders the winnings-over-time sparkline when opened with a series', () => {
+    writeStats(SEEDED);
+    render(
+      <StatsProvider>
+        <StatsSheet />
+      </StatsProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /session stats/i }));
+    expect(screen.getByTestId('sparkline')).toBeTruthy();
+    expect(screen.getByTestId('sparkline-line').getAttribute('points')).toBe(
+      '2.00,18.00 50.00,30.00 98.00,2.00',
+    );
+  });
+
   it('closes on backdrop click and on Escape', () => {
     render(
       <StatsProvider>
