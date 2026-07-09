@@ -146,7 +146,7 @@ reactive context seam → panel UI → visualization).
       `deriveMetrics`, plus the "Clear stats" control calling `resetStats()`. Portrait-first,
       ≥44px targets, added to the touch-target guard. Preview-verified; 6 new tests, 401/401 green;
       4 adversarial guard-mutations proven. **[M]**
-- [ ] SPEC-057 (frame) — **Winnings-over-time sparkline**: a dependency-free SVG sparkline
+- [ ] SPEC-057 (build) — **Winnings-over-time sparkline**: a dependency-free SVG sparkline
       of the bounded balance/net series added to the panel, with an empty-state path and a
       `prefers-reduced-motion`-respecting (non-animated) render. The "visible sense of
       progress" visual. **[S–M]**
