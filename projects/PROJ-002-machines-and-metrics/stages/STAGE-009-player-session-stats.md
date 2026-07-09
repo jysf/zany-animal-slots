@@ -140,7 +140,7 @@ reactive context seam → panel UI → visualization).
       into the wallet Reset handler; nested the provider inside `MachineProvider` in `main.tsx`. Stats
       now accumulate and persist across reloads with no display surface (proven by the existing suite +
       an EMPTY engine diff; 8 new tests, 395/395 green; 3 adversarial guard-mutations proven). **[M]**
-- [ ] SPEC-056 (frame) — **Session-stats panel UI**: an in-app panel/sheet (mirroring
+- [~] SPEC-056 (build) — **Session-stats panel UI**: an in-app panel/sheet (mirroring
       `PaytableSheet`) opened from a cabinet-header trigger, rendering the numeric metric
       tiles (spins, biggest win, cash-ins, win rate, net winnings) from `useStats()` +
       `deriveMetrics`, plus the "Clear stats" control calling `resetStats()`. Portrait-first,
