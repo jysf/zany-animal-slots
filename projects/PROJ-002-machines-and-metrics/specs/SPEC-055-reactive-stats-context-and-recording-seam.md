@@ -71,7 +71,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # filled at ship from the build sub-agent's subagent_tokens
+      tokens_total: 101453   # from the build Agent result's subagent_tokens
+      estimated_usd: 0.67    # 101453 tok × $6.6/M (Sonnet)
+      duration_minutes: 3.2  # 189588 ms
       recorded_at: 2026-07-08
       note: >-
         Transcribed the three drop-in files verbatim from the spec's Notes for the Implementer
@@ -87,7 +89,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # filled at ship from the verify sub-agent's subagent_tokens
+      tokens_total: 97543    # from the verify Agent result's subagent_tokens
+      estimated_usd: 0.64    # 97543 tok × $6.6/M (Sonnet)
+      duration_minutes: 3.4  # 203583 ms
       recorded_at: 2026-07-08
       note: >-
         Cold review on feat/spec-055-reactive-stats-context. Full gate re-run green: typecheck, lint,
@@ -102,10 +106,23 @@ cost:
         once per resolve (inside the single setTimeout, not a loop), recordSpin/recordCashIn are stable
         useCallback([]) refs (no stale-closure risk), and the useStats() no-op default holds (the
         provider-less 35-test useSlotMachine.test.tsx passes unchanged). Defect count: 0.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-08
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled the build + verify
+        sub-agent work against git/disk (branch feat/spec-055-reactive-stats-context: 2 commits;
+        engine + stats diffs empty; seam edits match the spec), filled build/verify cost from each
+        Agent result's subagent_tokens (build 101453, verify 97543), opened the PR, CI-polled to CLEAN
+        + all checks SUCCESS, squash-merged, and did the post-merge rollup (cycle → ship, STAGE-009
+        backlog SPEC-055 [x], archive).
   totals:
-    tokens_total: null
-    estimated_usd: null
-    session_count: 1
+    tokens_total: 198996   # build 101453 + verify 97543
+    estimated_usd: 1.31    # build 0.67 + verify 0.64
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-055: Reactive stats context and recording seam
@@ -603,10 +620,24 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Very little. The SPEC-049 `MachineProvider` precedent made this a near-mechanical port — the
+   no-op-default Context trick meant zero churn on the ~35 provider-less `useSlotMachine` tests, and
+   measuring the pinned seeds against the real engine at design (seed 276 ⇒ totalWin **40**, not the
+   30 an earlier fixture comment might have implied) meant the build's integration tests passed on the
+   first run. The one habit worth keeping: measure the recorded outcome, don't infer it from a balance
+   delta — `balance = before − bet + win`, so the win is not the delta.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. DEC-001 stayed clean (empty `src/engine/` diff through build **and** verify), DEC-005 held
+   (localStorage-only, guarded), and DEC-020's model needed no amendment — the reactive seam consumes
+   it exactly as SPEC-054 shaped it. The "a reactive-seam consumer needs no new DEC" pattern (first
+   set by SPEC-050 over SPEC-049) held again; worth remembering for SPEC-056/057 but not a template
+   change. One process note logged to feedback: a `system-reminder` announcing that a source file was
+   "intentionally modified" can read to a cold-review sub-agent as a prompt-injection to preserve a
+   guard-mutation — the verify agent correctly ignored it and reconciled via `git diff HEAD` instead.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-056 (session-stats panel UI) is the natural next step and is already framed in
+   the stage backlog — it reads `useStats()` + `deriveMetrics()` and adds the header trigger + tiles +
+   the Clear-stats control (`resetStats()`), which this spec deliberately left unwired to a surface.
+   SPEC-057 (sparkline) then reads the bounded `series` this seam now fills. Nothing else surfaced.
