@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useStats } from './StatsProvider';
 import { deriveMetrics } from '../../stats/sessionStats';
 import { getMachine } from '../../machines/registry';
+import { Sparkline } from './Sparkline';
 import './stats.css';
 
 /** Signed net winnings for display: 0 → "0", positive → "+N", negative keeps its "-". */
@@ -125,6 +126,11 @@ export function StatsSheet() {
                   </>
                 )}
               </div>
+            </div>
+
+            <div className="stats__sparkline-wrap">
+              <span className="stats__sparkline-label">Winnings over time</span>
+              <Sparkline series={stats.series} />
             </div>
 
             <button className="stats__clear" onClick={resetStats}>

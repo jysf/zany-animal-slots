@@ -192,3 +192,61 @@
   text-align: center;
   line-height: var(--line-height-base);
 }
+
+/* ─── Winnings-over-time sparkline (SPEC-057) ────────────────────────────────── */
+
+.stats__sparkline-wrap {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stats__sparkline-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+/* Static, non-animated render — respects prefers-reduced-motion by construction (SPEC-057). */
+.sparkline {
+  display: block;
+  width: 100%;
+  height: var(--space-8); /* 64px */
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.sparkline__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkline__line--up {
+  stroke: var(--color-coin);
+}
+
+.sparkline__line--down {
+  stroke: var(--color-accent);
+}
+
+.sparkline__baseline {
+  stroke: var(--color-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  opacity: 0.6;
+}
+
+.sparkline__empty {
+  padding: var(--space-5) var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: var(--line-height-base);
+}

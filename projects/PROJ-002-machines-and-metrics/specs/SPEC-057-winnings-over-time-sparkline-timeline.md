@@ -26,3 +26,14 @@ Cycle prompts live in `prompts/SPEC-057-<cycle>.md`.
       guard-mutations specified for verify (break y-inversion, loosen empty threshold, drop baseline
       guard, flip trend sign, break flat centering). **[S]** Build prompt written to
       `prompts/SPEC-057-build.md`.
+- [x] **build** — completed 2026-07-09 (Opus, single-agent autonomous run, branch
+      feat/spec-057-winnings-sparkline): transcribed the spec's drop-ins verbatim — `Sparkline.tsx`
+      (SVG: <2 points → empty state; else polyline + optional dashed zero baseline, up/down color by
+      final net, `.toFixed(2)` coords, `vector-effect: non-scaling-stroke`), `Sparkline.test.tsx`
+      (6 tests), the `stats.css` append (`.stats__sparkline-*` + `.sparkline*` token styles, no raw
+      hex), the `StatsSheet.tsx` import + `<Sparkline series={stats.series}/>` mount between the metric
+      grid and the Clear button, and 1 `StatsSheet.test.tsx` integration test. Full gate green:
+      typecheck, lint, test (69 files / 408 tests — +7 new all passing), build, validate, cost-audit.
+      Boundary diffs vs main EMPTY: `src/engine/` (DEC-001) and `src/stats/` (DEC-020 model frozen).
+      No new dependency, no new DEC, no raw hex. All coordinates matched their pins on first run; zero
+      deviations.
