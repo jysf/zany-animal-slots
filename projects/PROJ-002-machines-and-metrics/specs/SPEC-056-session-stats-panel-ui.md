@@ -66,7 +66,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 111976   # from the build Agent result's subagent_tokens
+      estimated_usd: 0.74    # 111976 tok × $6.6/M (Sonnet)
+      duration_minutes: 14.1 # 848868 ms
       recorded_at: 2026-07-08
       note: >-
         Drop-ins from the spec's Notes for the Implementer transcribed verbatim: StatsSheet.tsx,
@@ -78,7 +80,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # filled at ship from the verify sub-agent's subagent_tokens
+      tokens_total: 102228   # from the verify Agent result's subagent_tokens
+      estimated_usd: 0.67    # 102228 tok × $6.6/M (Sonnet)
+      duration_minutes: 5.3  # 315401 ms
       recorded_at: 2026-07-08
       note: >-
         Cold adversarial review: full gate re-run green (68 files / 401 tests). All 4 spec'd
@@ -91,10 +95,23 @@ cost:
         codepoints match, App.test passes unwrapped via the no-op context default. Preview check:
         dev server started, trigger opened the dialog with all five tiles + Clear stats button,
         screenshot taken, closed cleanly. Zero defects found.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-08
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled the build + verify
+        sub-agent work against git/disk (branch feat/spec-056-session-stats-panel; engine/stats/
+        StatsProvider diffs empty; Header mounts <StatsSheet/>; no raw hex), filled build/verify cost
+        from each Agent result's subagent_tokens (build 111976, verify 102228), opened the PR,
+        CI-polled to CLEAN + all checks SUCCESS, squash-merged, post-merge rollup (cycle → ship,
+        STAGE-009 backlog SPEC-056 [x], archive).
   totals:
-    tokens_total: null
-    estimated_usd: null
-    session_count: 1
+    tokens_total: 214204   # build 111976 + verify 102228
+    estimated_usd: 1.41    # build 0.74 + verify 0.67
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-056: Session-stats panel UI
@@ -777,10 +794,23 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Little. Porting `PaytableSheet` 1:1 (sheet/backdrop/Esc/focus idiom + the token CSS vocabulary,
+   `paytable__` → `stats__`) made this a near-mechanical build, and pinning the *displayed* strings
+   against the real `deriveMetrics()` at design (SEEDED ⇒ "40%"/"+30"/"40", empty ⇒ "0%"/"0"/"—") meant
+   the tiles passed first run. The `data-testid` per tile was the right call — it made the assertions
+   exact and the guard-mutations surgical. Worth carrying: give each rendered value a stable testid so
+   verify can mutate one branch and see exactly one test fail.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No. Pure presentation — no new DEC; DEC-001 held (empty engine diff through build and verify),
+   DEC-010 held (no raw hex; token vars only), and the touch-target guard extended cleanly to the new
+   trigger/close/clear. The pre-emptive note in the verify dispatch — that harness "file modified"
+   system-reminders are expected and not an injection — worked: the cold reviewer did not re-raise the
+   SPEC-055 false alarm. That mitigation is already logged as a feedback signal; no template change
+   needed beyond eventually folding it into the standard verify prompt.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new spec. SPEC-057 (winnings-over-time sparkline) is the last STAGE-009 backlog item and is
+   already framed — it renders the bounded `stats.series` this panel already holds into a
+   dependency-free SVG sparkline, with an empty-state path and a `prefers-reduced-motion` (non-animated)
+   render, dropped into this same sheet. Shipping it closes the stage.
