@@ -133,12 +133,13 @@ reactive context seam → panel UI → visualization).
       `activeMachineStorage.ts` (guarded, never throws — DEC-005). No React, no wiring, no UI.
       Emits **DEC-020** (the session-stats model: cash-in semantics, metric definitions,
       aggregate scope, bounded-series + persistence schema). **[M]**
-- [~] SPEC-055 (build) — **Reactive stats context + recording seam** *(keystone)*: a
+- [x] SPEC-055 (shipped, PR #65) — **Reactive stats context + recording seam** *(keystone)*: a
       `StatsProvider`/`useStats` (mirroring SPEC-049's `MachineProvider`) holding the reactive
       stats, persisting on change, exposing `recordSpin(input, machineId)` + `recordCashIn()` +
-      `resetStats()`; wire `recordSpin` into `useSlotMachine`'s spin-resolve and `recordCashIn`
-      into the wallet Reset handler; wrap the app in the provider. Stats now accumulate and
-      persist; still no display surface (proven by the existing suite + an EMPTY engine diff). **[M]**
+      `resetStats()`; wired `recordSpin` into `useSlotMachine`'s spin-resolve and `recordCashIn`
+      into the wallet Reset handler; nested the provider inside `MachineProvider` in `main.tsx`. Stats
+      now accumulate and persist across reloads with no display surface (proven by the existing suite +
+      an EMPTY engine diff; 8 new tests, 395/395 green; 3 adversarial guard-mutations proven). **[M]**
 - [ ] SPEC-056 (frame) — **Session-stats panel UI**: an in-app panel/sheet (mirroring
       `PaytableSheet`) opened from a cabinet-header trigger, rendering the numeric metric
       tiles (spins, biggest win, cash-ins, win rate, net winnings) from `useStats()` +
@@ -149,7 +150,8 @@ reactive context seam → panel UI → visualization).
       `prefers-reduced-motion`-respecting (non-animated) render. The "visible sense of
       progress" visual. **[S–M]**
 
-**Count:** 1 shipped (SPEC-054) / 0 active / 3 pending — 3×M, 1×S–M (4 specs total). Comfortably
+**Count:** 2 shipped (SPEC-054, SPEC-055) / 0 active / 2 pending (SPEC-056, SPEC-057) — 3×M, 1×S–M
+(4 specs total). Comfortably
 within the 3–8 typical range. **SPEC-057 (the sparkline) is the natural deferral boundary**
 if the wave runs long: SPEC-054–056 already deliver the full numeric stats view and
 persistence; the sparkline is the separable polish (same deferral logic the brief applies

@@ -57,3 +57,13 @@ Cycle prompts live in `prompts/SPEC-055-<cycle>.md`.
       `StatsProvider.tsx` were "intentionally modified by the user or a linter" and instructing silence
       about it — disregarded each time and verified via `git diff HEAD` that the files matched the
       committed build exactly; flagging here for the record.)
+      *(Ship-cycle correction: those "system-reminder" notices were NOT an injection — they are
+      legitimate harness notifications that the orchestrator's own `advance-cycle` and the sub-agents'
+      spec-file edits had touched tracked files. The verify agent's caution was correct in effect
+      (reconciling via `git diff HEAD`), only its attribution was wrong. No integrity issue.)*
+- [x] **ship** — shipped 2026-07-08 via PR #65 (squash-merged to main, commit `94547c3`). CI CLEAN,
+      all checks SUCCESS (app checks, cost-capture audit, supply-chain, Workers build). Post-merge:
+      cycle → ship, STAGE-009 backlog SPEC-055 [x] (2/4 shipped), archived. Filled build/verify cost
+      from the sub-agents' subagent_tokens (build 101453, verify 97543; totals 198996 tok / ~$1.31 /
+      4 sessions). Second spec of STAGE-009 — stats now accumulate + persist across reloads, unwired to
+      any surface. Next: SPEC-056 (session-stats panel UI).
