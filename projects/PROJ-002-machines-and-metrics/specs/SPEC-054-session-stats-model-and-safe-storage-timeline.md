@@ -24,7 +24,11 @@ Cycle prompts live in `prompts/SPEC-054-<cycle>.md`.
       adversarial guard-mutations specified for verify (biggestWin `>`→`>=`, drop FIFO trim, drop
       spins===0 guard, drop version check). No new dependency. **[M]** Build prompt written.
 
-- [ ] **build** — not started.
+- [x] **build** — completed 2026-07-08 (Sonnet, claude-code, local-only, branch
+      `feat/spec-054-session-stats-model`): both drop-in modules transcribed verbatim; 13 new tests
+      (7 sessionStats + 6 statsStorage), all passing; full gate (typecheck/lint/test/build/
+      validate/cost-audit) green; `git diff main..HEAD -- src/engine/` empty; no new dependency.
+      One deviation (FIFO test's `bet:1` swapped for a valid `BetLevel` — see Build Completion).
 
 - [ ] **verify** — not started.
 

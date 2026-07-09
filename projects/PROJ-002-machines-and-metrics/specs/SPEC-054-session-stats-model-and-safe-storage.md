@@ -57,6 +57,20 @@ cost:
         reducer semantics (e.g. two spins {bet:10,win:0} then {bet:10,win:50} ⇒ net 30, series
         [-10, 30], winRate 0.5, biggestWin {amount:50,...}). Authored DEC-020 (the model's semantics)
         as part of this design. Build is transcription of the drop-in code in ## Notes.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      recorded_at: 2026-07-08
+      note: >-
+        Build transcribed both drop-in modules (sessionStats.ts, statsStorage.ts) verbatim from the
+        spec's Notes, wrote sessionStats.test.ts and statsStorage.test.ts to cover every case in the
+        Failing Tests section (7 + 6 tests, all passing), and confirmed the full gate: typecheck,
+        lint, test (387/387 passed across 65 files), build, validate, cost-audit all exit 0. One
+        deviation: the FIFO test's pinned bet:1 in the spec text doesn't typecheck against BetLevel
+        (10|25|50), so bet:10 was substituted with scaled expected values (see Build Completion).
+        git diff main..HEAD -- src/engine/ confirmed empty; no new dependency; touched only
+        src/stats/** plus this spec's own bookkeeping.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -405,28 +419,42 @@ export function writeStats(stats: SessionStats): void {
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?** yes/no
+- **Branch:** `feat/spec-054-session-stats-model`
+- **PR (if applicable):** none (local-only build session; PR deferred to a later cycle)
+- **All acceptance criteria met?** yes
 - **New decisions emitted:**
   - `DEC-020` — The session-stats model (authored at design; no NEW dec expected at build)
 - **Deviations from spec:**
-  - [list]
+  - The `"series is FIFO-bounded to SERIES_CAP"` test in the spec's Failing Tests text pins
+    `{ totalWin: 0, bet: 1, tier: 'none' }`, but `SpinRecordInput['bet']` is `BetLevel` (`10 | 25 | 50`,
+    per `src/engine/balance.ts`) — a literal `bet: 1` fails `tsc --noEmit`. Wrote the test with
+    `bet: 10` (the smallest valid `BetLevel`) instead, scaling the expected pinned values by the same
+    factor (`series[0] === -60` instead of `-6`; `series[SERIES_CAP - 1] === -10 * totalSpins` instead
+    of `-totalSpins`). The test still exercises the same FIFO-cap + cumulative-net behavior; only the
+    magnitude of the pinned numbers changed. No other deviation — both drop-in modules
+    (`sessionStats.ts`, `statsStorage.ts`) were transcribed verbatim from the spec's Notes.
 - **Follow-up work identified:**
-  - [any new specs for the stage's backlog]
+  - None beyond the stage backlog already queued (SPEC-055/056/057).
 
 ### Build-phase reflection (3 questions, short answers)
 
 Process-focused: how did the build go? What friction did the spec create?
 
 1. **What was unclear in the spec that slowed you down?**
-   — <answer>
+   — Only the `bet: 1` vs. `BetLevel` mismatch in the FIFO test description (see Deviations). The
+   two drop-in modules were unambiguous and pasted in cleanly; everything else in the Failing Tests
+   section matched the actual reducer behavior on the first try.
 
 2. **Was there a constraint or decision that should have been listed but wasn't?**
-   — <answer>
+   — Not really a missing constraint, but the Failing Tests prose could have said "use a valid
+   `BetLevel`" instead of the literal `bet: 1`, since `SpinRecordInput` already types `bet` via
+   `Pick<SpinResult, ...>`. A one-line note in `## Notes for the Implementer` would have saved the
+   two-minute typecheck failure and the need to record a deviation.
 
 3. **If you did this task again, what would you do differently?**
-   — <answer>
+   — Nothing structural — I'd typecheck the literal test inputs against the drop-in type signatures
+   mentally before writing the FIFO test, which would have caught the `bet: 1` issue before running
+   `tsc` the first time.
 
 ---
 
