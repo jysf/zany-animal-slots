@@ -125,7 +125,7 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 Ordered infrastructure-before-UI, matching the SPEC-044→053 pattern (pure/tested model →
 reactive context seam → panel UI → visualization).
 
-- [ ] SPEC-054 (frame) — **Session-stats model + safe storage** *(infra)*: a pure
+- [ ] SPEC-054 (build) — **Session-stats model + safe storage** *(infra)*: a pure
       `sessionStats` module — the stats record type (spins, wins, totalWagered, totalWon,
       biggestWin, cashIns, and a **bounded** winnings-over-time series), a pure `recordSpin`/
       `recordCashIn`/`emptyStats` reducer set, and `deriveMetrics` (win rate, net) — plus
@@ -149,7 +149,7 @@ reactive context seam → panel UI → visualization).
       `prefers-reduced-motion`-respecting (non-animated) render. The "visible sense of
       progress" visual. **[S–M]**
 
-**Count:** 0 shipped / 0 active / 4 pending — 3×M, 1×S–M (4 specs total). Comfortably
+**Count:** 0 shipped / 1 active (SPEC-054, build) / 3 pending — 3×M, 1×S–M (4 specs total). Comfortably
 within the 3–8 typical range. **SPEC-057 (the sparkline) is the natural deferral boundary**
 if the wave runs long: SPEC-054–056 already deliver the full numeric stats view and
 persistence; the sparkline is the separable polish (same deferral logic the brief applies
