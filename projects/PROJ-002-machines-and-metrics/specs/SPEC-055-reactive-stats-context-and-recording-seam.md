@@ -88,7 +88,20 @@ cost:
       interface: claude-code
       model: claude-sonnet-4-6
       tokens_total: null   # filled at ship from the verify sub-agent's subagent_tokens
-      recorded_at: null
+      recorded_at: 2026-07-08
+      note: >-
+        Cold review on feat/spec-055-reactive-stats-context. Full gate re-run green: typecheck, lint,
+        test (395/395 across 67 files), build, validate, cost-audit. Boundary checks confirmed empty:
+        `git diff main..HEAD -- src/engine/` (DEC-001), `git diff main..HEAD -- src/stats/` (SPEC-054
+        frozen), `git diff main..HEAD -- package.json` (no new dep); no .only/.skip/xit in the new test
+        files. Ran all three adversarial guard-mutations from the spec's Notes: deleting the recordSpin
+        seam call failed the useSlotMachine.stats.test.tsx tests (spins stayed 0); deleting recordCashIn
+        in reset() failed only the cash-in test; reverting StatsProvider's init to
+        useState(emptyStats()) failed only the hydration test. Each reverted clean (git diff HEAD empty)
+        and the full suite re-verified green afterward. Independently confirmed recordSpin fires exactly
+        once per resolve (inside the single setTimeout, not a loop), recordSpin/recordCashIn are stable
+        useCallback([]) refs (no stale-closure risk), and the useStats() no-op default holds (the
+        provider-less 35-test useSlotMachine.test.tsx passes unchanged). Defect count: 0.
   totals:
     tokens_total: null
     estimated_usd: null
