@@ -140,17 +140,18 @@ reactive context seam → panel UI → visualization).
       into the wallet Reset handler; nested the provider inside `MachineProvider` in `main.tsx`. Stats
       now accumulate and persist across reloads with no display surface (proven by the existing suite +
       an EMPTY engine diff; 8 new tests, 395/395 green; 3 adversarial guard-mutations proven). **[M]**
-- [~] SPEC-056 (build) — **Session-stats panel UI**: an in-app panel/sheet (mirroring
+- [x] SPEC-056 (shipped, PR #66) — **Session-stats panel UI**: an in-app panel/sheet (mirroring
       `PaytableSheet`) opened from a cabinet-header trigger, rendering the numeric metric
       tiles (spins, biggest win, cash-ins, win rate, net winnings) from `useStats()` +
       `deriveMetrics`, plus the "Clear stats" control calling `resetStats()`. Portrait-first,
-      ≥44px targets, added to the touch-target guard. **[M]**
+      ≥44px targets, added to the touch-target guard. Preview-verified; 6 new tests, 401/401 green;
+      4 adversarial guard-mutations proven. **[M]**
 - [ ] SPEC-057 (frame) — **Winnings-over-time sparkline**: a dependency-free SVG sparkline
       of the bounded balance/net series added to the panel, with an empty-state path and a
       `prefers-reduced-motion`-respecting (non-animated) render. The "visible sense of
       progress" visual. **[S–M]**
 
-**Count:** 2 shipped (SPEC-054, SPEC-055) / 0 active / 2 pending (SPEC-056, SPEC-057) — 3×M, 1×S–M
+**Count:** 3 shipped (SPEC-054, SPEC-055, SPEC-056) / 0 active / 1 pending (SPEC-057) — 3×M, 1×S–M
 (4 specs total). Comfortably
 within the 3–8 typical range. **SPEC-057 (the sparkline) is the natural deferral boundary**
 if the wave runs long: SPEC-054–056 already deliver the full numeric stats view and

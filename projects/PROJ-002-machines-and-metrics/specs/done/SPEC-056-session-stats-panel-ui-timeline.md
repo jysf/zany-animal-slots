@@ -53,3 +53,9 @@ Cycle prompts live in `prompts/SPEC-056-<cycle>.md`.
       "📊 Stats" header trigger, `role="dialog"` "Session stats" opened showing all five tiles (spins,
       win rate, net winnings, cash-ins, biggest win "—") and the "Clear stats" button, screenshot
       taken, closed via ✕ and confirmed the trigger returned — server stopped after. Defect count: 0.
+- [x] **ship** — shipped 2026-07-08 via PR #66 (squash-merged to main, commit `be49f20`). CI CLEAN,
+      all checks SUCCESS (app checks, cost-capture audit, supply-chain, Workers build). Post-merge:
+      cycle → ship, STAGE-009 backlog SPEC-056 [x] (3/4 shipped), archived. Filled build/verify cost
+      from the sub-agents' subagent_tokens (build 111976, verify 102228; totals 214204 tok / ~$1.41 /
+      4 sessions). Third spec of STAGE-009 — the first player-visible surface (the numeric session-stats
+      panel + Clear-stats control). Next: SPEC-057 (winnings-over-time sparkline) closes the stage.
