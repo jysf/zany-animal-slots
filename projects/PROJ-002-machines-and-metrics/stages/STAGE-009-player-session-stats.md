@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-009                     # stable, zero-padded, continuous across the repo
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-08
-shipped_at: null
+shipped_at: 2026-07-09
 
 # What part of the project's value thesis this stage advances.
 # If you can't articulate value_contribution, the stage may be
@@ -238,13 +238,33 @@ Settled here at frame (with rationale); anything genuinely design-cycle work is 
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1c (Stage Ship) in
-FIRST_SESSION_PROMPTS.md to draft this.*
+*Filled in when status moved to shipped (2026-07-09).*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes.** Every resolved spin and every wallet
+  cash-in is now recorded client-side, and an in-app **session-stats panel** (opened from the cabinet
+  header) shows the player their session — spins, win rate, net winnings, cash-ins, biggest win (named
+  with the machine + tier that produced it), and a **winnings-over-time sparkline** — all persisted
+  across reloads under `zany:stats` and clearable via a "Clear stats" control distinct from the wallet
+  Reset. The whole feature is client-only: it reads the `SpinResult` the engine already returns and
+  never throws on storage access. All success criteria met; **DEC-001 held for all 4 specs** (every
+  spec's `git diff … -- src/engine/` was EMPTY) and **DEC-005 held** (no backend, no network added).
+- **How many specs did it actually take?** **4** (SPEC-054–057), exactly as framed (3×M + 1×S). No
+  splits, no additions — the infrastructure-before-UI ordering (pure model → reactive seam → panel →
+  sparkline) held as planned.
+- **What changed between starting and shipping?** Nothing material — the stage shipped as framed;
+  SPEC-057 (explicitly framed as the natural deferral boundary) was **completed** rather than deferred,
+  closing the backlog to 4/4.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - **"Measure-then-pin" generalizes beyond the engine** — pin the deterministic *output* against real
+    computation before the failing tests: engine RTP for math specs, projected SVG coordinates for viz
+    specs (SPEC-057), derived display strings for pure-UI specs (SPEC-056). Worth wording that way in
+    AGENTS §12. (Logged to the signals file.)
+  - **Reuse-the-proven-pattern paid off again** — SPEC-049's Context-over-localStorage seam +
+    `zany:*` namespace and SPEC-020's sheet idiom carried the whole stage; SPEC-049 having *reserved*
+    the namespace for stats meant zero key-collision work here.
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - From SPEC-057: the measure-then-pin generalization above (now a signal for the template author).
+  - From SPEC-055: a verify/cold-review sub-agent can **misread the harness's legitimate "file modified
+    by user/linter" system-reminders as prompt-injection** — harmless (it reconciles via `git diff`)
+    but it writes an alarming, wrong security note; the build/verify dispatch prompt should tell the
+    sub-agent those mid-session notices are EXPECTED. (Logged to the signals file.)
