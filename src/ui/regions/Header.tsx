@@ -1,7 +1,8 @@
 // Header region — branding bar at the top of the cabinet.
 // Renders the MachineSelector (SPEC-050), PaytableSheet trigger (SPEC-020),
-// and MuteToggle (SPEC-026) alongside the title.
+// MuteToggle (SPEC-026), and StatsSheet trigger (SPEC-056) alongside the title.
 import { PaytableSheet } from '../PaytableSheet';
+import { StatsSheet } from '../stats/StatsSheet';
 import MuteToggle from '../audio/MuteToggle';
 import MachineSelector from '../machine/MachineSelector';
 
@@ -18,6 +19,7 @@ export default function Header({ muted, onToggleMute }: HeaderProps) {
         <MachineSelector />
         <MuteToggle muted={muted} onToggle={onToggleMute} />
         <PaytableSheet />
+        <StatsSheet />
       </div>
     </header>
   );
