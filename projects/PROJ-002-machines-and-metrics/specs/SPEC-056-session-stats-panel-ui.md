@@ -79,7 +79,18 @@ cost:
       interface: claude-code
       model: claude-sonnet-4-6
       tokens_total: null   # filled at ship from the verify sub-agent's subagent_tokens
-      recorded_at: null
+      recorded_at: 2026-07-08
+      note: >-
+        Cold adversarial review: full gate re-run green (68 files / 401 tests). All 4 spec'd
+        guard-mutations (drop the net `+`, no-op Clear onClick, "0" instead of em dash, drop
+        `.stats__trigger` min-width) broke exactly their target test(s) — mutation (c) also broke
+        the Clear-stats test as expected, since it shares the same empty-branch assertion — then
+        cleanly reverted (git status clean, full green after). Boundary diffs (src/engine/,
+        src/stats/, StatsProvider.tsx, package.json) empty; no raw hex; no skipped tests. Independent
+        checks passed: useStats() (no private copy), resetStats decoupled from wallet reset, em dash
+        codepoints match, App.test passes unwrapped via the no-op context default. Preview check:
+        dev server started, trigger opened the dialog with all five tiles + Clear stats button,
+        screenshot taken, closed cleanly. Zero defects found.
   totals:
     tokens_total: null
     estimated_usd: null
