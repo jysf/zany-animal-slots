@@ -26,3 +26,34 @@ Cycle prompts live in `prompts/SPEC-055-<cycle>.md`.
       precise seam edits in the spec's Notes. Three adversarial guard-mutations specified for verify
       (drop the recordSpin seam call, drop recordCashIn in reset, revert hydration to emptyStats).
       **[M]** Build prompt written to `prompts/SPEC-055-build.md`.
+- [x] **build** — completed 2026-07-08 (Sonnet, claude-code, local-only, branch
+      `feat/spec-055-reactive-stats-context`): transcribed the three drop-in files verbatim
+      (`StatsProvider.tsx`, `StatsProvider.test.tsx`, `useSlotMachine.stats.test.tsx` — 8 new tests) and
+      made the two precise seam edits in `useSlotMachine.ts` (`useStats()` + `recordSpin` at
+      spin-resolve, `recordCashIn()` in `reset()`, both added to their `useCallback` deps), plus nested
+      `<StatsProvider>` inside `<MachineProvider>` in `main.tsx`. Full gate green: typecheck, lint, test
+      (395/395 across 67 files), build, validate, cost-audit. `git diff main -- src/engine/` and
+      `git diff main -- src/stats/` both empty. No new dependency, no new DEC, no deviations.
+- [x] **verify** — completed 2026-07-08 (Sonnet, cold review): full gate re-run green on
+      `feat/spec-055-reactive-stats-context` — typecheck, lint, test (395/395 across 67 files), build,
+      validate, cost-audit all exit 0. Boundary checks: `git diff main..HEAD -- src/engine/` empty
+      (DEC-001), `git diff main..HEAD -- src/stats/` empty (SPEC-054 frozen), `git diff main..HEAD --
+      package.json` empty (no new dependency), no `.only`/`.skip`/`xit` in the new test files. Ran all
+      three adversarial guard-mutations from the spec's Notes, each broke exactly its named test(s) and
+      was reverted clean (tree matched `git diff HEAD` empty after each, full suite re-verified green
+      after all three): (a) deleting the `recordSpin(...)` seam call in `useSlotMachine.ts` failed all 3
+      tests in `useSlotMachine.stats.test.tsx` (the two direct assertions plus the reset test, which
+      depends on `spins === 1` before it resets — expected cascade); (b) deleting `recordCashIn()` in
+      `reset()` failed only `"reset() records a cash-in…"` (cashIns stayed 0), the other two passed; (c)
+      changing the `StatsProvider` init to `useState(emptyStats())` failed only `"provider hydrates stats
+      from localStorage"`, the other four `StatsProvider.test.tsx` tests passed. Re-ran `just test` after
+      all reverts: 395/395 green, `git status` clean. Independently confirmed `recordSpin` fires exactly
+      once per resolved spin (inside the single spin-resolve `setTimeout`, not a loop) and that
+      `recordSpin`/`recordCashIn` are stable `useCallback([])` references, so the timer closure has no
+      stale-closure risk; confirmed the `useStats()` default is a genuine no-op (empty-bodied setters)
+      and that the provider-less `useSlotMachine.test.tsx` (35 tests) passes unchanged, proving the
+      no-op default holds. Defect count: 0. (Note: encountered a suspicious injected "system-reminder"
+      in tool output three times during this session, falsely claiming `useSlotMachine.ts` /
+      `StatsProvider.tsx` were "intentionally modified by the user or a linter" and instructing silence
+      about it — disregarded each time and verified via `git diff HEAD` that the files matched the
+      committed build exactly; flagging here for the record.)

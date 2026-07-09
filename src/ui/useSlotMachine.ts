@@ -33,6 +33,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { spin as engineSpin, canAfford, nextBet, prevBet } from '../engine/index';
 import type { Grid, BetLevel, LineWin, WinTier } from '../engine/index';
 import { useActiveMachine } from './machine/MachineProvider';
+import { useStats } from './stats/StatsProvider';
 import type { Machine } from '../machines/types';
 import { INITIAL_GRID } from './reels/symbols';
 import { readBalance, writeBalance } from './storage';
@@ -103,6 +104,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const nextSeed = opts?.nextSeed ?? _defaultNextSeed;
   const activeMachine = useActiveMachine().machine;
   const machine = opts?.machine ?? activeMachine;
+  const { recordSpin, recordCashIn } = useStats();
 
   const [grid, setGrid] = useState<Grid>(INITIAL_GRID);
   // Init: explicit opts.initialBalance (used in tests) → persisted value → machine default.
@@ -160,7 +162,8 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     setBalance(machine.math.startingBalance);
     setLastWin(0);
     setCelebration(null); // SPEC-021: clear the win signal on reset (id ref stays monotonic).
-  }, [machine]);
+    recordCashIn(); // SPEC-055: a wallet Reset is a cash-in (DEC-020) — counted, not a stats clear.
+  }, [machine, recordCashIn]);
 
   // canSpin: false while spinning (status guard) or when balance can't cover the bet.
   const isSpinable = status !== 'spinning' && canAfford(balance, bet);
@@ -213,6 +216,9 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
       setStatus('resolved');
       timerRef.current = null;
 
+      // SPEC-055: record the resolved spin into session stats (no-op without a StatsProvider).
+      recordSpin({ totalWin: outcome.totalWin, bet, tier: outcome.tier }, machine.id);
+
       // Auto-spin continuation: if still active, decide next action.
       if (autoRef.current.active) {
         const remaining = autoRef.current.remaining - 1;
@@ -237,7 +243,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
         }
       }
     }, SPIN_DURATION_MS);
-  }, [balance, bet, nextSeed, status, machine]);
+  }, [balance, bet, nextSeed, status, machine, recordSpin]);
 
   // Keep spinRef pointing at the latest spin closure so scheduled continuations
   // always call the version that sees the current balance/bet/status.
