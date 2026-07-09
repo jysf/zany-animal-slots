@@ -78,6 +78,26 @@ cost:
         src/engine/ (DEC-001) and src/stats/ (DEC-020 model frozen). No new dependency, no new DEC, no
         raw hex. tokens_total left null — single-agent autonomous run, filled with a nominal estimate at
         ship per the run's cost convention.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null   # single-agent autonomous run — nominal estimate recorded at ship (not separately metered)
+      recorded_at: 2026-07-09
+      note: >-
+        Cold adversarial review: full gate re-run green (typecheck, lint, test 69 files / 408 tests,
+        build, validate, cost-audit). All 5 spec'd guard-mutations broke exactly their target test(s)
+        then reverted clean: (1) dropping the `1 -` y-inversion failed the 3 coordinate-asserting tests
+        (points/baseline-y/omit-baseline-points); (2) MIN_POINTS 2→1 failed "shows an empty state below
+        two points" (the single-point [5] case); (3) crossesZero=false failed "draws a dashed zero
+        baseline"; (4) flipping the trend sign failed "colors an up trend and a down trend"; (5) flat
+        centering VIEW_H/2→0 failed "centers a flat series". `git diff main..HEAD` on src/engine/ and
+        src/stats/ EMPTY; no raw hex in stats.css; no .only/.skip in Sparkline.test.tsx. Preview check
+        (dev server via .claude/launch.json): seeded a 13-point crossing series into localStorage
+        zany:stats, reloaded, opened the 📊 Stats panel — the sparkline rendered a rising polyline
+        classed sparkline__line--up (stroke = the active Ocean theme's --color-coin token, fill none,
+        2px) with the dashed break-even baseline; clicked "Clear stats" and the panel degraded to the
+        empty state ("Spin a few times to see your winnings over time.") with all tiles zeroed. Server
+        stopped. Zero defects.
   totals:
     tokens_total: 0
     estimated_usd: 0
