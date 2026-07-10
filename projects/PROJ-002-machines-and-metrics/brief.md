@@ -200,17 +200,16 @@ is the most separable and could be deferred or split off if the wave runs long.
       autonomous shared-vocabulary decision (DEC-017/018) that ran against user intent, via
       **DEC-021**. Numbered 012 to reserve 010/011 for the already-planned Help + analytics
       stages. **1 spec (SPEC-058, PR #68)**.
-- [ ] STAGE-013 (not yet framed) — **Audio overhaul**: the current audio is poor quality and needs
-      a real pass — the synthesized SFX/music (spin, win tiers, jackpot, ambient bed, mixing) sound
-      cheap/harsh and undermine the "worth playing" thesis. Scope TBD at framing, but the intent is a
-      quality lift: better-sounding win/jackpot/spin cues, a less grating ambient bed, sane mixing/
-      levels, and per-machine music that actually fits each theme. Presentation-only (engine untouched,
-      DEC-001); must respect the existing mute + unlock gating and `prefers-reduced-motion` neighbours.
-      **User-requested (2026-07-10); low priority / not ASAP — after the current waves (STAGE-011).**
 
-**Count:** 5 shipped / 0 active / 2 pending (STAGE-010 shipped 2026-07-10, 2 specs SPEC-059 PR #69 +
-SPEC-060 PR #70; STAGE-012 shipped 2026-07-09; STAGE-011 analytics + STAGE-013 audio overhaul planned,
-not yet framed — both not-ASAP).
+> **Parked (not in this project's plan):** an **audio-quality overhaul** — the current synthesized
+> SFX/music sound cheap/harsh and undermine the "worth playing" thesis. User-flagged 2026-07-10 as a
+> candidate for a **future project** (undecided whether it's the next one), likely preceded by a
+> standalone **spike/probe** to assess what "good" sounds like and whether the current Web-Audio synth
+> approach can get there or needs sampled assets. Deliberately NOT a PROJ-002 stage.
+
+**Count:** 5 shipped / 0 active / 1 pending (STAGE-010 shipped 2026-07-10, 2 specs SPEC-059 PR #69 +
+SPEC-060 PR #70; STAGE-012 shipped 2026-07-09; STAGE-011 analytics planned, not yet framed). An
+audio-quality overhaul is parked as a future-project candidate (see the note above), not a PROJ-002 stage.
 
 ## Dependencies
 
