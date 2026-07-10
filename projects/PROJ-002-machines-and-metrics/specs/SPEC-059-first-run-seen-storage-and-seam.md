@@ -61,17 +61,32 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens at ship
+      tokens_total: 93769    # from the build sub-agent's subagent_tokens
+      estimated_usd: 0.62    # 93769 tok × $6.6/M (Sonnet)
+      duration_minutes: 6.4  # 386954 ms
       recorded_at: 2026-07-09
       note: >-
-        Transcribed both drop-in modules (helpSeenStorage.ts, HelpSeenProvider.tsx) and their two
-        test files verbatim from the spec's Notes, plus the one-line main.tsx wiring; full gate
-        (typecheck/lint/test/build/validate/cost-audit) green, engine diff empty.
+        Build delegated to a fresh Sonnet sub-agent (local-only, branch feat/spec-059-first-run-seen-seam).
+        Transcribed both drop-in modules (helpSeenStorage.ts, HelpSeenProvider.tsx) and their two test
+        files verbatim from the spec's Notes, plus the one-line main.tsx wiring; all 12 new tests pass;
+        full gate (typecheck/lint/test 420/build/validate/cost-audit) green; engine diff empty; only
+        src/ui/help/** + the one main.tsx line touched. No deviations, no new dep, no new DEC.
     - cycle: verify
       interface: claude-code
       model: claude-opus-4-8
-      tokens_total: null   # filled at ship (nominal if main-loop self-verify)
-      recorded_at: null
+      tokens_total: 90000    # nominal — see note
+      estimated_usd: 0.59    # nominal, 90000 tok × $6.6/M
+      recorded_at: 2026-07-09
+      note: >-
+        Cold re-verification on the main Opus loop (single-agent, not separately metered — nominal
+        90000-tok estimate per the run's cost convention). Reconciled the build against git/disk: read
+        both source modules (byte-for-byte the spec drop-ins) + the main.tsx wiring; only src/ui/help/**
+        + main.tsx + spec bookkeeping changed. Re-ran the FULL gate green (typecheck/lint/test 420/build/
+        validate/cost-audit). Ran both adversarial guard-mutations — each broke EXACTLY its target test
+        and reverted clean (12/12 help tests green after): (1) dropping the version clause in isValid
+        broke "version mismatch"; (2) flipping the no-op default seen true→false broke "without a provider
+        returns seen:true". Guards have teeth. git diff main..HEAD -- src/engine/ empty; no .only/.skip in
+        src/ui/help/. Defect count: 0.
     - cycle: ship
       interface: claude-code
       model: claude-opus-4-8

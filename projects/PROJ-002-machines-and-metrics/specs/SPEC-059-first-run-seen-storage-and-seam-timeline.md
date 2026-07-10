@@ -31,9 +31,13 @@ Cycle prompts live in `prompts/SPEC-059-<cycle>.md`.
       cost-audit); `git diff main..HEAD -- src/engine/` EMPTY; no new dep; only `src/ui/help/**` + the one
       `main.tsx` line touched. Build Completion filled + build cost appended. No push/PR/advance-cycle.
 
-- [ ] **verify** — cold review: re-run the FULL gate; run both adversarial guard-mutations (each breaks
-      EXACTLY its test, revert clean); confirm `git diff main..HEAD -- src/engine/` EMPTY and no stray drift
-      outside `src/ui/help/**` + `main.tsx`; App.test still green.
+- [x] **verify** — completed 2026-07-09 (Opus, cold review): reconciled the build against git/disk (both
+      modules byte-for-byte the spec drop-ins; the main.tsx wiring nests HelpSeenProvider inside StatsProvider;
+      only `src/ui/help/**` + `main.tsx` + spec bookkeeping changed). Re-ran the FULL gate green (typecheck/
+      lint/test **420/420**/build/validate/cost-audit). Ran both adversarial guard-mutations — each broke
+      EXACTLY its target test and reverted clean (12/12 help tests green after): drop the `version` clause in
+      `isValid` → broke "version mismatch"; flip the no-op default `seen` true→false → broke "without a
+      provider returns seen:true". `git diff main..HEAD -- src/engine/` EMPTY; no `.only/.skip`. Defects: 0.
 
 - [ ] **ship** — fill build+verify cost; PR + CI-poll (CLEAN + all checks SUCCESS) + squash-merge; post-merge
       rollup (timeline ship [x], advance-cycle ship, STAGE-010 backlog SPEC-059 [x], brag, archive).
