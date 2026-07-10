@@ -21,3 +21,21 @@ Cycle prompts live in `prompts/SPEC-058-<cycle>.md`.
       Polar Bear / Sidewinder / Shark) in the spec Notes. W&W's parity test is UNCHANGED. Three
       adversarial guard-mutations specified for verify (revert each machine's `symbolDisplay` to
       `SYMBOL_DISPLAY` ⇒ its test fails). **[S]** Build prompt written to `prompts/SPEC-058-build.md`.
+- [x] **build** — completed 2026-07-09 (Opus, single-agent, branch feat/spec-058-per-machine-symbols):
+      added the ARCTIC/DESERT/OCEAN_SYMBOLS themed maps to the three machine files, pointed each
+      `presentation.symbolDisplay` at its own (swapped the `SYMBOL_DISPLAY` import for the `SymbolDisplay`
+      type), and flipped the three vocabulary guard-tests (own map, all 8 keys, pinned `WOLF.label` —
+      Polar Bear / Sidewinder / Shark). Full gate green: typecheck, lint, test (69 files / 408 tests),
+      build, validate, cost-audit. Boundary diffs vs main EMPTY: `src/engine/` (DEC-001) and W&W
+      (`wildAndWhimsical.ts` + parity test); no math line changed in any themed machine. Preview-verified
+      all four machines: Arctic (Caribou…Polar Bear), Desert (Camel…Sidewinder), Ocean (Dolphin…Shark, +
+      paytable), W&W (forest animals, unchanged). Process note: an initial mutation pass reverted the
+      uncommitted machine files via `git checkout`; recovered by re-applying and committing the build
+      before re-running mutations.
+- [x] **verify** — completed 2026-07-09 (Opus, cold review): full gate re-run green (typecheck, lint,
+      test 69 files / 408 tests, build, validate, cost-audit). Three adversarial guard-mutations (revert
+      each machine's `presentation.symbolDisplay` to `SYMBOL_DISPLAY`, import + pointer) each failed
+      EXACTLY that machine's vocabulary test (1 failed | 5 passed), then reverted clean to the committed
+      build. `git diff main` on `src/engine/` + W&W EMPTY; no math changed. Preview: switched all four
+      machines — Arctic/Desert/Ocean show their own creatures on the reels (+ Ocean paytable), W&W
+      unchanged (parity). Zero defects.

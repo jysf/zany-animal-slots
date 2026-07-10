@@ -25,9 +25,13 @@ describe('Desert machine', () => {
     expect(getActiveMachine()).toBe(WILD_AND_WHIMSICAL);
   });
 
-  it('Desert keeps the 8-symbol vocabulary', () => {
+  it('Desert keeps the 8 engine symbols but themes their display', () => {
     expect(DESERT.math.symbols).toEqual(SYMBOLS);
-    expect(DESERT.presentation.symbolDisplay).toBe(SYMBOL_DISPLAY);
+    // Per-machine identity (DEC-021, supersedes DEC-018's shared-vocabulary clause): Desert renders
+    // its own arid creatures, NOT the shared SYMBOL_DISPLAY.
+    expect(DESERT.presentation.symbolDisplay).not.toBe(SYMBOL_DISPLAY);
+    expect(Object.keys(DESERT.presentation.symbolDisplay).sort()).toEqual([...SYMBOLS].sort());
+    expect(DESERT.presentation.symbolDisplay.WOLF.label).toBe('Sidewinder');
   });
 
   it("Desert's math measures in the generous RTP band", () => {

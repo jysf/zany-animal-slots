@@ -60,10 +60,54 @@ cost:
         only guards are the three machines' "keeps the 8-symbol vocabulary" tests (currently assert
         symbolDisplay === SYMBOL_DISPLAY) — flipped to assert per-machine identity. Emits DEC-021
         (already authored), which supersedes the shared-vocabulary clause of DEC-017/018 (and DEC-019).
+    - cycle: build
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # NOMINAL — autonomous single-agent run, not separately metered (run cost convention)
+      estimated_usd: 0.59    # nominal: 90000 tok × the run's $6.6/M reference rate
+      recorded_at: 2026-07-09
+      note: >-
+        Autonomous single-agent run — nominal estimate, not separately metered. Added ARCTIC_SYMBOLS /
+        DESERT_SYMBOLS / OCEAN_SYMBOLS themed maps to the three machine files, pointed each
+        presentation.symbolDisplay at its own (swapped the SYMBOL_DISPLAY import for the SymbolDisplay
+        type), and flipped the three vocabulary guard-tests. Full gate green: typecheck, lint, test
+        (69 files / 408 tests), build, validate, cost-audit. Boundary diffs vs main EMPTY: src/engine/
+        (DEC-001) and src/machines/wildAndWhimsical.ts + its parity test (W&W keeps SYMBOL_DISPLAY); no
+        math line changed in any themed machine. NOTE: an initial guard-mutation pass reverted the
+        uncommitted machine files via `git checkout` (discarding build work); recovered by re-applying,
+        then committed the build BEFORE re-running mutations so reverts target the committed build.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # NOMINAL — autonomous single-agent run, not separately metered (run cost convention)
+      estimated_usd: 0.59    # nominal: 90000 tok × the run's $6.6/M reference rate
+      recorded_at: 2026-07-09
+      note: >-
+        Autonomous single-agent run — nominal estimate, not separately metered. Cold review: full gate
+        re-run green (typecheck, lint, test 69 files / 408 tests, build, validate, cost-audit). Three
+        adversarial guard-mutations (revert each machine's presentation to SYMBOL_DISPLAY — import +
+        pointer) each failed EXACTLY that machine's "keeps the 8 engine symbols but themes their display"
+        test (arctic/desert/ocean: 1 failed | 5 passed), then reverted clean to the committed build.
+        Boundary diffs vs main EMPTY: src/engine/ (DEC-001) and W&W (wildAndWhimsical.ts + parity test);
+        no math line changed in any themed machine. Preview check (dev server via .claude/launch.json):
+        switched the machine selector across all four — Arctic reels read Caribou/Arctic Fox/Penguin/
+        Seal/Eagle/Snowy Owl/Mammoth/Polar Bear; Desert Camel…Sidewinder; Ocean Dolphin…Shark with the
+        paytable showing marine creatures; Wild & Whimsical still the forest animals (Deer…Wolf, parity
+        intact). Server stopped. Zero defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-09
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Recorded nominal build/verify cost
+        (single-agent run), opened the PR, CI-polled to CLEAN + all checks SUCCESS, squash-merged,
+        post-merge rollup (cycle → ship, STAGE-012 backlog SPEC-058 [x], archive, stage-ship STAGE-012).
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 180000   # nominal build 90000 + verify 90000
+    estimated_usd: 1.18    # nominal build 0.59 + verify 0.59
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-058: Per-machine reel symbol identity
@@ -251,17 +295,26 @@ Adversarial guard-mutations for verify (each must fail its target, then revert):
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?**
-- **New decisions emitted:** DEC-021 (authored at design).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-058-per-machine-symbols`
+- **All acceptance criteria met?** Yes — Arctic/Desert/Ocean each render their own themed symbols on the
+  reels AND paytable (preview-verified per machine); W&W unchanged (forest animals, parity holds); engine
+  + W&W diffs EMPTY; no math changed; full gate green (69 files / 408 tests).
+- **New decisions emitted:** DEC-021 (authored at design; supersedes the symbol clause of DEC-017/018/019).
+- **Deviations from spec:** none in the shipped result. Process note: an initial mutation pass used
+  `git checkout` to revert uncommitted build files and lost the machine-file edits; re-applied and
+  committed the build before re-running mutations.
+- **Follow-up work identified:** none. (Optional future: point markers / per-machine sparkline, or a
+  per-machine *engine* difference — a separate, weightier decision.)
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing; the drop-in maps + flipped tests
+   were unambiguous and the change matched on first gate run.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No. DEC-021 +
+   DEC-001 + DEC-006 covered it; confirming the SPEC-041 threading up front meant zero plumbing.
+3. **If you did this task again, what would you do differently?** — **Commit the build BEFORE running
+   adversarial guard-mutations.** Reverting mutations with `git checkout` on an uncommitted tree
+   discards the real build work; committing first makes revert target the build, not the base branch.
 
 ---
 
@@ -269,6 +322,15 @@ Adversarial guard-mutations for verify (each must fail its target, then revert):
 
 *Appended during the **ship** cycle.*
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Commit the build before adversarial guard-mutations (a
+   `git checkout` revert on an uncommitted tree discards the build). And, more broadly: treat a
+   "constraint" cited from an autonomously-authored DEC as *provisional* — this whole spec exists because
+   an overnight run's shared-vocabulary decision was enforced against the user's intent; the fix was to
+   record the intent (DEC-021) and supersede, not to defend the machine's prior call.
+2. **Does any template, constraint, or decision need updating?** — Two signals logged: (a) an autonomous
+   run must never override apparent USER intent to enforce a prior autonomous DEC — surface the conflict
+   instead (also now encoded in the STAGE-010 overnight task's safety rails); (b) the verify recipe
+   should say "commit the build before mutation-testing."
+3. **Is there a follow-up spec I should write now before I forget?** — No. STAGE-012 closes with this
+   spec. Optional future waves: per-machine sparkline point markers, or per-machine *engine* differences
+   (a separate, weightier decision).

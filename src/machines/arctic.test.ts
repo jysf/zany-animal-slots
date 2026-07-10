@@ -24,9 +24,13 @@ describe('Arctic machine', () => {
     expect(getActiveMachine()).toBe(WILD_AND_WHIMSICAL);
   });
 
-  it('Arctic keeps the 8-symbol vocabulary', () => {
+  it('Arctic keeps the 8 engine symbols but themes their display', () => {
     expect(ARCTIC.math.symbols).toEqual(SYMBOLS);
-    expect(ARCTIC.presentation.symbolDisplay).toBe(SYMBOL_DISPLAY);
+    // Per-machine identity (DEC-021, supersedes DEC-017's shared-vocabulary clause): Arctic renders
+    // its own polar creatures, NOT the shared SYMBOL_DISPLAY.
+    expect(ARCTIC.presentation.symbolDisplay).not.toBe(SYMBOL_DISPLAY);
+    expect(Object.keys(ARCTIC.presentation.symbolDisplay).sort()).toEqual([...SYMBOLS].sort());
+    expect(ARCTIC.presentation.symbolDisplay.WOLF.label).toBe('Polar Bear');
   });
 
   it("Arctic's math measures in the generous RTP band", () => {

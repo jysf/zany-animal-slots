@@ -15,8 +15,19 @@ import {
   buildStrip,
 } from '../engine/index';
 import type { MachineMath, SymbolId, Tier } from '../engine/index';
-import { SYMBOL_DISPLAY } from '../ui/reels/symbols';
-import type { Machine } from './types';
+import type { Machine, SymbolDisplay } from './types';
+
+/** Ocean's own reel creatures — marine identity over the shared 8 engine symbols (DEC-021). */
+const OCEAN_SYMBOLS: SymbolDisplay = {
+  DEER: { emoji: '🐬', label: 'Dolphin' },
+  FOX: { emoji: '🐠', label: 'Tropical Fish' },
+  SQUIRREL: { emoji: '🦐', label: 'Shrimp' },
+  BEAR: { emoji: '🦀', label: 'Crab' },
+  EAGLE: { emoji: '🐡', label: 'Pufferfish' },
+  OWL: { emoji: '🐙', label: 'Octopus' },
+  BISON: { emoji: '🐳', label: 'Whale' },
+  WOLF: { emoji: '🦈', label: 'Shark' },
+};
 
 /** Ocean's tuned reel weights (sum 42) — steeper low-end than W&W/Arctic/Desert (most frequent hits). */
 const OCEAN_WEIGHTS: Record<SymbolId, number> = {
@@ -62,7 +73,7 @@ export const OCEAN: Machine = {
   name: 'Ocean',
   math: OCEAN_MATH,
   presentation: {
-    symbolDisplay: SYMBOL_DISPLAY, // same 8-animal vocabulary; theme conveys "Ocean", not new symbols
+    symbolDisplay: OCEAN_SYMBOLS, // per-machine marine identity (DEC-021; supersedes DEC-019 symbol clause)
     // Teal/deep-blue ocean palette (runtime overrides of tokens.css). Text-on-bg 16.14:1 (WCAG AA);
     // every foreground pair ≥ 7.29:1. Applied on the .device-stage root by useMachineTheme (SPEC-048).
     theme: {
