@@ -7,7 +7,7 @@
 task:
   id: SPEC-060
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -67,12 +67,35 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 101530   # from the build sub-agent's subagent_tokens
+      estimated_usd: 0.67    # 101530 tok × $6.6/M (Sonnet)
+      duration_minutes: 23.7 # 1423278 ms
       recorded_at: 2026-07-09
       note: >-
+        Build delegated to a fresh Sonnet sub-agent (local-only, branch feat/spec-060-help-sheet-ui).
         Verbatim transcription of the Notes drop-ins (HelpSheet.tsx, help.css, HelpSheet.test.tsx,
         the Header.tsx wiring line, the touch-target test edit). Zero deviations; full gate green
-        (typecheck/lint/test/build/validate/cost-audit); engine + SPEC-059 seam diffs both empty.
+        (typecheck/lint/test 425/build/validate/cost-audit); engine + SPEC-059 seam diffs both empty.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # nominal — see note
+      estimated_usd: 0.59    # nominal, 90000 tok × $6.6/M
+      recorded_at: 2026-07-10
+      note: >-
+        Cold re-verification on the main Opus loop (autonomous overnight single-agent run — nominal
+        90000-tok estimate, not separately metered). Reconciled the build against git/disk: HelpSheet.tsx
+        is byte-for-byte the spec drop-in; Header.tsx + touch-target edits exactly as specified; only
+        src/ui/help/** + Header.tsx + the touch-target test + spec bookkeeping changed. Re-ran the FULL
+        gate green (typecheck/lint/test 72 files/425 tests/build/validate/cost-audit). Ran both
+        adversarial guard-mutations — each broke EXACTLY the "auto-opens once on first run and marks
+        seen on dismiss" test and reverted clean (5/5 help tests green after): (1) useState(() => !seen)
+        → useState(false) killed the auto-open; (2) removing markSeen() in close() left readHelpSeen()
+        false after dismiss. git diff main..HEAD -- src/engine/ EMPTY; SPEC-059 seam diff EMPTY; no
+        .only/.skip in src/ui/help/. Preview-verified in a real browser (mobile 375×812): clean storage
+        auto-opens the sheet with seen:false; dismiss flips seen:true; reload does NOT re-open
+        (non-nagging); the header trigger re-opens it; goal/disclaimer copy + all four controls render;
+        trigger declares 48px min-height/width (≥44px); no console errors. Defect count: 0.
   totals:
     tokens_total: 0
     estimated_usd: 0
