@@ -7,7 +7,7 @@
 task:
   id: SPEC-060
   type: story                      # epic | story | task | bug | chore
-  cycle: build  # frame | design | build | verify | ship
+  cycle: verify  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -64,10 +64,53 @@ cost:
         drop-in code for HelpSheet.tsx, help.css, the HelpSheet.test.tsx, the one-line Header.tsx
         wiring, and the touch-target test edit live in ## Notes. Two adversarial guard-mutations
         specified for verify. No new dependency; no new DEC (implements DEC-022).
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: 101530   # from the build sub-agent's subagent_tokens
+      estimated_usd: 0.67    # 101530 tok × $6.6/M (Sonnet)
+      duration_minutes: 23.7 # 1423278 ms
+      recorded_at: 2026-07-09
+      note: >-
+        Build delegated to a fresh Sonnet sub-agent (local-only, branch feat/spec-060-help-sheet-ui).
+        Verbatim transcription of the Notes drop-ins (HelpSheet.tsx, help.css, HelpSheet.test.tsx,
+        the Header.tsx wiring line, the touch-target test edit). Zero deviations; full gate green
+        (typecheck/lint/test 425/build/validate/cost-audit); engine + SPEC-059 seam diffs both empty.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # nominal — see note
+      estimated_usd: 0.59    # nominal, 90000 tok × $6.6/M
+      recorded_at: 2026-07-10
+      note: >-
+        Cold re-verification on the main Opus loop (autonomous overnight single-agent run — nominal
+        90000-tok estimate, not separately metered). Reconciled the build against git/disk: HelpSheet.tsx
+        is byte-for-byte the spec drop-in; Header.tsx + touch-target edits exactly as specified; only
+        src/ui/help/** + Header.tsx + the touch-target test + spec bookkeeping changed. Re-ran the FULL
+        gate green (typecheck/lint/test 72 files/425 tests/build/validate/cost-audit). Ran both
+        adversarial guard-mutations — each broke EXACTLY the "auto-opens once on first run and marks
+        seen on dismiss" test and reverted clean (5/5 help tests green after): (1) useState(() => !seen)
+        → useState(false) killed the auto-open; (2) removing markSeen() in close() left readHelpSeen()
+        false after dismiss. git diff main..HEAD -- src/engine/ EMPTY; SPEC-059 seam diff EMPTY; no
+        .only/.skip in src/ui/help/. Preview-verified in a real browser (mobile 375×812): clean storage
+        auto-opens the sheet with seen:false; dismiss flips seen:true; reload does NOT re-open
+        (non-nagging); the header trigger re-opens it; goal/disclaimer copy + all four controls render;
+        trigger declares 48px min-height/width (≥44px); no console errors. Defect count: 0.
+    - cycle: ship
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-10
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled build + cold-verify
+        against git/disk, filled build cost from the sub-agent's subagent_tokens (101530) and verify
+        as a nominal main-loop estimate (90000), PR + CI-poll + squash-merge + backlog rollup +
+        STAGE-010 closeout + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 191530   # build 101530 + verify 90000 (nominal)
+    estimated_usd: 1.26    # build 0.67 + verify 0.59 (nominal)
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-060: Help sheet UI + header trigger + first-run auto-open
@@ -752,3 +795,66 @@ const helpCss = readFileSync(HELP_CSS, 'utf-8');
 // ...in the CONTROLS array, after the stats entries:
   { label: '.help__trigger (help.css)', cssSource: helpCss, selector: '.help__trigger' },
 ```
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:** `feat/spec-060-help-sheet-ui`
+- **PR (if applicable):** none until ship
+- **All acceptance criteria met?** yes — all 9 acceptance criteria satisfied; all 5 Failing Tests in
+  `HelpSheet.test.tsx` pass (trigger-present-no-provider, auto-open + mark-on-dismiss,
+  no-auto-open-when-seen, trigger-click content + pinned copy, close via ✕/backdrop/Escape); full gate
+  (`typecheck && lint && test && build && validate && cost-audit`) green — 72 test files / 425 tests
+  passed, including `App.test.tsx` (5 tests) unchanged and green; `git diff main..HEAD -- src/engine/`
+  is empty; `git diff main..HEAD -- src/ui/help/HelpSeenProvider.tsx src/ui/help/helpSeenStorage.ts`
+  is empty (the SPEC-059 seam untouched).
+- **New decisions emitted:**
+  - none — implements `DEC-022` (authored at SPEC-059/SPEC-060 design); no NEW dec emitted at build.
+- **Deviations from spec:**
+  - none — `HelpSheet.tsx`, `help.css`, `HelpSheet.test.tsx`, the `Header.tsx` edit, and the
+    `controls.touch-target.test.ts` edit were transcribed verbatim from the Notes drop-ins.
+- **Follow-up work identified:**
+  - None new. This is the last spec in the STAGE-010 backlog; STAGE-010 is complete once this ships.
+
+### Build-phase reflection (3 questions, short answers)
+
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes section's drop-in
+   code and Failing Tests were complete and unambiguous, so this cycle was pure transcription mirroring
+   `StatsSheet`/`PaytableSheet`.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No; DEC-022,
+   DEC-001, DEC-005, DEC-010, DEC-004 fully covered the boundaries this spec touches.
+3. **If you did this task again, what would you do differently?** — Nothing; the mirror-an-existing-
+   sheet approach (StatsSheet → HelpSheet) plus the already-shipped SPEC-059 seam made this a fast,
+   low-risk build with zero deviations.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused reflection, distinct
+from the process-focused build reflection above.*
+
+1. **What would I do differently next time?** —
+   Nothing structural. Mirroring `StatsSheet` verbatim meant the only genuinely new code was one
+   line — `useState(() => !seen)` — plus `markSeen()` in `close()`. The judgement worth remembering:
+   auto-open must read the seam's *mount-time* value (a `useState` initialiser), NOT a `useEffect`,
+   so a first-timer never sees a flash of closed-then-opened, and provider-less consumers (App.test)
+   stay green because the no-op default `seen: true` initialises `open: false`. Pinning the two long
+   copy strings as exact `.textContent` (the pure-UI form of measure-then-pin) caught nothing broken,
+   but made the content contract unambiguous for the build sub-agent — zero deviations resulted.
+
+2. **Does any template, constraint, or decision need updating?** —
+   No. DEC-022 held cleanly across both its specs (SPEC-059 storage/seam, SPEC-060 UI). The
+   touch-target guard test's explicit-enumeration design (it does not auto-discover triggers) meant
+   the new `.help__trigger` had to be added by hand — worth a one-line AGENTS note that any new
+   `*__trigger` needs a matching `CONTROLS` entry, but not a template change. The sheet idiom is now
+   proven a fourth time (paytable → stats → machine-selector → help): it is unambiguously the repo's
+   standard overlay shape.
+
+3. **Is there a follow-up spec I should write now before I forget?** —
+   No. SPEC-060 is the last spec in the STAGE-010 backlog; with it shipped, STAGE-010 (Help /
+   how-to-play) is complete. The brief's comprehension criterion is now met end-to-end (a first-timer
+   is shown the explainer once and can re-open it anytime). Any richer onboarding (interactive
+   tutorial, contextual tips) is explicitly a later wave, gated on STAGE-011 analytics showing
+   first-run drop-off — not a spec to write now.

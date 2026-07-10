@@ -3,6 +3,7 @@
 // MuteToggle (SPEC-026), and StatsSheet trigger (SPEC-056) alongside the title.
 import { PaytableSheet } from '../PaytableSheet';
 import { StatsSheet } from '../stats/StatsSheet';
+import { HelpSheet } from '../help/HelpSheet';
 import MuteToggle from '../audio/MuteToggle';
 import MachineSelector from '../machine/MachineSelector';
 
@@ -20,6 +21,7 @@ export default function Header({ muted, onToggleMute }: HeaderProps) {
         <MuteToggle muted={muted} onToggle={onToggleMute} />
         <PaytableSheet />
         <StatsSheet />
+        <HelpSheet />
       </div>
     </header>
   );

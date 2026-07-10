@@ -1,0 +1,203 @@
+/*
+ * How-to-play explainer — trigger + overlay + slide-up sheet (SPEC-060, DEC-022).
+ *
+ * DEC-010: global CSS, token colors only, no raw hex, help__-prefixed classes.
+ * DEC-004: slide-up keyframe with a prefers-reduced-motion fallback.
+ * constraint: touch-targets-44 — trigger and close are ≥44px.
+ * constraint: portrait-first — sheet anchored to the bottom; scrolls if tall.
+ *
+ * Mirrors stats.css / paytable.css, prefix help__.
+ */
+
+/* ─── Trigger button ─────────────────────────────────────────────────────────── */
+
+.help__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--space-7);
+  min-width: var(--space-7);
+  padding: var(--space-1) var(--space-3);
+
+  background: transparent;
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.help__trigger:hover,
+.help__trigger:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-text);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ─── Backdrop ───────────────────────────────────────────────────────────────── */
+
+.help__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg);
+  opacity: 0.7;
+  z-index: 10;
+}
+
+/* ─── Slide-up keyframe + sheet ──────────────────────────────────────────────── */
+
+@keyframes help-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.help__sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 11;
+
+  max-height: 100%;
+  overflow-y: auto;
+
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-5) var(--space-4) var(--space-6);
+
+  animation: help-slide-up 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .help__sheet {
+    animation: none;
+  }
+}
+
+/* ─── Header row (title + close) ─────────────────────────────────────────────── */
+
+.help__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.help__title {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.help__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--space-7);
+  min-width: var(--space-7);
+
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+
+.help__close:hover,
+.help__close:focus-visible {
+  color: var(--color-text);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ─── Body sections ──────────────────────────────────────────────────────────── */
+
+.help__section {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-frame);
+}
+
+/* The first section needs no top divider (the header already separates it). */
+.help__section:first-of-type {
+  margin-top: var(--space-0);
+  padding-top: var(--space-0);
+  border-top: none;
+}
+
+.help__section-title {
+  margin: var(--space-0);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.help__text {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+}
+
+.help__text strong {
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ─── Term / description list (controls + where-things-are) ──────────────────── */
+
+.help__list {
+  margin: var(--space-3) var(--space-0) var(--space-0);
+}
+
+.help__item {
+  display: grid;
+  grid-template-columns: minmax(0, 6rem) 1fr;
+  gap: var(--space-3);
+  align-items: baseline;
+  margin-top: var(--space-2);
+}
+
+.help__term {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.help__desc {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+}
+
+/* ─── Play-money disclaimer ──────────────────────────────────────────────────── */
+
+.help__disclaimer {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-frame);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: var(--line-height-base);
+}
+
+.help__disclaimer strong {
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
