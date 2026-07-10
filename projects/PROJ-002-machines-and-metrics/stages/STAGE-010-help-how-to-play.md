@@ -100,17 +100,18 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
 Ordered infrastructure-before-UI, matching the SPEC-054→056 pattern (safe storage seam → sheet UI).
 
-- [ ] SPEC-059 (build) — **First-run-seen storage + seam** *(infra)*: a safe `zany:help-seen` helper
-      mirroring `statsStorage.ts` (guarded get/set, never throws — DEC-005) + a minimal reactive seam
-      (`useHelpSeen` / a tiny context, no-op default `seen: true`) exposing `seen` + `markSeen()`, wired
-      into `main.tsx`. No UI. Authored **DEC-022** (the onboarding model). **[S]**
+- [x] SPEC-059 (shipped, PR #69) — **First-run-seen storage + seam** *(infra)*: a safe `zany:help-seen`
+      helper mirroring `statsStorage.ts` (guarded get/set, never throws — DEC-005) + a no-op-default reactive
+      seam (`useHelpSeen` / `HelpSeenProvider`, default `seen: true` so App.test never auto-opens) exposing
+      `seen` + `markSeen()`, wired into `main.tsx`. No UI. Authored **DEC-022** (the onboarding model).
+      Engine diff EMPTY (DEC-001); 12 new tests, 420/420 green; 2 adversarial guard-mutations proven. **[S]**
 - [ ] SPEC-060 (frame) — **Help sheet UI + header trigger + first-run auto-open** *(UI)*: a `HelpSheet`
       mirroring `PaytableSheet` with a "How to play" cabinet-header trigger, rendering the plain-language
       how-to-play content (goal, controls, where things are, play-money disclaimer, pointer to Paytable),
       **auto-opened once** on first run via the SPEC-059 seam and marking seen on dismiss. Preview-verified.
       **[M]**
 
-**Count:** 0 shipped / 0 active / 2 pending (SPEC-059, SPEC-060) — 1×S + 1×M. Comfortably within the
+**Count:** 1 shipped (SPEC-059) / 0 active / 1 pending (SPEC-060) — 1×S + 1×M. Comfortably within the
 3–8 typical range for a small, focused stage.
 
 ## Design Notes

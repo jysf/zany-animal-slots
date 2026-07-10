@@ -39,5 +39,8 @@ Cycle prompts live in `prompts/SPEC-059-<cycle>.md`.
       `isValid` → broke "version mismatch"; flip the no-op default `seen` true→false → broke "without a
       provider returns seen:true". `git diff main..HEAD -- src/engine/` EMPTY; no `.only/.skip`. Defects: 0.
 
-- [ ] **ship** — fill build+verify cost; PR + CI-poll (CLEAN + all checks SUCCESS) + squash-merge; post-merge
-      rollup (timeline ship [x], advance-cycle ship, STAGE-010 backlog SPEC-059 [x], brag, archive).
+- [x] **ship** — shipped 2026-07-09 via PR #69 (squash-merged to main, commit `aa783a8`). CI CLEAN, all
+      checks SUCCESS (app checks, cost-capture, supply-chain, Workers Build). Post-merge: cycle → ship,
+      STAGE-010 backlog SPEC-059 [x], archived. First spec of STAGE-010 (Help / how-to-play). Cost: build
+      93769 tok (Sonnet sub-agent) + verify 90000 (nominal main-loop) = 183769; 4 sessions. Next: SPEC-060
+      (HelpSheet UI + "How to play" header trigger + first-run auto-open) — the last spec in the backlog.
