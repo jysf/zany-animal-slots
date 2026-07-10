@@ -87,13 +87,14 @@ independent of the planned STAGE-010 (Help) and STAGE-011 (analytics).
 
 Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
-- [ ] SPEC-058 (build) — **Per-machine reel symbol identity**: define Arctic/Desert/Ocean themed
-      `symbolDisplay` maps (all 8 `SymbolId`s, emoji + labels) and point each machine's presentation
-      slice at its own; W&W unchanged; update the three vocabulary guard-tests. Presentation-only
-      (engine diff EMPTY), reads through the existing SPEC-041 threading, emits **DEC-021** (already
-      authored). **[S]**
+- [x] SPEC-058 (shipped, PR #68) — **Per-machine reel symbol identity**: Arctic (polar), Desert (arid),
+      Ocean (marine) each render their own themed `symbolDisplay` on the reels + paytable; W&W keeps the
+      forest default. Presentation-only (engine + W&W diffs EMPTY, no math changed); rode the existing
+      SPEC-041 threading; emitted **DEC-021** (supersedes the symbol clause of DEC-017/018/019).
+      Preview-verified all four machines; 3 vocabulary guard-tests flipped + 3 adversarial mutations
+      proven; 408/408 green. **[S]**
 
-**Count:** 0 shipped / 1 active / 0 pending (SPEC-058) — 1×S (a single focused data change).
+**Count:** 1 shipped (SPEC-058) / 0 active / 0 pending — 1×S. **Backlog complete** — stage ready to ship.
 
 ## Design Notes
 

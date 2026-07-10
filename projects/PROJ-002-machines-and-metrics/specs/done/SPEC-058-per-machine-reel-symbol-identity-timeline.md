@@ -39,3 +39,8 @@ Cycle prompts live in `prompts/SPEC-058-<cycle>.md`.
       build. `git diff main` on `src/engine/` + W&W EMPTY; no math changed. Preview: switched all four
       machines — Arctic/Desert/Ocean show their own creatures on the reels (+ Ocean paytable), W&W
       unchanged (parity). Zero defects.
+- [x] **ship** — shipped 2026-07-09 via PR #68 (squash-merged to main, commit `a4ef6ad`). CI CLEAN, all
+      7 checks SUCCESS. Post-merge: cycle → ship, STAGE-012 backlog SPEC-058 [x] (1/1 — backlog
+      complete), archived, +2 template signals (autonomous-override-of-user-intent; commit-build-before-
+      mutation-testing). Nominal build/verify cost (single-agent run, ~$1.18 / 4 sessions). The only
+      spec of STAGE-012 — the stage-ship follows this closeout.
