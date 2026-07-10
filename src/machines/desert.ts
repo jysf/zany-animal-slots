@@ -15,8 +15,19 @@ import {
   buildStrip,
 } from '../engine/index';
 import type { MachineMath, SymbolId, Tier } from '../engine/index';
-import { SYMBOL_DISPLAY } from '../ui/reels/symbols';
-import type { Machine } from './types';
+import type { Machine, SymbolDisplay } from './types';
+
+/** Desert's own reel creatures — arid identity over the shared 8 engine symbols (DEC-021). */
+const DESERT_SYMBOLS: SymbolDisplay = {
+  DEER: { emoji: '🐪', label: 'Camel' },
+  FOX: { emoji: '🦊', label: 'Fennec Fox' },
+  SQUIRREL: { emoji: '🦎', label: 'Gecko' },
+  BEAR: { emoji: '🐢', label: 'Tortoise' },
+  EAGLE: { emoji: '🦅', label: 'Vulture' },
+  OWL: { emoji: '🦉', label: 'Elf Owl' },
+  BISON: { emoji: '🐏', label: 'Bighorn Ram' },
+  WOLF: { emoji: '🐍', label: 'Sidewinder' },
+};
 
 /** Desert's tuned reel weights (sum 42) — flatter/sparser than W&W and Arctic (fewer hits). */
 const DESERT_WEIGHTS: Record<SymbolId, number> = {
@@ -62,7 +73,7 @@ export const DESERT: Machine = {
   name: 'Desert',
   math: DESERT_MATH,
   presentation: {
-    symbolDisplay: SYMBOL_DISPLAY, // same 8-animal vocabulary; theme conveys "Desert", not new symbols
+    symbolDisplay: DESERT_SYMBOLS, // per-machine arid identity (DEC-021; supersedes DEC-018 symbol clause)
     // Warm sand/amber palette (runtime overrides of tokens.css). All pairs pass WCAG AA
     // (text-on-bg 15.76:1). Applied on the .device-stage root by useMachineTheme (SPEC-048).
     theme: {

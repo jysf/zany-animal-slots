@@ -60,6 +60,22 @@ cost:
         only guards are the three machines' "keeps the 8-symbol vocabulary" tests (currently assert
         symbolDisplay === SYMBOL_DISPLAY) — flipped to assert per-machine identity. Emits DEC-021
         (already authored), which supersedes the shared-vocabulary clause of DEC-017/018 (and DEC-019).
+    - cycle: build
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # NOMINAL — autonomous single-agent run, not separately metered (run cost convention)
+      estimated_usd: 0.59    # nominal: 90000 tok × the run's $6.6/M reference rate
+      recorded_at: 2026-07-09
+      note: >-
+        Autonomous single-agent run — nominal estimate, not separately metered. Added ARCTIC_SYMBOLS /
+        DESERT_SYMBOLS / OCEAN_SYMBOLS themed maps to the three machine files, pointed each
+        presentation.symbolDisplay at its own (swapped the SYMBOL_DISPLAY import for the SymbolDisplay
+        type), and flipped the three vocabulary guard-tests. Full gate green: typecheck, lint, test
+        (69 files / 408 tests), build, validate, cost-audit. Boundary diffs vs main EMPTY: src/engine/
+        (DEC-001) and src/machines/wildAndWhimsical.ts + its parity test (W&W keeps SYMBOL_DISPLAY); no
+        math line changed in any themed machine. NOTE: an initial guard-mutation pass reverted the
+        uncommitted machine files via `git checkout` (discarding build work); recovered by re-applying,
+        then committed the build BEFORE re-running mutations so reverts target the committed build.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -251,17 +267,26 @@ Adversarial guard-mutations for verify (each must fail its target, then revert):
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **All acceptance criteria met?**
-- **New decisions emitted:** DEC-021 (authored at design).
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-058-per-machine-symbols`
+- **All acceptance criteria met?** Yes — Arctic/Desert/Ocean each render their own themed symbols on the
+  reels AND paytable (preview-verified per machine); W&W unchanged (forest animals, parity holds); engine
+  + W&W diffs EMPTY; no math changed; full gate green (69 files / 408 tests).
+- **New decisions emitted:** DEC-021 (authored at design; supersedes the symbol clause of DEC-017/018/019).
+- **Deviations from spec:** none in the shipped result. Process note: an initial mutation pass used
+  `git checkout` to revert uncommitted build files and lost the machine-file edits; re-applied and
+  committed the build before re-running mutations.
+- **Follow-up work identified:** none. (Optional future: point markers / per-machine sparkline, or a
+  per-machine *engine* difference — a separate, weightier decision.)
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing; the drop-in maps + flipped tests
+   were unambiguous and the change matched on first gate run.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No. DEC-021 +
+   DEC-001 + DEC-006 covered it; confirming the SPEC-041 threading up front meant zero plumbing.
+3. **If you did this task again, what would you do differently?** — **Commit the build BEFORE running
+   adversarial guard-mutations.** Reverting mutations with `git checkout` on an uncommitted tree
+   discards the real build work; committing first makes revert target the build, not the base branch.
 
 ---
 

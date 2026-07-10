@@ -15,8 +15,19 @@ import {
   buildStrip,
 } from '../engine/index';
 import type { MachineMath, SymbolId, Tier } from '../engine/index';
-import { SYMBOL_DISPLAY } from '../ui/reels/symbols';
-import type { Machine } from './types';
+import type { Machine, SymbolDisplay } from './types';
+
+/** Arctic's own reel creatures — polar identity over the shared 8 engine symbols (DEC-021). */
+const ARCTIC_SYMBOLS: SymbolDisplay = {
+  DEER: { emoji: '🦌', label: 'Caribou' },
+  FOX: { emoji: '🦊', label: 'Arctic Fox' },
+  SQUIRREL: { emoji: '🐧', label: 'Penguin' },
+  BEAR: { emoji: '🦭', label: 'Seal' },
+  EAGLE: { emoji: '🦅', label: 'Eagle' },
+  OWL: { emoji: '🦉', label: 'Snowy Owl' },
+  BISON: { emoji: '🦣', label: 'Mammoth' },
+  WOLF: { emoji: '🐻‍❄️', label: 'Polar Bear' },
+};
 
 /** Arctic's tuned reel weights (sum 42) — flatter than W&W, more mid-tier (icy, steadier hits). */
 const ARCTIC_WEIGHTS: Record<SymbolId, number> = {
@@ -62,7 +73,7 @@ export const ARCTIC: Machine = {
   name: 'Arctic',
   math: ARCTIC_MATH,
   presentation: {
-    symbolDisplay: SYMBOL_DISPLAY, // same 8-animal vocabulary; theme conveys "Arctic", not new symbols
+    symbolDisplay: ARCTIC_SYMBOLS, // per-machine polar identity (DEC-021; supersedes DEC-017 symbol clause)
     // Cool-blue icy palette (runtime overrides of tokens.css). All pairs pass WCAG AA
     // (text-on-bg 16.4:1). Applied on the .device-stage root by useMachineTheme (SPEC-048).
     theme: {

@@ -26,9 +26,13 @@ describe('Ocean machine', () => {
     expect(getActiveMachine()).toBe(WILD_AND_WHIMSICAL);
   });
 
-  it('Ocean keeps the 8-symbol vocabulary', () => {
+  it('Ocean keeps the 8 engine symbols but themes their display', () => {
     expect(OCEAN.math.symbols).toEqual(SYMBOLS);
-    expect(OCEAN.presentation.symbolDisplay).toBe(SYMBOL_DISPLAY);
+    // Per-machine identity (DEC-021, supersedes DEC-019's shared-vocabulary clause): Ocean renders
+    // its own marine creatures, NOT the shared SYMBOL_DISPLAY.
+    expect(OCEAN.presentation.symbolDisplay).not.toBe(SYMBOL_DISPLAY);
+    expect(Object.keys(OCEAN.presentation.symbolDisplay).sort()).toEqual([...SYMBOLS].sort());
+    expect(OCEAN.presentation.symbolDisplay.WOLF.label).toBe('Shark');
   });
 
   it("Ocean's math measures in the generous RTP band", () => {
