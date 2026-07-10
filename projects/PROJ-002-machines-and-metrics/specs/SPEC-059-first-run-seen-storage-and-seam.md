@@ -61,8 +61,12 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # filled at ship from the build sub-agent's subagent_tokens
-      recorded_at: null
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens at ship
+      recorded_at: 2026-07-09
+      note: >-
+        Transcribed both drop-in modules (helpSeenStorage.ts, HelpSeenProvider.tsx) and their two
+        test files verbatim from the spec's Notes, plus the one-line main.tsx wiring; full gate
+        (typecheck/lint/test/build/validate/cost-audit) green, engine diff empty.
     - cycle: verify
       interface: claude-code
       model: claude-opus-4-8
@@ -364,20 +368,25 @@ createRoot(rootElement).render(
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
 - **Branch:** `feat/spec-059-first-run-seen-seam`
-- **PR (if applicable):** <none until ship / or #NN>
-- **All acceptance criteria met?** <yes/no>
+- **PR (if applicable):** none until ship
+- **All acceptance criteria met?** yes — all 7 acceptance criteria satisfied; all 12 Failing Tests
+  (8 in `helpSeenStorage.test.ts` + 4 in `HelpSeenProvider.test.tsx`) pass; full gate
+  (typecheck/lint/test/build/validate/cost-audit) green; `git diff main..HEAD -- src/engine/` is empty.
 - **New decisions emitted:**
-  - `DEC-022` — the first-run help onboarding model (authored at design; no NEW dec expected at build)
+  - `DEC-022` — the first-run help onboarding model (authored at design; no NEW dec emitted at build)
 - **Deviations from spec:**
-  - <none / describe>
+  - none — both drop-in modules and the `main.tsx` edit transcribed verbatim from the Notes.
 - **Follow-up work identified:**
-  - <SPEC-060 (HelpSheet UI + header trigger + auto-open) already framed — the natural next step>
+  - SPEC-060 (HelpSheet UI + header trigger + auto-open) already framed — the natural next step.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes section's drop-in
+   code and Failing Tests were complete and unambiguous, so this cycle was pure transcription.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No; DEC-001,
+   DEC-005, DEC-022 fully covered the boundaries this spec touches.
+3. **If you did this task again, what would you do differently?** — Nothing; the mirror-an-existing-
+   pattern approach (statsStorage.ts / StatsProvider.tsx) made this a fast, low-risk build.
 
 ---
 

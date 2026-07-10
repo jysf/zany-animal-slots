@@ -25,7 +25,7 @@ Cycle prompts live in `prompts/SPEC-059-<cycle>.md`.
       verify (drop the `version` check in `isValid`; flip the no-op default `seen` true→false). No new
       dependency. **[S]** Build prompt written.
 
-- [ ] **build** — LOCAL-ONLY (Sonnet, branch `feat/spec-059-first-run-seen-seam`): transcribe both drop-in
+- [~] **build** — LOCAL-ONLY (Sonnet, branch `feat/spec-059-first-run-seen-seam`): transcribe both drop-in
       modules + the `main.tsx` wiring; make the two test files pass; full gate green; `git diff main..HEAD --
       src/engine/` EMPTY; no new dep; only `src/ui/help/**` + the one `main.tsx` line touched. Fill Build
       Completion + append build cost. Do NOT push/PR/advance-cycle.
