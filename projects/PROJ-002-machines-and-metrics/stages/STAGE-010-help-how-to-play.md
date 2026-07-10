@@ -9,10 +9,10 @@ stage:
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
-# Framing-review gate for the autonomous overnight orchestrator: this frame was authored
-# with the user present but is NOT yet build-approved. The overnight task must NOT build a
-# STAGE-010 spec until the user flips this to true. (See the task's safety rails.)
-framing_approved: false
+# Framing-review gate for the autonomous overnight orchestrator. The user reviewed this frame
+# and APPROVED building it interactively on 2026-07-09 ("go"), so the gate is now open and the
+# backlog may be driven through the cycle. (See the task's safety rails.)
+framing_approved: true
 
 project:
   id: PROJ-002                      # parent project
@@ -100,9 +100,10 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
 Ordered infrastructure-before-UI, matching the SPEC-054→056 pattern (safe storage seam → sheet UI).
 
-- [ ] SPEC-059 (frame) — **First-run-seen storage + seam** *(infra)*: a safe `zany:help-seen` helper
+- [ ] SPEC-059 (build) — **First-run-seen storage + seam** *(infra)*: a safe `zany:help-seen` helper
       mirroring `statsStorage.ts` (guarded get/set, never throws — DEC-005) + a minimal reactive seam
-      (`useHelpSeen` / a tiny context) exposing `seen` + `markSeen()`. No UI. **[S]**
+      (`useHelpSeen` / a tiny context, no-op default `seen: true`) exposing `seen` + `markSeen()`, wired
+      into `main.tsx`. No UI. Authored **DEC-022** (the onboarding model). **[S]**
 - [ ] SPEC-060 (frame) — **Help sheet UI + header trigger + first-run auto-open** *(UI)*: a `HelpSheet`
       mirroring `PaytableSheet` with a "How to play" cabinet-header trigger, rendering the plain-language
       how-to-play content (goal, controls, where things are, play-money disclaimer, pointer to Paytable),
