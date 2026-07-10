@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-010                     # the roadmap's reserved Help slot (auto-tool assigned 013; renumbered)
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -20,7 +20,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-09
-shipped_at: null
+shipped_at: 2026-07-10
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -105,14 +105,14 @@ Ordered infrastructure-before-UI, matching the SPEC-054→056 pattern (safe stor
       seam (`useHelpSeen` / `HelpSeenProvider`, default `seen: true` so App.test never auto-opens) exposing
       `seen` + `markSeen()`, wired into `main.tsx`. No UI. Authored **DEC-022** (the onboarding model).
       Engine diff EMPTY (DEC-001); 12 new tests, 420/420 green; 2 adversarial guard-mutations proven. **[S]**
-- [ ] SPEC-060 (build) — **Help sheet UI + header trigger + first-run auto-open** *(UI)*: a `HelpSheet`
-      mirroring `PaytableSheet` with a "How to play" cabinet-header trigger, rendering the plain-language
-      how-to-play content (goal, controls, where things are, play-money disclaimer, pointer to Paytable),
-      **auto-opened once** on first run via the SPEC-059 seam and marking seen on dismiss. Preview-verified.
-      **[M]**
+- [x] SPEC-060 (shipped, PR #70) — **Help sheet UI + header trigger + first-run auto-open** *(UI)*: a
+      `HelpSheet` mirroring `PaytableSheet`/`StatsSheet` with a "How to play" cabinet-header trigger,
+      rendering the plain-language how-to-play content (goal, four controls, where things are, play-money
+      disclaimer, pointer to Paytable), **auto-opened once** on first run via the SPEC-059 seam and marking
+      seen on first dismiss (DEC-022). Engine + seam diffs EMPTY (DEC-001); 5 new tests, 425/425 green; 2
+      adversarial guard-mutations proven; preview-verified. **[M]**
 
-**Count:** 1 shipped (SPEC-059) / 0 active / 1 pending (SPEC-060) — 1×S + 1×M. Comfortably within the
-3–8 typical range for a small, focused stage.
+**Count:** 2 shipped (SPEC-059, SPEC-060) / 0 active / 0 pending — 1×S + 1×M. Backlog COMPLETE.
 
 ## Design Notes
 
@@ -154,12 +154,30 @@ Ordered infrastructure-before-UI, matching the SPEC-054→056 pattern (safe stor
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped.*
+*Filled in when status moves to shipped (2026-07-10).*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes.** A first-timer who opens the cabinet
+  is now shown a short, plain-language how-to-play explainer **once** (auto-opened on first visit,
+  remembered so it never nags on reload), and can re-open it anytime from the persistent **"How to play"**
+  header trigger. The explainer covers the goal, the four controls, where things live, and the play-money
+  disclaimer, and points to the Paytable for payouts. This closes the brief's top-line comprehension
+  criterion — the observed PROJ-001 tester failure ("couldn't understand it") is fixed end-to-end.
+- **How many specs did it actually take?** **2, exactly as planned** (SPEC-059 storage/seam infra →
+  SPEC-060 sheet UI). The infra-before-UI split (mirroring SPEC-054→056) held with zero re-scoping.
+- **What changed between starting and shipping?** Nothing material — both specs shipped verbatim from
+  their design drop-ins with zero deviations; the only mid-stream event was the framing gate opening
+  (`framing_approved: true`) after the user reviewed the frame.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - Any new `*__trigger` control must be hand-added to the `controls.touch-target.test.ts` `CONTROLS`
+    array (that guard enumerates triggers explicitly; it does not auto-discover) — worth a one-line
+    AGENTS note under the testing conventions.
+  - The Context-over-safe-storage seam (machine → stats → help) and the overlay sheet idiom
+    (paytable → stats → machine-selector → help) are each now proven a fourth time: they are the repo's
+    standard shapes for a persisted client flag and an in-app panel, respectively.
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - From SPEC-060: for a first-run auto-open, read the seam's **mount-time** value via a `useState`
+    initialiser (not a `useEffect`) so there is no flash of closed-then-opened, and so the no-op-default
+    `seen: true` keeps provider-less consumers (App.test) green without wrapping.
+  - From SPEC-059: the storage default (`false` = not seen) and the provider no-op default
+    (`seen: true` = don't auto-open) must point in **opposite** directions — that inversion is the whole
+    onboarding contract (DEC-022).

@@ -182,12 +182,13 @@ is the most separable and could be deferred or split off if the wave runs long.
       (DEC-005 unchanged), no engine change (**DEC-001 held — every spec's engine diff EMPTY**).
       **4 specs (SPEC-054–057)**, shipped as framed; the sparkline (SPEC-057) was completed, not
       deferred.
-- [ ] STAGE-010 (framed 2026-07-09, active) — **Help / how-to-play**: onboarding surface that
+- [x] STAGE-010 (shipped 2026-07-10) — **Help / how-to-play**: onboarding surface that
       fixes the tester-comprehension failure. One `HelpSheet` (mirroring `PaytableSheet`) reached two
       ways — auto-opened once on first run (safe `zany:help-seen` flag, never throws — DEC-005) and via
       a persistent "How to play" header trigger; covers goal + controls + where-things-are + play-money
       disclaimer, links to the Paytable for payouts. Client-only, engine untouched (DEC-001). **2 specs
-      (SPEC-059 infra, SPEC-060 UI)**. Framing awaits user build-approval (`framing_approved`).
+      (SPEC-059 infra PR #69, SPEC-060 UI PR #70)**, shipped as framed; the onboarding model was pinned
+      in **DEC-022**.
 - [ ] STAGE-011 (not yet framed) — **Configurable usage analytics (default OFF)**: a
       provider-agnostic usage beacon + config; a generic HTTP-endpoint sink
       (self-hostable, no Cloudflare) + a reference Cloudflare Worker+KV sink; optional
@@ -200,8 +201,8 @@ is the most separable and could be deferred or split off if the wave runs long.
       **DEC-021**. Numbered 012 to reserve 010/011 for the already-planned Help + analytics
       stages. **1 spec (SPEC-058, PR #68)**.
 
-**Count:** 4 shipped / 1 active / 1 pending (STAGE-010 framed + active 2026-07-09, 2 specs
-SPEC-059/060 awaiting build-approval; STAGE-012 shipped 2026-07-09; STAGE-011 planned, not yet framed).
+**Count:** 5 shipped / 0 active / 1 pending (STAGE-010 shipped 2026-07-10, 2 specs SPEC-059 PR #69 +
+SPEC-060 PR #70; STAGE-012 shipped 2026-07-09; STAGE-011 planned, not yet framed).
 
 ## Dependencies
 

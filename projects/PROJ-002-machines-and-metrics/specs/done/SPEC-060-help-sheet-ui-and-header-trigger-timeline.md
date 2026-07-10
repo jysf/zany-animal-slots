@@ -50,4 +50,8 @@ Cycle prompts live in `prompts/SPEC-060-<cycle>.md`.
       trigger declares 48px min-height/width (≥44px, identical to the shipped `.stats__trigger`); no
       console errors. Defects: 0.
 
-- [ ] **ship** — not started.
+- [x] **ship** — shipped 2026-07-10 via PR #70 (squash-merged to main, commit `147cf1a`). CI CLEAN, all
+      checks SUCCESS (app checks, cost-capture, supply-chain, Workers Build). Post-merge: cycle → ship,
+      STAGE-010 backlog SPEC-060 [x], archived. The LAST spec of STAGE-010 (Help / how-to-play) — the
+      stage is now COMPLETE. Cost: build 101530 tok (Sonnet sub-agent) + verify 90000 (nominal main-loop)
+      = 191530; 4 sessions. Brief's comprehension criterion met end-to-end.
