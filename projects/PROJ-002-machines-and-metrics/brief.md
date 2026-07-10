@@ -189,11 +189,14 @@ is the most separable and could be deferred or split off if the wave runs long.
       disclaimer, links to the Paytable for payouts. Client-only, engine untouched (DEC-001). **2 specs
       (SPEC-059 infra PR #69, SPEC-060 UI PR #70)**, shipped as framed; the onboarding model was pinned
       in **DEC-022**.
-- [ ] STAGE-011 (not yet framed) — **Configurable usage analytics (default OFF)**: a
-      provider-agnostic usage beacon + config; a generic HTTP-endpoint sink
-      (self-hostable, no Cloudflare) + a reference Cloudflare Worker+KV sink; optional
-      private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
-      apply ONLY when a remote sink is enabled.
+- [~] STAGE-011 (framed 2026-07-10, awaiting `framing_approved`) — **Configurable usage
+      analytics (default OFF)**: a provider-agnostic usage beacon + config; a generic
+      HTTP-endpoint sink (self-hostable, no Cloudflare) + a reference Cloudflare Worker+KV
+      sink; optional private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV
+      binding apply ONLY when a remote sink is enabled. **5-spec backlog framed
+      (SPEC-061–065, last optional); DEC-023 to be authored at SPEC-061.** This stage crosses
+      the no-backend posture when a remote sink is enabled, so its frame carries an
+      intent-level decision — `framing_approved: false` until the user reviews it.
 - [x] STAGE-012 (shipped 2026-07-09) — **Per-machine reel symbol identity**: Arctic/Desert/Ocean
       each render their own themed reel creatures (emoji + labels) on the reels + paytable;
       W&W keeps the forest-animal default. Presentation-only (engine untouched); corrected the
@@ -207,9 +210,10 @@ is the most separable and could be deferred or split off if the wave runs long.
 > standalone **spike/probe** to assess what "good" sounds like and whether the current Web-Audio synth
 > approach can get there or needs sampled assets. Deliberately NOT a PROJ-002 stage.
 
-**Count:** 5 shipped / 0 active / 1 pending (STAGE-010 shipped 2026-07-10, 2 specs SPEC-059 PR #69 +
-SPEC-060 PR #70; STAGE-012 shipped 2026-07-09; STAGE-011 analytics planned, not yet framed). An
-audio-quality overhaul is parked as a future-project candidate (see the note above), not a PROJ-002 stage.
+**Count:** 5 shipped / 0 active / 1 framed-awaiting-approval (STAGE-010 shipped 2026-07-10, 2 specs
+SPEC-059 PR #69 + SPEC-060 PR #70; STAGE-012 shipped 2026-07-09; STAGE-011 analytics **framed 2026-07-10**,
+5-spec backlog, `framing_approved: false` pending user review). An audio-quality overhaul is parked as a
+future-project candidate (see the note above), not a PROJ-002 stage.
 
 ## Dependencies
 
