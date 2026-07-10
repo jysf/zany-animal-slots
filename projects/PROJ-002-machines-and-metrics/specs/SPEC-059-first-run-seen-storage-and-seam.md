@@ -91,11 +91,16 @@ cost:
       interface: claude-code
       model: claude-opus-4-8
       tokens_total: null
-      recorded_at: null
+      estimated_usd: null
+      recorded_at: 2026-07-09
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled build + cold-verify
+        against git/disk, filled build cost from the sub-agent's subagent_tokens (93769) and verify as
+        a nominal main-loop estimate, PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: null
-    estimated_usd: null
-    session_count: null
+    tokens_total: 183769   # build 93769 + verify 90000 (nominal)
+    estimated_usd: 1.21    # build 0.62 + verify 0.59 (nominal)
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-059: First-run-seen storage and seam
@@ -411,5 +416,21 @@ createRoot(rootElement).render(
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?** —
+   Nothing structural. The seam-mirrors-a-proven-pattern approach (helpSeenStorage ← statsStorage;
+   HelpSeenProvider ← StatsProvider) meant the drop-ins pasted in cleanly and the build had zero
+   deviations. The one judgement call worth remembering: the no-op default `seen: true` (not `false`)
+   is what keeps App.test green without wrapping it — the inert default must mean "don't auto-open",
+   which is the opposite of the storage default (`false` = "not seen"). Getting those two defaults
+   pointing opposite directions right the first time is the whole spec.
+
 2. **Does any template, constraint, or decision need updating?** —
+   No. DEC-022 held cleanly through build + verify (no new decisions needed). DEC-001 (empty engine
+   diff) and DEC-005 (guarded, never-throw storage) both stayed clean. The pattern is now proven a
+   third time (machine → stats → help), which is itself the signal: the Context-over-safe-storage seam
+   is the repo's standard shape for any small persisted client flag — worth a one-line AGENTS note but
+   not a template change.
+
 3. **Is there a follow-up spec I should write now before I forget?** —
+   No new spec — SPEC-060 (the HelpSheet UI + "How to play" header trigger + first-run auto-open) is
+   already framed and is the natural next step, consuming this seam's `seen` + `markSeen()` exactly as
+   designed. It is the last spec in STAGE-010's backlog.
