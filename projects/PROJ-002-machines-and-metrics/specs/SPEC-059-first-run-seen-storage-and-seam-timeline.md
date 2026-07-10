@@ -25,14 +25,19 @@ Cycle prompts live in `prompts/SPEC-059-<cycle>.md`.
       verify (drop the `version` check in `isValid`; flip the no-op default `seen` true→false). No new
       dependency. **[S]** Build prompt written.
 
-- [ ] **build** — LOCAL-ONLY (Sonnet, branch `feat/spec-059-first-run-seen-seam`): transcribe both drop-in
-      modules + the `main.tsx` wiring; make the two test files pass; full gate green; `git diff main..HEAD --
-      src/engine/` EMPTY; no new dep; only `src/ui/help/**` + the one `main.tsx` line touched. Fill Build
-      Completion + append build cost. Do NOT push/PR/advance-cycle.
+- [x] **build** — completed 2026-07-09 (Sonnet, branch `feat/spec-059-first-run-seen-seam`, LOCAL ONLY):
+      transcribed both drop-in modules + the `main.tsx` wiring verbatim; all 12 Failing Tests pass (8
+      storage + 4 provider); full gate green (typecheck/lint/test 71 files/420 tests/build/validate/
+      cost-audit); `git diff main..HEAD -- src/engine/` EMPTY; no new dep; only `src/ui/help/**` + the one
+      `main.tsx` line touched. Build Completion filled + build cost appended. No push/PR/advance-cycle.
 
-- [ ] **verify** — cold review: re-run the FULL gate; run both adversarial guard-mutations (each breaks
-      EXACTLY its test, revert clean); confirm `git diff main..HEAD -- src/engine/` EMPTY and no stray drift
-      outside `src/ui/help/**` + `main.tsx`; App.test still green.
+- [x] **verify** — completed 2026-07-09 (Opus, cold review): reconciled the build against git/disk (both
+      modules byte-for-byte the spec drop-ins; the main.tsx wiring nests HelpSeenProvider inside StatsProvider;
+      only `src/ui/help/**` + `main.tsx` + spec bookkeeping changed). Re-ran the FULL gate green (typecheck/
+      lint/test **420/420**/build/validate/cost-audit). Ran both adversarial guard-mutations — each broke
+      EXACTLY its target test and reverted clean (12/12 help tests green after): drop the `version` clause in
+      `isValid` → broke "version mismatch"; flip the no-op default `seen` true→false → broke "without a
+      provider returns seen:true". `git diff main..HEAD -- src/engine/` EMPTY; no `.only/.skip`. Defects: 0.
 
 - [ ] **ship** — fill build+verify cost; PR + CI-poll (CLEAN + all checks SUCCESS) + squash-merge; post-merge
       rollup (timeline ship [x], advance-cycle ship, STAGE-010 backlog SPEC-059 [x], brag, archive).

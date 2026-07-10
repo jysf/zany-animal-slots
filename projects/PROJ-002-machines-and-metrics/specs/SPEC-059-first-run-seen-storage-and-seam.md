@@ -61,22 +61,46 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # filled at ship from the build sub-agent's subagent_tokens
-      recorded_at: null
+      tokens_total: 93769    # from the build sub-agent's subagent_tokens
+      estimated_usd: 0.62    # 93769 tok × $6.6/M (Sonnet)
+      duration_minutes: 6.4  # 386954 ms
+      recorded_at: 2026-07-09
+      note: >-
+        Build delegated to a fresh Sonnet sub-agent (local-only, branch feat/spec-059-first-run-seen-seam).
+        Transcribed both drop-in modules (helpSeenStorage.ts, HelpSeenProvider.tsx) and their two test
+        files verbatim from the spec's Notes, plus the one-line main.tsx wiring; all 12 new tests pass;
+        full gate (typecheck/lint/test 420/build/validate/cost-audit) green; engine diff empty; only
+        src/ui/help/** + the one main.tsx line touched. No deviations, no new dep, no new DEC.
     - cycle: verify
       interface: claude-code
       model: claude-opus-4-8
-      tokens_total: null   # filled at ship (nominal if main-loop self-verify)
-      recorded_at: null
+      tokens_total: 90000    # nominal — see note
+      estimated_usd: 0.59    # nominal, 90000 tok × $6.6/M
+      recorded_at: 2026-07-09
+      note: >-
+        Cold re-verification on the main Opus loop (single-agent, not separately metered — nominal
+        90000-tok estimate per the run's cost convention). Reconciled the build against git/disk: read
+        both source modules (byte-for-byte the spec drop-ins) + the main.tsx wiring; only src/ui/help/**
+        + main.tsx + spec bookkeeping changed. Re-ran the FULL gate green (typecheck/lint/test 420/build/
+        validate/cost-audit). Ran both adversarial guard-mutations — each broke EXACTLY its target test
+        and reverted clean (12/12 help tests green after): (1) dropping the version clause in isValid
+        broke "version mismatch"; (2) flipping the no-op default seen true→false broke "without a provider
+        returns seen:true". Guards have teeth. git diff main..HEAD -- src/engine/ empty; no .only/.skip in
+        src/ui/help/. Defect count: 0.
     - cycle: ship
       interface: claude-code
       model: claude-opus-4-8
       tokens_total: null
-      recorded_at: null
+      estimated_usd: null
+      recorded_at: 2026-07-09
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled build + cold-verify
+        against git/disk, filled build cost from the sub-agent's subagent_tokens (93769) and verify as
+        a nominal main-loop estimate, PR + CI-poll + squash-merge + backlog rollup + archive.
   totals:
-    tokens_total: null
-    estimated_usd: null
-    session_count: null
+    tokens_total: 183769   # build 93769 + verify 90000 (nominal)
+    estimated_usd: 1.21    # build 0.62 + verify 0.59 (nominal)
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-059: First-run-seen storage and seam
@@ -364,20 +388,25 @@ createRoot(rootElement).render(
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
 - **Branch:** `feat/spec-059-first-run-seen-seam`
-- **PR (if applicable):** <none until ship / or #NN>
-- **All acceptance criteria met?** <yes/no>
+- **PR (if applicable):** none until ship
+- **All acceptance criteria met?** yes — all 7 acceptance criteria satisfied; all 12 Failing Tests
+  (8 in `helpSeenStorage.test.ts` + 4 in `HelpSeenProvider.test.tsx`) pass; full gate
+  (typecheck/lint/test/build/validate/cost-audit) green; `git diff main..HEAD -- src/engine/` is empty.
 - **New decisions emitted:**
-  - `DEC-022` — the first-run help onboarding model (authored at design; no NEW dec expected at build)
+  - `DEC-022` — the first-run help onboarding model (authored at design; no NEW dec emitted at build)
 - **Deviations from spec:**
-  - <none / describe>
+  - none — both drop-in modules and the `main.tsx` edit transcribed verbatim from the Notes.
 - **Follow-up work identified:**
-  - <SPEC-060 (HelpSheet UI + header trigger + auto-open) already framed — the natural next step>
+  - SPEC-060 (HelpSheet UI + header trigger + auto-open) already framed — the natural next step.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes section's drop-in
+   code and Failing Tests were complete and unambiguous, so this cycle was pure transcription.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No; DEC-001,
+   DEC-005, DEC-022 fully covered the boundaries this spec touches.
+3. **If you did this task again, what would you do differently?** — Nothing; the mirror-an-existing-
+   pattern approach (statsStorage.ts / StatsProvider.tsx) made this a fast, low-risk build.
 
 ---
 
@@ -387,5 +416,21 @@ createRoot(rootElement).render(
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?** —
+   Nothing structural. The seam-mirrors-a-proven-pattern approach (helpSeenStorage ← statsStorage;
+   HelpSeenProvider ← StatsProvider) meant the drop-ins pasted in cleanly and the build had zero
+   deviations. The one judgement call worth remembering: the no-op default `seen: true` (not `false`)
+   is what keeps App.test green without wrapping it — the inert default must mean "don't auto-open",
+   which is the opposite of the storage default (`false` = "not seen"). Getting those two defaults
+   pointing opposite directions right the first time is the whole spec.
+
 2. **Does any template, constraint, or decision need updating?** —
+   No. DEC-022 held cleanly through build + verify (no new decisions needed). DEC-001 (empty engine
+   diff) and DEC-005 (guarded, never-throw storage) both stayed clean. The pattern is now proven a
+   third time (machine → stats → help), which is itself the signal: the Context-over-safe-storage seam
+   is the repo's standard shape for any small persisted client flag — worth a one-line AGENTS note but
+   not a template change.
+
 3. **Is there a follow-up spec I should write now before I forget?** —
+   No new spec — SPEC-060 (the HelpSheet UI + "How to play" header trigger + first-run auto-open) is
+   already framed and is the natural next step, consuming this seam's `seen` + `markSeen()` exactly as
+   designed. It is the last spec in STAGE-010's backlog.
