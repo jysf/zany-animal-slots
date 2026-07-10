@@ -76,10 +76,38 @@ cost:
         math line changed in any themed machine. NOTE: an initial guard-mutation pass reverted the
         uncommitted machine files via `git checkout` (discarding build work); recovered by re-applying,
         then committed the build BEFORE re-running mutations so reverts target the committed build.
+    - cycle: verify
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: 90000    # NOMINAL — autonomous single-agent run, not separately metered (run cost convention)
+      estimated_usd: 0.59    # nominal: 90000 tok × the run's $6.6/M reference rate
+      recorded_at: 2026-07-09
+      note: >-
+        Autonomous single-agent run — nominal estimate, not separately metered. Cold review: full gate
+        re-run green (typecheck, lint, test 69 files / 408 tests, build, validate, cost-audit). Three
+        adversarial guard-mutations (revert each machine's presentation to SYMBOL_DISPLAY — import +
+        pointer) each failed EXACTLY that machine's "keeps the 8 engine symbols but themes their display"
+        test (arctic/desert/ocean: 1 failed | 5 passed), then reverted clean to the committed build.
+        Boundary diffs vs main EMPTY: src/engine/ (DEC-001) and W&W (wildAndWhimsical.ts + parity test);
+        no math line changed in any themed machine. Preview check (dev server via .claude/launch.json):
+        switched the machine selector across all four — Arctic reels read Caribou/Arctic Fox/Penguin/
+        Seal/Eagle/Snowy Owl/Mammoth/Polar Bear; Desert Camel…Sidewinder; Ocean Dolphin…Shark with the
+        paytable showing marine creatures; Wild & Whimsical still the forest animals (Deer…Wolf, parity
+        intact). Server stopped. Zero defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-09
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Recorded nominal build/verify cost
+        (single-agent run), opened the PR, CI-polled to CLEAN + all checks SUCCESS, squash-merged,
+        post-merge rollup (cycle → ship, STAGE-012 backlog SPEC-058 [x], archive, stage-ship STAGE-012).
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 180000   # nominal build 90000 + verify 90000
+    estimated_usd: 1.18    # nominal build 0.59 + verify 0.59
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-058: Per-machine reel symbol identity
@@ -294,6 +322,15 @@ Adversarial guard-mutations for verify (each must fail its target, then revert):
 
 *Appended during the **ship** cycle.*
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Commit the build before adversarial guard-mutations (a
+   `git checkout` revert on an uncommitted tree discards the build). And, more broadly: treat a
+   "constraint" cited from an autonomously-authored DEC as *provisional* — this whole spec exists because
+   an overnight run's shared-vocabulary decision was enforced against the user's intent; the fix was to
+   record the intent (DEC-021) and supersede, not to defend the machine's prior call.
+2. **Does any template, constraint, or decision need updating?** — Two signals logged: (a) an autonomous
+   run must never override apparent USER intent to enforce a prior autonomous DEC — surface the conflict
+   instead (also now encoded in the STAGE-010 overnight task's safety rails); (b) the verify recipe
+   should say "commit the build before mutation-testing."
+3. **Is there a follow-up spec I should write now before I forget?** — No. STAGE-012 closes with this
+   spec. Optional future waves: per-machine sparkline point markers, or per-machine *engine* differences
+   (a separate, weightier decision).

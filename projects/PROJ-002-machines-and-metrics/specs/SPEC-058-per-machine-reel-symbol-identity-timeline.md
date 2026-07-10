@@ -32,3 +32,10 @@ Cycle prompts live in `prompts/SPEC-058-<cycle>.md`.
       paytable), W&W (forest animals, unchanged). Process note: an initial mutation pass reverted the
       uncommitted machine files via `git checkout`; recovered by re-applying and committing the build
       before re-running mutations.
+- [x] **verify** — completed 2026-07-09 (Opus, cold review): full gate re-run green (typecheck, lint,
+      test 69 files / 408 tests, build, validate, cost-audit). Three adversarial guard-mutations (revert
+      each machine's `presentation.symbolDisplay` to `SYMBOL_DISPLAY`, import + pointer) each failed
+      EXACTLY that machine's vocabulary test (1 failed | 5 passed), then reverted clean to the committed
+      build. `git diff main` on `src/engine/` + W&W EMPTY; no math changed. Preview: switched all four
+      machines — Arctic/Desert/Ocean show their own creatures on the reels (+ Ocean paytable), W&W
+      unchanged (parity). Zero defects.
