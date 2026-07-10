@@ -21,7 +21,7 @@ repo:
 
 created_at: 2026-07-07
 supersedes: null
-superseded_by: null
+superseded_by: DEC-021   # symbol-vocabulary clause ONLY; theme/audio/math below remain in force
 
 affected_scope:
   - src/machines/arctic.ts
@@ -36,6 +36,12 @@ tags:
 # DEC-017: Arctic is the first themed machine — icy theme, colder audio, its own tuned math
 
 ## Decision
+
+> **Superseded in part by [DEC-021] (2026-07-09):** the *shared 8-symbol vocabulary* clause below is
+> reversed — Arctic now renders its own polar creatures (Caribou / Arctic Fox / Penguin / Seal / Eagle /
+> Snowy Owl / Mammoth / Polar Bear) via a per-machine `presentation.symbolDisplay`. The shared-vocabulary
+> choice was an autonomous decision, not the user's; DEC-021 records the user's intent. The theme, audio,
+> and tuned math described here are UNCHANGED.
 
 Arctic is the first themed machine — the shared 8-symbol vocabulary with an icy cool-blue theme,
 colder audio, and its own tuned math (RTP ~91%), added as pure data + this DEC.

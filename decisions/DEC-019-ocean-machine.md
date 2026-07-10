@@ -21,7 +21,7 @@ repo:
 
 created_at: 2026-07-07
 supersedes: null
-superseded_by: null
+superseded_by: DEC-021   # symbol-vocabulary clause ONLY; theme/audio/math below remain in force
 
 affected_scope:
   - src/machines/ocean.ts
@@ -36,6 +36,12 @@ tags:
 # DEC-019: Ocean is the fourth and final themed machine — teal/deep-blue theme, flowing audio, its own steady low-variance math
 
 ## Decision
+
+> **Superseded in part by [DEC-021] (2026-07-09):** the *shared 8-symbol vocabulary* clause below is
+> reversed — Ocean now renders its own marine creatures (Dolphin / Tropical Fish / Shrimp / Crab /
+> Pufferfish / Octopus / Whale / Shark) via a per-machine `presentation.symbolDisplay`. The shared-vocabulary
+> choice was an autonomous decision, not the user's; DEC-021 records the user's intent. The theme, audio,
+> and tuned math described here are UNCHANGED.
 
 Ocean is the fourth and final themed machine — the shared 8-symbol vocabulary with a teal/deep-blue ocean
 theme, flowing spacious audio, and its own steady, low-variance tuned math (the highest hit-frequency of

@@ -189,9 +189,15 @@ is the most separable and could be deferred or split off if the wave runs long.
       (self-hostable, no Cloudflare) + a reference Cloudflare Worker+KV sink; optional
       private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV binding
       apply ONLY when a remote sink is enabled.
+- [ ] STAGE-012 (active 2026-07-09) — **Per-machine reel symbol identity**: Arctic/Desert/Ocean
+      each render their own themed reel creatures (emoji + labels) on the reels + paytable;
+      W&W keeps the forest-animal default. Presentation-only (engine untouched); corrects the
+      autonomous shared-vocabulary decision (DEC-017/018) that ran against user intent, via
+      **DEC-021**. Numbered 012 to reserve 010/011 for the already-planned Help + analytics
+      stages. **1 spec (SPEC-058)**.
 
-**Count:** 3 shipped / 0 active / 2 pending (STAGE-009 shipped 2026-07-09 —
-4 specs SPEC-054–057, backlog complete; STAGE-010/011 not yet framed).
+**Count:** 3 shipped / 1 active / 2 pending (STAGE-012 active 2026-07-09, 1 spec SPEC-058;
+STAGE-009 shipped 2026-07-09; STAGE-010/011 planned, not yet framed).
 
 ## Dependencies
 

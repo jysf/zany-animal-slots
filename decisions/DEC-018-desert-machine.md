@@ -21,7 +21,7 @@ repo:
 
 created_at: 2026-07-07
 supersedes: null
-superseded_by: null
+superseded_by: DEC-021   # symbol-vocabulary clause ONLY; theme/audio/math below remain in force
 
 affected_scope:
   - src/machines/desert.ts
@@ -36,6 +36,12 @@ tags:
 # DEC-018: Desert is the second themed machine — warm sand/amber theme, warm dry audio, its own sparse math
 
 ## Decision
+
+> **Superseded in part by [DEC-021] (2026-07-09):** the *shared 8-symbol vocabulary* clause below is
+> reversed — Desert now renders its own arid creatures (Camel / Fennec Fox / Gecko / Tortoise / Vulture /
+> Elf Owl / Bighorn Ram / Sidewinder) via a per-machine `presentation.symbolDisplay`. The shared-vocabulary
+> choice was an autonomous decision, not the user's; DEC-021 records the user's intent. The theme, audio,
+> and tuned math described here are UNCHANGED.
 
 Desert is the second themed machine — the shared 8-symbol vocabulary with a warm sand/amber theme,
 warm dry audio, and its own sparse, higher-variance tuned math (avg RTP ~90%, hit ~28%), added as pure
