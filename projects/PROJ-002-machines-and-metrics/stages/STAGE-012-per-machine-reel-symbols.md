@@ -6,7 +6,7 @@
 stage:
   id: STAGE-012                     # renumbered from the auto-assigned 010 to reserve 010/011 for the
                                     # already-planned Help (010) + analytics (011) stages
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -16,7 +16,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-09
-shipped_at: null
+shipped_at: 2026-07-09
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -123,12 +123,26 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped.*
+*Filled in when status moved to shipped (2026-07-09).*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes.** Arctic, Desert, and Ocean each render
+  their own reel creatures (polar / arid / marine) on the reels AND the paytable; Wild & Whimsical keeps
+  the forest-animal default. Preview-verified all four live. Presentation-only: `git diff main --
+  src/engine/` EMPTY, no machine's math changed, W&W + its parity test untouched (DEC-001 held; DEC-021
+  is the only new decision).
+- **How many specs did it actually take?** **1** (SPEC-058), exactly as framed — a single focused data
+  change over the SPEC-041 threading that already existed.
+- **What changed between starting and shipping?** Nothing in scope; the change landed as designed. The
+  stage exists at all because it **corrected an autonomous decision** (DEC-017/018's shared-vocabulary
+  clause, superseded by DEC-021) rather than adding net-new capability.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - **Autonomous decisions are provisional.** An overnight run authored the shared-vocabulary DEC and a
+    later run enforced it against the user's intent; the fix is a standing rule (now in the overnight
+    task's safety rails + the signals file): never override apparent user intent to enforce a prior
+    autonomous DEC — surface the conflict. Intent-level framing should carry a review gate
+    (`framing_approved`).
+  - **Commit the build before adversarial guard-mutations** — reverting a mutation with `git checkout`
+    on an uncommitted tree discards the build. (Logged to signals.)
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - Both of SPEC-058's — the autonomous-override risk and the commit-before-mutation process note — are
+    already promoted to the signals file for the template author.
