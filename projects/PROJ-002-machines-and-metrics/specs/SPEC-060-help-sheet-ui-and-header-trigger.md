@@ -96,10 +96,21 @@ cost:
         auto-opens the sheet with seen:false; dismiss flips seen:true; reload does NOT re-open
         (non-nagging); the header trigger re-opens it; goal/disclaimer copy + all four controls render;
         trigger declares 48px min-height/width (≥44px); no console errors. Defect count: 0.
+    - cycle: ship
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-10
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled build + cold-verify
+        against git/disk, filled build cost from the sub-agent's subagent_tokens (101530) and verify
+        as a nominal main-loop estimate (90000), PR + CI-poll + squash-merge + backlog rollup +
+        STAGE-010 closeout + archive.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 191530   # build 101530 + verify 90000 (nominal)
+    estimated_usd: 1.26    # build 0.67 + verify 0.59 (nominal)
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-060: Help sheet UI + header trigger + first-run auto-open
@@ -816,3 +827,34 @@ const helpCss = readFileSync(HELP_CSS, 'utf-8');
 3. **If you did this task again, what would you do differently?** — Nothing; the mirror-an-existing-
    sheet approach (StatsSheet → HelpSheet) plus the already-shipped SPEC-059 seam made this a fast,
    low-risk build with zero deviations.
+
+---
+
+## Reflection (Ship)
+
+*Appended during the **ship** cycle. Outcome-focused reflection, distinct
+from the process-focused build reflection above.*
+
+1. **What would I do differently next time?** —
+   Nothing structural. Mirroring `StatsSheet` verbatim meant the only genuinely new code was one
+   line — `useState(() => !seen)` — plus `markSeen()` in `close()`. The judgement worth remembering:
+   auto-open must read the seam's *mount-time* value (a `useState` initialiser), NOT a `useEffect`,
+   so a first-timer never sees a flash of closed-then-opened, and provider-less consumers (App.test)
+   stay green because the no-op default `seen: true` initialises `open: false`. Pinning the two long
+   copy strings as exact `.textContent` (the pure-UI form of measure-then-pin) caught nothing broken,
+   but made the content contract unambiguous for the build sub-agent — zero deviations resulted.
+
+2. **Does any template, constraint, or decision need updating?** —
+   No. DEC-022 held cleanly across both its specs (SPEC-059 storage/seam, SPEC-060 UI). The
+   touch-target guard test's explicit-enumeration design (it does not auto-discover triggers) meant
+   the new `.help__trigger` had to be added by hand — worth a one-line AGENTS note that any new
+   `*__trigger` needs a matching `CONTROLS` entry, but not a template change. The sheet idiom is now
+   proven a fourth time (paytable → stats → machine-selector → help): it is unambiguously the repo's
+   standard overlay shape.
+
+3. **Is there a follow-up spec I should write now before I forget?** —
+   No. SPEC-060 is the last spec in the STAGE-010 backlog; with it shipped, STAGE-010 (Help /
+   how-to-play) is complete. The brief's comprehension criterion is now met end-to-end (a first-timer
+   is shown the explainer once and can re-open it anytime). Any richer onboarding (interactive
+   tutorial, contextual tips) is explicitly a later wave, gated on STAGE-011 analytics showing
+   first-run drop-off — not a spec to write now.
