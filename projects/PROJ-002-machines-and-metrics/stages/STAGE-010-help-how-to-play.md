@@ -105,7 +105,7 @@ Ordered infrastructure-before-UI, matching the SPEC-054→056 pattern (safe stor
       seam (`useHelpSeen` / `HelpSeenProvider`, default `seen: true` so App.test never auto-opens) exposing
       `seen` + `markSeen()`, wired into `main.tsx`. No UI. Authored **DEC-022** (the onboarding model).
       Engine diff EMPTY (DEC-001); 12 new tests, 420/420 green; 2 adversarial guard-mutations proven. **[S]**
-- [ ] SPEC-060 (frame) — **Help sheet UI + header trigger + first-run auto-open** *(UI)*: a `HelpSheet`
+- [ ] SPEC-060 (build) — **Help sheet UI + header trigger + first-run auto-open** *(UI)*: a `HelpSheet`
       mirroring `PaytableSheet` with a "How to play" cabinet-header trigger, rendering the plain-language
       how-to-play content (goal, controls, where things are, play-money disclaimer, pointer to Paytable),
       **auto-opened once** on first run via the SPEC-059 seam and marking seen on dismiss. Preview-verified.
