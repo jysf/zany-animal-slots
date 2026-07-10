@@ -50,6 +50,18 @@ get_spec_complexity() {
     ' "$1"
 }
 
+# The spec's human title — the text after "SPEC-NNN:" in the body's H1
+# heading (there is no front-matter title field). Empty if no such heading.
+get_spec_title() {
+    awk '
+        /^# SPEC-[0-9]+:/ {
+            sub(/^# SPEC-[0-9]+:[[:space:]]*/, "")
+            print
+            exit
+        }
+    ' "$1"
+}
+
 # recorded_at of the `ship` cost session, if any. Indents match the
 # rest of the cost-session readers in _lib.sh.
 get_spec_ship_date() {
@@ -126,6 +138,7 @@ if [ "$JSON_OUT" = 1 ]; then
                 sid=$(basename "$sf" | sed -E 's/^(SPEC-[0-9]+).*/\1/')
                 cyc=$(get_spec_cycle "$sf"); [ -n "$cyc" ] || cyc="?"
                 cx=$(get_spec_complexity "$sf"); [ -n "$cx" ] || cx="?"
+                stitle=$(get_spec_title "$sf")
                 u=$(sum_cost_usd_for_spec "$sf"); t=$(sum_cost_tokens_for_spec "$sf")
                 g_usd=$(awk -v a="$g_usd" -v b="$u" 'BEGIN{printf "%.2f", a+b}')
                 g_tok=$((g_tok + t))
@@ -140,6 +153,7 @@ if [ "$JSON_OUT" = 1 ]; then
                 specs_json+=("$(json_obj \
                     project "$(json_qs "$proj")" \
                     "task.id" "$(json_qs "$sid")" \
+                    "task.title" "$(json_qs "$stitle")" \
                     "project.stage" "$(json_qs "$stage_id")" \
                     "task.cycle" "$(json_qs "$cyc")" \
                     "task.complexity" "$(json_qs "$cx")" \
@@ -192,6 +206,7 @@ print_stage() {
         sid=$(basename "$sf" | sed -E 's/^(SPEC-[0-9]+).*/\1/')
         cyc=$(get_spec_cycle "$sf"); [ -n "$cyc" ] || cyc="?"
         cx=$(get_spec_complexity "$sf"); [ -n "$cx" ] || cx="?"
+        title=$(get_spec_title "$sf"); [ -n "$title" ] || title="—"
         u=$(sum_cost_usd_for_spec "$sf"); t=$(sum_cost_tokens_for_spec "$sf")
         STAGE_USD=$(awk -v a="$STAGE_USD" -v b="$u" 'BEGIN{printf "%.2f", a+b}')
         STAGE_TOK=$((STAGE_TOK + t))
@@ -203,10 +218,10 @@ print_stage() {
                 sdate=$(get_spec_ship_date "$sf")
                 [ -n "$sdate" ] || sdate="$shipped"
                 [ -n "$sdate" ] || sdate="—"
-                printf "    %-10s  ${GREEN}%-8s${RESET}  %-12s  %-3s  %s\n" "$sid" "shipped" "$sdate" "$cx" "$costcol"
+                printf "    %-10s  ${GREEN}%-8s${RESET}  %-12s  %-3s  %-13s  ${DIM}%s${RESET}\n" "$sid" "shipped" "$sdate" "$cx" "$costcol" "$title"
                 SHIPPED=$((SHIPPED + 1)) ;;
             *)
-                printf "    %-10s  %-8s  %-12s  %-3s  %s\n" "$sid" "$cyc" "—" "$cx" "$costcol"
+                printf "    %-10s  %-8s  %-12s  %-3s  %-13s  ${DIM}%s${RESET}\n" "$sid" "$cyc" "—" "$cx" "$costcol" "$title"
                 INFLIGHT=$((INFLIGHT + 1)) ;;
         esac
         any=1
@@ -235,7 +250,7 @@ case "$SCOPE" in
 esac
 
 printf "${BOLD}Specs by stage — %s${RESET}\n" "$scope_label"
-printf "${DIM}columns: spec · status · ship date · complexity · cost (usd · tokens)${RESET}\n"
+printf "${DIM}columns: spec · status · ship date · complexity · cost (usd · tokens) · title${RESET}\n"
 
 for proj in "${PROJECTS[@]}"; do
     project_dir="${REPO_ROOT}/projects/${proj}"
