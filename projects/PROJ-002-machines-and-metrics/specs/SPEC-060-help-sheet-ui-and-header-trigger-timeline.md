@@ -27,6 +27,6 @@ Cycle prompts live in `prompts/SPEC-060-<cycle>.md`.
       guard-mutations specified for verify (kill the auto-open initialiser; drop the `markSeen()` in
       `close()`). No new dependency; no new DEC (implements DEC-022). **[M]** Build prompt written.
 
-- [ ] **build** — not started.
+- [~] **build** — in progress 2026-07-09 (Sonnet, claude-code): branch `feat/spec-060-help-sheet-ui`.
 - [ ] **verify** — not started.
 - [ ] **ship** — not started.

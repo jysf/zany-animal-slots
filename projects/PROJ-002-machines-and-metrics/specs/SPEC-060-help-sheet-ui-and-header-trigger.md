@@ -64,6 +64,15 @@ cost:
         drop-in code for HelpSheet.tsx, help.css, the HelpSheet.test.tsx, the one-line Header.tsx
         wiring, and the touch-target test edit live in ## Notes. Two adversarial guard-mutations
         specified for verify. No new dependency; no new DEC (implements DEC-022).
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      recorded_at: 2026-07-09
+      note: >-
+        Verbatim transcription of the Notes drop-ins (HelpSheet.tsx, help.css, HelpSheet.test.tsx,
+        the Header.tsx wiring line, the touch-target test edit). Zero deviations; full gate green
+        (typecheck/lint/test/build/validate/cost-audit); engine + SPEC-059 seam diffs both empty.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -752,3 +761,35 @@ const helpCss = readFileSync(HELP_CSS, 'utf-8');
 // ...in the CONTROLS array, after the stats entries:
   { label: '.help__trigger (help.css)', cssSource: helpCss, selector: '.help__trigger' },
 ```
+
+## Build Completion
+
+*Filled in at the end of the **build** cycle, before advancing to verify.*
+
+- **Branch:** `feat/spec-060-help-sheet-ui`
+- **PR (if applicable):** none until ship
+- **All acceptance criteria met?** yes — all 9 acceptance criteria satisfied; all 5 Failing Tests in
+  `HelpSheet.test.tsx` pass (trigger-present-no-provider, auto-open + mark-on-dismiss,
+  no-auto-open-when-seen, trigger-click content + pinned copy, close via ✕/backdrop/Escape); full gate
+  (`typecheck && lint && test && build && validate && cost-audit`) green — 72 test files / 425 tests
+  passed, including `App.test.tsx` (5 tests) unchanged and green; `git diff main..HEAD -- src/engine/`
+  is empty; `git diff main..HEAD -- src/ui/help/HelpSeenProvider.tsx src/ui/help/helpSeenStorage.ts`
+  is empty (the SPEC-059 seam untouched).
+- **New decisions emitted:**
+  - none — implements `DEC-022` (authored at SPEC-059/SPEC-060 design); no NEW dec emitted at build.
+- **Deviations from spec:**
+  - none — `HelpSheet.tsx`, `help.css`, `HelpSheet.test.tsx`, the `Header.tsx` edit, and the
+    `controls.touch-target.test.ts` edit were transcribed verbatim from the Notes drop-ins.
+- **Follow-up work identified:**
+  - None new. This is the last spec in the STAGE-010 backlog; STAGE-010 is complete once this ships.
+
+### Build-phase reflection (3 questions, short answers)
+
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes section's drop-in
+   code and Failing Tests were complete and unambiguous, so this cycle was pure transcription mirroring
+   `StatsSheet`/`PaytableSheet`.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No; DEC-022,
+   DEC-001, DEC-005, DEC-010, DEC-004 fully covered the boundaries this spec touches.
+3. **If you did this task again, what would you do differently?** — Nothing; the mirror-an-existing-
+   sheet approach (StatsSheet → HelpSheet) plus the already-shipped SPEC-059 seam made this a fast,
+   low-risk build with zero deviations.
