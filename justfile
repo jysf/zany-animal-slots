@@ -102,6 +102,10 @@ archive-spec SPEC_ID:
 weekly-review:
     @./scripts/weekly-review.sh
 
+# Print the Lifetime Report prompt: whole-repo history (all projects/stages/releases) pre-loaded for narrative synthesis
+lifetime-report:
+    @./scripts/lifetime-report.sh
+
 # Generate today's daily report under reports/daily/YYYY-MM-DD.md
 report-daily:
     @./scripts/report_daily.sh
