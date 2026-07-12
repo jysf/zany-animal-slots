@@ -9,14 +9,28 @@ Cloudflare (Workers Static Assets — see STAGE-006 / DEC-014).
   balance is a cosmetic number in `localStorage`; resetting it means nothing
   financially.
 - **No PII** — the app collects, stores, and transmits no personal data. No
-  accounts, no login, no analytics, no trackers, no ads.
+  accounts, no login, no ads, no third-party trackers.
+- **Usage analytics: default-OFF, zero-network** — the codebase includes an
+  optional, provider-agnostic usage-analytics *seam* (STAGE-011 Tier 1, DEC-023),
+  but the shipped build ships it **off**: the default selects a no-op sink, so
+  the app collects nothing, sets no cookie, uses no persistent identifier, honors
+  `navigator.doNotTrack`, and makes **zero network requests** for analytics — the
+  session posture is unchanged. Any *remote* sink (a self-hosted HTTP endpoint or
+  the reference Cloudflare Worker+KV — "Tier 2") is deliberately **gated** and
+  would require a separate decision amending the no-backend posture (a DEC
+  amending DEC-005) plus a matching update to this file.
 - **No backend / client-only** — a 100% client-side static SPA (Vite build →
   static assets). No server, database, API, or session — nothing to breach
   server-side.
 - **No third-party runtime calls** — audio is synthesized in-browser (Web Audio
-  / Tone.js); there are no external network requests at runtime.
-- **Client state** — only a play-money balance + a mute preference in
-  `localStorage`. Tampering affects only the tamperer's own cosmetic state.
+  / Tone.js); the default build makes no external network requests at runtime
+  (the default-off analytics seam makes none either).
+- **Client state** — a small set of non-sensitive `localStorage` keys: the
+  play-money balance, a mute preference, the active-machine choice, session stats
+  (spin/win counts — no PII), and a first-run "help seen" flag. All are
+  cosmetic/local; tampering affects only the tamperer's own state. The analytics
+  session id (only relevant if a sink is ever enabled) is **in-memory only**,
+  never persisted.
 - **RNG is not a security primitive** — the seedable mulberry32 RNG drives game
   visuals, not anything sensitive; it is not used for cryptography.
 

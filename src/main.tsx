@@ -4,6 +4,7 @@ import './styles/reset.css';
 import './styles/tokens.css';
 import './styles/reduced-motion.css';
 import App from './ui/App';
+import { ErrorBoundary } from './ui/ErrorBoundary';
 import { MachineProvider } from './ui/machine/MachineProvider';
 import { StatsProvider } from './ui/stats/StatsProvider';
 import { HelpSeenProvider } from './ui/help/HelpSeenProvider';
@@ -16,14 +17,16 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <MachineProvider>
-      <StatsProvider>
-        <HelpSeenProvider>
-          <AnalyticsProvider>
-            <App />
-          </AnalyticsProvider>
-        </HelpSeenProvider>
-      </StatsProvider>
-    </MachineProvider>
+    <ErrorBoundary>
+      <MachineProvider>
+        <StatsProvider>
+          <HelpSeenProvider>
+            <AnalyticsProvider>
+              <App />
+            </AnalyticsProvider>
+          </HelpSeenProvider>
+        </StatsProvider>
+      </MachineProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );
