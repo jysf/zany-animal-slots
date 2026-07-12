@@ -19,5 +19,5 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       in-browser: happy path renders normally (boundary transparent), then a forced crash (temporary App
       throw, reverted) showed the fallback (screenshot). Unit tests cover both paths. Full gate green (471,
       worktree excluded); engine diff EMPTY; no DEC. **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted). Final STAGE-013
+- [x] **ship** — shipped 2026-07-12 via PR #78 (squash-merged; CI green; branch deleted). Final STAGE-013
       spec; PROJ-002 close-out now unblocked.

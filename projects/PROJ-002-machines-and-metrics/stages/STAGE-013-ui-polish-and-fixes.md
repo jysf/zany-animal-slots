@@ -125,9 +125,14 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       (measured `border-box` + `height==innerHeight` on the sheets after removing the local crutch);
       +3-assertion contract test. Presentation-only. **[S]**
 
-**Count:** 4 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76) +
-SPEC-066 (PR #77) all shipped. STAGE-013 complete (the originally-framed 3 + the SPEC-066 box-sizing
-follow-up pulled in from the spawned task).
+- [x] SPEC-067 (shipped 2026-07-12, PR #78) — **Hardening: error boundary + security-doc accuracy**
+      *(chore)*: a top-level React `ErrorBoundary` (graceful "reload" fallback instead of a white screen
+      on a component crash) + a `SECURITY.md` accuracy pass (the default-OFF analytics seam, affirming
+      DEC-023; the real localStorage key set). Verified live (forced crash → fallback). **[S]**
+
+**Count:** 5 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76) +
+SPEC-066 (PR #77) + SPEC-067 (PR #78) all shipped. STAGE-013 complete (the originally-framed 3 + the
+box-sizing reset + the pre-close-out hardening pass).
 
 ## Design Notes
 
