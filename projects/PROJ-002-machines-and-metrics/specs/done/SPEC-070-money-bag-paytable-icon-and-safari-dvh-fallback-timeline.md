@@ -18,4 +18,4 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       full gate green (471, worktree excluded). The Safari overlay clip itself is fixed by SPEC-069
       (position:fixed); this is the vh-fallback insurance — needs a real-Safari re-test (not drivable from
       the Chromium preview). **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #81 (squash-merged; CI green; branch deleted).
