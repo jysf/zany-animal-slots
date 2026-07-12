@@ -5,15 +5,18 @@
 
 stage:
   id: STAGE-011                     # the roadmap's reserved analytics slot (auto-tool assigned 013; renumbered)
-  status: proposed                  # proposed | active | shipped | cancelled | on_hold
+  status: active                    # proposed | active | shipped | cancelled | on_hold  (Tier 1 in flight 2026-07-11)
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
-# Framing-review gate for the autonomous overnight orchestrator. This stage crosses the
-# no-backend posture (DEC-005) the moment a remote sink is enabled, so it carries an
-# intent-level product decision. Left FALSE until the user reviews this frame and sets it
-# true; no spec may be driven through the cycle while this is false. (See the task's safety rails.)
-framing_approved: false
+# Framing-review gate. This stage crosses the no-backend posture (DEC-005) ONLY when a REMOTE
+# sink is enabled (Tier 2). The user reviewed this frame (2026-07-11) and approved TIER 1 ONLY:
+# the default-off, zero-network, client-only seam (SPEC-061 + SPEC-062). Tier 2 (SPEC-063
+# HttpSink self-hosted endpoint, SPEC-064 Cloudflare Worker+KV, SPEC-065 /stats) remains GATED —
+# a remote sink requires a DEC amending DEC-005 + a SECURITY.md update + an explicit user
+# decision, none of which is granted here. framing_approved=true covers the Tier-1 specs only.
+framing_approved: true             # Tier 1 (SPEC-061/062) approved 2026-07-11
+tier2_gated: true                  # SPEC-063/064/065 need a DEC-005 amendment + explicit user go — do NOT drive
 
 project:
   id: PROJ-002                      # parent project
@@ -120,28 +123,45 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 Ordered infrastructure-before-network-before-UI (mirrors the SPEC-054→056 and SPEC-059→060 shape):
 the inert seam first, then the tap, then each sink, then the optional view.
 
-- [ ] SPEC-061 (pending) — **Analytics event model + Sink seam (default OFF)** *(infra)*: the typed
-      `AnalyticsEvent` union, the `Sink` interface + `NoopSink` default, the `VITE_ANALYTICS_SINK`
-      build-config gate (default `off`), and a `track()` seam that is a proven no-op with no sink. No
-      network, no UI. Authors **DEC-023** (analytics posture; amends DEC-005's no-backend clause).
-      Engine diff EMPTY. **[M]**
-- [ ] SPEC-062 (pending) — **Recording tap + ephemeral session + DNT** *(seam)*: emit `session_start` /
-      `spin` / `cash_in` / `machine_switch` / `help_seen` from the existing STAGE-008/009/010 seams into
-      `track()`; an in-memory-only session id; a `navigator.doNotTrack` short-circuit. Still default-off
-      (NoopSink) so the default build is unchanged; a test proves no transport fires when off. **[M]**
-- [ ] SPEC-063 (pending) — **Generic HTTP-endpoint sink** *(sink)*: an `HttpSink` — batched
-      `navigator.sendBeacon` with a `fetch(keepalive)` fallback, swallow-all-failures — POSTing to a
-      configured endpoint; the operator `connect-src` CSP note + `SECURITY.md` update for the enabled
-      case. Self-hostable, no Cloudflare. **[M]**
-- [ ] SPEC-064 (pending) — **Reference Cloudflare Worker+KV sink + [OPS]** *(sink/ops)*: a Worker
-      ingestion route (alongside the assets binding, not a Pages Function — DEC-014) writing to KV; the
-      [OPS] KV-binding step, `wrangler.jsonc` wiring, and the DEC-005 amendment landed in `SECURITY.md`.
-      Inert until deployed with a binding. **[L]**
-- [ ] SPEC-065 (optional / stretch) — **Private `/stats` aggregate view** *(UI)*: a read-only view over
-      the KV sink's aggregates. Ship only if SPEC-064 lands cleanly with room to spare; otherwise defer
-      to a fast-follow (the brief flags this as decide-at-frame; framed here as explicitly deferrable). **[M]**
+**Tiering (set at the 2026-07-11 framing review).** The backlog splits into two tiers by whether it
+touches the network boundary:
 
-**Count:** 0 shipped / 0 active / 5 pending (4 core + 1 optional) — 3×M + 1×L + 1×M(optional).
+- **TIER 1 — approved, buildable now (SPEC-061 + SPEC-062).** The default-off, **zero-network**,
+  client-only seam. No network call, no PII, no cookie, cookieless, no third-party. DEC-005 stays
+  **fully intact** — Tier 1 introduces no backend, so it needs and makes **no** DEC-005 amendment.
+- **TIER 2 — GATED, do NOT drive (SPEC-063 + SPEC-064 + SPEC-065).** Every Tier-2 spec enables a
+  **remote sink** (a self-hosted HTTP endpoint, or the Cloudflare Worker+KV) — which is exactly what
+  reverses DEC-005's no-backend posture. Tier 2 requires a **DEC amending DEC-005 + a SECURITY.md
+  update + an explicit user decision**, none of which is granted by the Tier-1 approval. Framed as a
+  documented follow-up; no Tier-2 spec may enter the cycle until that decision is made.
+
+- [ ] SPEC-061 (pending) — **[TIER 1]** **Analytics event model + Sink seam (default OFF)** *(infra)*:
+      the typed `AnalyticsEvent` union, the `Sink` interface + `NoopSink` default, the
+      `VITE_ANALYTICS_SINK` build-config gate (default `off`), and a `track()` seam that is a proven
+      no-op with no sink. No network, no UI. Authors **DEC-023** (analytics posture) — which, in the
+      Tier-1 scope, **affirms DEC-005 holds** (default build is zero-network) and **defers** any
+      no-backend amendment to a future Tier-2 decision; it does NOT amend DEC-005 now. Engine diff
+      EMPTY. **[M]**
+- [ ] SPEC-062 (pending) — **[TIER 1]** **Recording tap + ephemeral session + DNT** *(seam)*: emit
+      `session_start` / `spin` / `cash_in` / `machine_switch` / `help_seen` from the existing
+      STAGE-008/009/010 seams into `track()`; an in-memory-only session id; a `navigator.doNotTrack`
+      short-circuit. Still default-off (NoopSink) so the default build is unchanged; a test proves no
+      transport fires when off. **[M]**
+- [ ] SPEC-063 (pending) — **[TIER 2 — GATED]** **Generic HTTP-endpoint sink** *(sink)*: an `HttpSink`
+      — batched `navigator.sendBeacon` with a `fetch(keepalive)` fallback, swallow-all-failures —
+      POSTing to a configured endpoint; the operator `connect-src` CSP note + `SECURITY.md` update for
+      the enabled case. Self-hostable, no Cloudflare. **Remote sink → reverses no-backend; needs the
+      DEC-005 amendment + user go.** **[M]**
+- [ ] SPEC-064 (pending) — **[TIER 2 — GATED]** **Reference Cloudflare Worker+KV sink + [OPS]**
+      *(sink/ops)*: a Worker ingestion route (alongside the assets binding, not a Pages Function —
+      DEC-014) writing to KV; the [OPS] KV-binding step, `wrangler.jsonc` wiring, and the DEC-005
+      amendment landed in `SECURITY.md`. Inert until deployed with a binding. **Remote sink → needs the
+      DEC-005 amendment + user go.** **[L]**
+- [ ] SPEC-065 (optional / stretch) — **[TIER 2 — GATED]** **Private `/stats` aggregate view** *(UI)*:
+      a read-only view over the KV sink's aggregates. Depends on SPEC-064; defer to a fast-follow. **[M]**
+
+**Count:** 0 shipped / 0 active / 5 pending — **Tier 1: 2 (SPEC-061/062, both M), approved**;
+**Tier 2: 3 (SPEC-063/064/065; 2×M + 1×L), GATED** behind a DEC-005 amendment + explicit user go.
 
 ## Design Notes
 
@@ -165,11 +185,15 @@ touches the no-backend posture, these settle the intent-level choices the user s
   through the STAGE-008/009/010 seams. **No PII, no cookie, no persistent id**; an **ephemeral in-memory
   session id** (regenerated every load, never stored); `navigator.doNotTrack` forces off. Rationale: this
   is telemetry for the fun-metric loop, not user tracking — it must honor the ethical floor DEC-005 sets.
-- **(4) DEC-005 amendment scope — SETTLED (DEC authored at SPEC-061 design).** DEC-005's *core* (no real
-  money / wagering / RTP) is unchanged. **DEC-023** records the analytics posture and amends only the
-  *no-backend* clause to permit anonymous, opt-in, default-off telemetry. Its operational parts (CSP
-  `connect-src`, `SECURITY.md`, KV binding) apply ONLY when a remote sink is enabled — the default build's
-  posture is unchanged. Authored at SPEC-061 design (as DEC-020 was at SPEC-054, DEC-022 at SPEC-059).
+- **(4) DEC-005 amendment scope — REFINED at the 2026-07-11 review (Tier split).** DEC-005's *core* (no
+  real money / wagering / RTP) is unchanged, always. **DEC-023** (authored at SPEC-061 design, as DEC-020
+  was at SPEC-054) records the analytics posture. In the **Tier-1** scope shipping now it **affirms
+  DEC-005 holds** — the default build is zero-network, client-only, no backend — and **does NOT amend the
+  no-backend clause**; it explicitly *defers* any such amendment to a future **Tier-2** decision. The
+  no-backend amendment, the CSP `connect-src` change, the `SECURITY.md` update, and the KV binding are all
+  **Tier-2 deliverables** (SPEC-063/064) that land ONLY when a remote sink is enabled — behind a separate
+  DEC + explicit user go. So the default build's posture is unchanged and no DEC-005 amendment exists until
+  Tier 2 is deliberately taken up.
 - **(5) Beacon transport — SETTLED.** `navigator.sendBeacon` with a `fetch(keepalive)` fallback; batched,
   fire-and-forget, all failures swallowed; must never throw or block a spin. Rationale: mirrors the
   DEC-005 safe-storage discipline (never throw) and keeps the game path untouched even when a sink is on.
