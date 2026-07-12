@@ -19,4 +19,4 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       campfire; updated the parity test (theme non-empty + AA contrast). Verified in-browser at 375px:
       one clean controls row; vibrant W&W theme with the colourful menagerie; Arctic switch confirms the
       theme is isolated. Full gate green (471, worktree excluded); engine diff EMPTY; no DEC. **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #79 (squash-merged; CI green; branch deleted).

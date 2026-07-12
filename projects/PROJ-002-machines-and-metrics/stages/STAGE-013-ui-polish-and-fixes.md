@@ -130,9 +130,14 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       on a component crash) + a `SECURITY.md` accuracy pass (the default-OFF analytics seam, affirming
       DEC-023; the real localStorage key set). Verified live (forced crash → fallback). **[S]**
 
-**Count:** 5 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76) +
-SPEC-066 (PR #77) + SPEC-067 (PR #78) all shipped. STAGE-013 complete (the originally-framed 3 + the
-box-sizing reset + the pre-close-out hardening pass).
+- [x] SPEC-068 (shipped 2026-07-12, PR #79) — **Header single-row + Wild & Whimsical theme facelift**
+      *(chore)*: icon-only header triggers (+ hover tooltips) on one clean row (replaces SPEC-063's ragged
+      wrap); Wild & Whimsical gets its own vibrant magical-plum theme instead of the dull default campfire.
+      Two user-reported fixes from live testing. **[S]**
+
+**Count:** 6 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76) +
+SPEC-066 (PR #77) + SPEC-067 (PR #78) + SPEC-068 (PR #79) all shipped. (Stage grew past its framed backlog
+with live-testing polish fixes.)
 
 ## Design Notes
 
