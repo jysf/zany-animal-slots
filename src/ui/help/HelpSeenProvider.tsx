@@ -3,8 +3,9 @@
 // StatsProvider: a no-op default (seen: true) so provider-less consumers (App.test) never auto-open,
 // useState(() => readHelpSeen()) hydration, and persist-on-change. Client-only; never throws (DEC-005).
 // No display surface — the HelpSheet that consumes this seam is SPEC-060.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { readHelpSeen, writeHelpSeen } from './helpSeenStorage';
+import { track } from '../../analytics';
 
 export interface HelpSeenContextValue {
   seen: boolean;
@@ -20,6 +21,8 @@ const HelpSeenContext = createContext<HelpSeenContextValue>({
 
 export function HelpSeenProvider({ children }: { children: ReactNode }) {
   const [seen, setSeen] = useState<boolean>(() => readHelpSeen());
+  const seenRef = useRef(seen);
+  seenRef.current = seen;
 
   // Persist on change (guarded, never throws — DEC-005). The mount write is a harmless
   // round-trip of the just-read value (mirrors StatsProvider's persist-on-change effect).
@@ -27,7 +30,12 @@ export function HelpSeenProvider({ children }: { children: ReactNode }) {
     writeHelpSeen(seen);
   }, [seen]);
 
-  const markSeen = useCallback(() => setSeen(true), []);
+  const markSeen = useCallback(() => {
+    if (!seenRef.current) {
+      track({ type: 'help_seen' }); // SPEC-062: fire once, on the first time help is seen (default off)
+    }
+    setSeen(true);
+  }, []);
 
   const value = useMemo<HelpSeenContextValue>(() => ({ seen, markSeen }), [seen, markSeen]);
 

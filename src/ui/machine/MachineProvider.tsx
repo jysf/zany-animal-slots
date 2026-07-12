@@ -6,10 +6,11 @@
 // existing test) keep working unchanged — a provable no-op today since only
 // one machine is registered (DEC-015). The engine never sees this seam
 // (DEC-001); persistence is localStorage only, guarded, never throws (DEC-005).
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Machine } from '../../machines/types';
 import { getMachine, MACHINES, DEFAULT_MACHINE_ID } from '../../machines/registry';
 import { readActiveMachineId, writeActiveMachineId } from '../../machines/activeMachineStorage';
+import { track } from '../../analytics';
 
 export interface ActiveMachineContextValue {
   machine: Machine;
@@ -30,9 +31,14 @@ const ActiveMachineContext = createContext<ActiveMachineContextValue>({
 
 export function MachineProvider({ children }: { children: ReactNode }) {
   const [activeMachineId, setId] = useState<string>(() => normalizeId(readActiveMachineId()));
+  const idRef = useRef(activeMachineId);
+  idRef.current = activeMachineId;
 
   const setActiveMachineId = useCallback((id: string) => {
     const next = normalizeId(id);
+    if (next !== idRef.current) {
+      track({ type: 'machine_switch', from: idRef.current, to: next }); // SPEC-062 (default off)
+    }
     setId(next);
     writeActiveMachineId(next);
   }, []);

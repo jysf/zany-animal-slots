@@ -35,3 +35,15 @@ export type AnalyticsEvent =
   | { readonly type: 'cash_in'; readonly machineId: string }
   | { readonly type: 'machine_switch'; readonly from: string; readonly to: string }
   | { readonly type: 'help_seen' };
+
+/**
+ * A recorded usage instance: one AnalyticsEvent stamped with the transport envelope a sink needs
+ * (SPEC-062). `ts` = capture time (ms epoch); `sessionId` = the ephemeral per-load id (never persisted);
+ * `appVersion` = the build version. No PII and no persistent/cross-load identifier.
+ */
+export interface TrackedEvent {
+  readonly event: AnalyticsEvent;
+  readonly ts: number;
+  readonly sessionId: string;
+  readonly appVersion: string;
+}

@@ -37,6 +37,7 @@ import { useStats } from './stats/StatsProvider';
 import type { Machine } from '../machines/types';
 import { INITIAL_GRID } from './reels/symbols';
 import { readBalance, writeBalance } from './storage';
+import { track } from '../analytics';
 
 // How long the reel-spin animation plays before the outcome is revealed.
 // Exported so tests can advance fake timers by exactly this value.
@@ -163,6 +164,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     setLastWin(0);
     setCelebration(null); // SPEC-021: clear the win signal on reset (id ref stays monotonic).
     recordCashIn(); // SPEC-055: a wallet Reset is a cash-in (DEC-020) — counted, not a stats clear.
+    track({ type: 'cash_in', machineId: machine.id }); // SPEC-062: anonymous cash-in beacon (default off)
   }, [machine, recordCashIn]);
 
   // canSpin: false while spinning (status guard) or when balance can't cover the bet.
@@ -218,6 +220,13 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
 
       // SPEC-055: record the resolved spin into session stats (no-op without a StatsProvider).
       recordSpin({ totalWin: outcome.totalWin, bet, tier: outcome.tier }, machine.id);
+      track({
+        type: 'spin',
+        machineId: machine.id,
+        bet,
+        totalWin: outcome.totalWin,
+        tier: outcome.tier,
+      }); // SPEC-062: anonymous spin beacon (default off)
 
       // Auto-spin continuation: if still active, decide next action.
       if (autoRef.current.active) {
