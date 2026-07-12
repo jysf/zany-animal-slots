@@ -59,6 +59,9 @@ describe('SPEC-038 default machine parity — extracted data == current constant
 
   it('presentation symbolDisplay', () => {
     expect(presentation.symbolDisplay).toEqual(SYMBOL_DISPLAY);
+    // SPEC-065: Wild & Whimsical's identity is now a bright, whimsical menagerie (unicorn jackpot).
+    expect(presentation.symbolDisplay.WOLF.label).toBe('Unicorn');
+    expect(presentation.symbolDisplay.DEER.label).toBe('Frog');
   });
 
   it("the default machine's audio equals today's engine/audio constants", () => {

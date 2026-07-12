@@ -31,15 +31,15 @@ describe('ReelGrid', () => {
   it('renders the correct emoji and label per symbol', () => {
     render(<ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} />);
 
-    // Wolf cell
-    const wolfCells = screen.getAllByLabelText('Wolf');
+    // WOLF slot — Wild & Whimsical's jackpot creature (SPEC-065: unicorn).
+    const wolfCells = screen.getAllByLabelText('Unicorn');
     expect(wolfCells.length).toBeGreaterThan(0);
-    expect(wolfCells[0].textContent).toBe('🐺');
+    expect(wolfCells[0].textContent).toBe('🦄');
 
-    // Deer cell
-    const deerCells = screen.getAllByLabelText('Deer');
+    // DEER slot (SPEC-065: frog).
+    const deerCells = screen.getAllByLabelText('Frog');
     expect(deerCells.length).toBeGreaterThan(0);
-    expect(deerCells[0].textContent).toBe('🦌');
+    expect(deerCells[0].textContent).toBe('🐸');
   });
 
   it('maps every DEC-006 symbol to an emoji + label', () => {

@@ -39,14 +39,15 @@ describe('paytableRows()', () => {
     const rows = paytableRows(DEFAULT_MATH, DEFAULT_DISPLAY);
     const byTier = Object.fromEntries(rows.map((r) => [r.tier, r.emoji]));
 
-    expect(byTier['jackpot']).toContain('🐺');
-    expect(byTier['high']).toContain('🦬');
-    expect(byTier['mid']).toContain('🐻');
-    expect(byTier['mid']).toContain('🦅');
-    expect(byTier['mid']).toContain('🦉');
-    expect(byTier['low']).toContain('🦌');
-    expect(byTier['low']).toContain('🦊');
-    expect(byTier['low']).toContain('🐿️');
+    // SPEC-065: Wild & Whimsical's whimsical menagerie.
+    expect(byTier['jackpot']).toContain('🦄'); // WOLF slot — Unicorn
+    expect(byTier['high']).toContain('🦚'); // BISON — Peacock
+    expect(byTier['mid']).toContain('🦋'); // BEAR — Butterfly
+    expect(byTier['mid']).toContain('🦜'); // EAGLE — Parrot
+    expect(byTier['mid']).toContain('🦩'); // OWL — Flamingo
+    expect(byTier['low']).toContain('🐸'); // DEER — Frog
+    expect(byTier['low']).toContain('🐝'); // FOX — Bee
+    expect(byTier['low']).toContain('🐞'); // SQUIRREL — Ladybug
   });
 
   it('multipliers come from the machine paytable', () => {
@@ -68,7 +69,7 @@ describe('paytableRows()', () => {
     const byTier = Object.fromEntries(rows.map((r) => [r.tier, r.emoji]));
 
     expect(byTier['jackpot']).toContain('🎰');
-    expect(byTier['jackpot']).not.toContain('🐺');
+    expect(byTier['jackpot']).not.toContain('🦄'); // SPEC-065: the stub overrides the default (unicorn)
   });
 
   it("paylineCount reads the machine's payline count", () => {

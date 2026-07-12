@@ -31,11 +31,11 @@ describe('PaytableSheet', () => {
     // Low 3-of-a-kind = 1× (DEC-016 retune) — the multiplier renders as "1×" in one span.
     expect(screen.getByText(/^1×$/)).toBeTruthy();
 
-    // Wolf emoji (jackpot tier)
-    expect(screen.getByText(/🐺/)).toBeTruthy();
+    // Unicorn emoji (jackpot tier — SPEC-065)
+    expect(screen.getByText(/🦄/)).toBeTruthy();
 
-    // Deer emoji (low tier)
-    expect(screen.getByText(/🦌/)).toBeTruthy();
+    // Frog emoji (low tier — SPEC-065)
+    expect(screen.getByText(/🐸/)).toBeTruthy();
   });
 
   it('closes on the ✕ button', () => {

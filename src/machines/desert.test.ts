@@ -32,6 +32,10 @@ describe('Desert machine', () => {
     expect(DESERT.presentation.symbolDisplay).not.toBe(SYMBOL_DISPLAY);
     expect(Object.keys(DESERT.presentation.symbolDisplay).sort()).toEqual([...SYMBOLS].sort());
     expect(DESERT.presentation.symbolDisplay.WOLF.label).toBe('Sidewinder');
+    // SPEC-065: fox/eagle/owl retired; a cactus + desert crawlers in.
+    expect(DESERT.presentation.symbolDisplay.FOX.label).toBe('Cactus');
+    expect(DESERT.presentation.symbolDisplay.EAGLE.label).toBe('Scorpion');
+    expect(DESERT.presentation.symbolDisplay.OWL.label).toBe('Bat');
   });
 
   it("Desert's math measures in the generous RTP band", () => {

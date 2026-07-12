@@ -20,11 +20,11 @@ import type { Machine, SymbolDisplay } from './types';
 /** Desert's own reel creatures — arid identity over the shared 8 engine symbols (DEC-021). */
 const DESERT_SYMBOLS: SymbolDisplay = {
   DEER: { emoji: '🐪', label: 'Camel' },
-  FOX: { emoji: '🦊', label: 'Fennec Fox' },
+  FOX: { emoji: '🌵', label: 'Cactus' },
   SQUIRREL: { emoji: '🦎', label: 'Gecko' },
   BEAR: { emoji: '🐢', label: 'Tortoise' },
-  EAGLE: { emoji: '🦅', label: 'Vulture' },
-  OWL: { emoji: '🦉', label: 'Elf Owl' },
+  EAGLE: { emoji: '🦂', label: 'Scorpion' },
+  OWL: { emoji: '🦇', label: 'Bat' },
   BISON: { emoji: '🐏', label: 'Bighorn Ram' },
   WOLF: { emoji: '🐍', label: 'Sidewinder' },
 };

@@ -26,7 +26,7 @@ const OCEAN_SYMBOLS: SymbolDisplay = {
   EAGLE: { emoji: '🐡', label: 'Pufferfish' },
   OWL: { emoji: '🐙', label: 'Octopus' },
   BISON: { emoji: '🐳', label: 'Whale' },
-  WOLF: { emoji: '🦈', label: 'Shark' },
+  WOLF: { emoji: '🪼', label: 'Jellyfish' },
 };
 
 /** Ocean's tuned reel weights (sum 42) — steeper low-end than W&W/Arctic/Desert (most frequent hits). */
