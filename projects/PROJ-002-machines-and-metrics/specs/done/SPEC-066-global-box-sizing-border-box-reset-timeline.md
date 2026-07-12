@@ -17,4 +17,4 @@ Cycle prompts live in `prompts/SPEC-066-<cycle>.md`.
       cabinet/header/body/reel-grid/reel__cell/status-readout all `border-box`; zero horizontal overflow;
       all 3 sheets open with title+close visible on phone and inside the framed cabinet on desktop.
       Full gate green (467 tests). Presentation-only — engine untouched; no new DEC (inside DEC-010). **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #77 (squash-merged; CI green; branch deleted).
