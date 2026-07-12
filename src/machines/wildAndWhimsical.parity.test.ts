@@ -74,8 +74,33 @@ describe('SPEC-038 default machine parity — extracted data == current constant
     });
   });
 
-  it("the default machine's theme is empty (defers to tokens.css)", () => {
-    expect(presentation.theme).toEqual({});
+  it('has its own whimsical theme (SPEC-068 facelift — no longer the dull default)', () => {
+    // Was `theme: {}` (defer to the campfire tokens.css). SPEC-068 gives Wild & Whimsical its own
+    // bright magical-plum palette, like the other machines (DEC-021).
+    const theme = presentation.theme;
+    expect(theme).not.toEqual({});
+    for (const key of ['--color-bg', '--color-text', '--color-accent'] as const) {
+      expect(theme[key]).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+
+    // Accessibility: text-on-bg must clear WCAG AA (≥ 4.5:1). Inline sRGB→luminance helper, no dep
+    // (mirrors arctic.test.ts).
+    const lum = (hex: string): number => {
+      const n = parseInt(hex.slice(1), 16);
+      const chan = (c: number) => {
+        const s = c / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      };
+      return (
+        0.2126 * chan((n >> 16) & 255) +
+        0.7152 * chan((n >> 8) & 255) +
+        0.0722 * chan(n & 255)
+      );
+    };
+    const lt = lum(theme['--color-text'] as string);
+    const lb = lum(theme['--color-bg'] as string);
+    const ratio = (Math.max(lt, lb) + 0.05) / (Math.min(lt, lb) + 0.05);
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
   });
 
   it('structural completeness — every symbol has a tier, weight, and display', () => {

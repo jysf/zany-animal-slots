@@ -55,8 +55,13 @@ export function StatsSheet() {
   return (
     <>
       {/* Always-rendered trigger — does NOT shift game layout when the sheet is closed. */}
-      <button className="stats__trigger" aria-label="Session stats" onClick={() => setOpen(true)}>
-        📊 Stats
+      <button
+        className="stats__trigger"
+        aria-label="Session stats"
+        title="Session stats"
+        onClick={() => setOpen(true)}
+      >
+        📊
       </button>
 
       {open && (
