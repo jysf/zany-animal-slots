@@ -1,0 +1,58 @@
+/*
+ * Error-boundary fallback (SPEC-067). Token-only (DEC-010), no raw hex, prefixed
+ * classes. Centered full-viewport message with a ≥44px reload target
+ * (touch-targets-44). No animation — nothing to reduced-motion-gate.
+ */
+
+.error-boundary {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+}
+
+.error-boundary__title {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+}
+
+.error-boundary__body {
+  margin: 0;
+  max-width: 28rem;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text-muted);
+}
+
+.error-boundary__reload {
+  min-height: var(--space-7);
+  min-width: var(--space-7);
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+
+  background-color: var(--color-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-bg);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.error-boundary__reload:hover,
+.error-boundary__reload:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
