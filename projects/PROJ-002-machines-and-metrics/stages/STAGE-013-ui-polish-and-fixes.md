@@ -109,15 +109,16 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       `box-sizing:border-box` + `max-height:100dvh` + `overflow-y:auto` so the title/close is always visible
       and the body scrolls; desktop keeps the sheet inside the framed cabinet. Browser-verified at
       375×812 / 375×500 / 1100×760; +9-assertion contract test. **[M]**
-- [ ] SPEC-064 (pending) — **Slot-machine favicon** *(asset)*: a self-contained SVG slot-machine favicon +
-      `index.html` `<link rel="icon">` wiring; no external request. **[S]**
+- [x] SPEC-064 (shipped 2026-07-12, PR #75) — **Slot-machine favicon** *(asset)*: a self-contained SVG
+      slot-machine favicon (`public/favicon.svg`) + `index.html` `<link rel="icon">` wiring + the missing
+      meta description; no external request; browser-verified render, `dist/favicon.svg` produced. **[S]**
 - [ ] SPEC-065 (pending) — **Per-machine reel-emoji refresh** *(presentation, Task 2)*: update each
       machine's `symbolDisplay` emoji (+ labels) to the user-provided sets; update the pinned-symbol tests;
       preview-verify per machine. Presentation-only — no engine/DEC-021 change. **[S]** *(awaiting the
       user's emoji lists.)*
 
-**Count:** 1 shipped / 0 active / 2 pending — SPEC-063 shipped (PR #74); SPEC-064 (favicon) + SPEC-065
-(emoji refresh, awaiting the user's emoji lists) pending.
+**Count:** 2 shipped / 0 active / 1 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) shipped; SPEC-065
+(emoji refresh) pending, awaiting the user's four emoji lists.
 
 ## Design Notes
 

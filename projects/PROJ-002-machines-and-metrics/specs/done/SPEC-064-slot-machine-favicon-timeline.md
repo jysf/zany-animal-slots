@@ -18,4 +18,4 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       Verified in-browser: renders as a clean slot machine, `GET /favicon.svg → 200`, `just build` copies
       it to `dist/favicon.svg`. Full gate green (464 tests). Presentation/asset only — engine untouched;
       no new DEC. One preview-caught test fix (URL regex vs the SVG xmlns namespace). **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #75 (squash-merged; CI green; branch deleted).
