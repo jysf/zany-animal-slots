@@ -32,7 +32,7 @@ describe('Ocean machine', () => {
     // its own marine creatures, NOT the shared SYMBOL_DISPLAY.
     expect(OCEAN.presentation.symbolDisplay).not.toBe(SYMBOL_DISPLAY);
     expect(Object.keys(OCEAN.presentation.symbolDisplay).sort()).toEqual([...SYMBOLS].sort());
-    expect(OCEAN.presentation.symbolDisplay.WOLF.label).toBe('Shark');
+    expect(OCEAN.presentation.symbolDisplay.WOLF.label).toBe('Jellyfish'); // SPEC-065: shark → jellyfish
   });
 
   it("Ocean's math measures in the generous RTP band", () => {

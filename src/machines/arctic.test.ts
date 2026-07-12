@@ -31,6 +31,10 @@ describe('Arctic machine', () => {
     expect(ARCTIC.presentation.symbolDisplay).not.toBe(SYMBOL_DISPLAY);
     expect(Object.keys(ARCTIC.presentation.symbolDisplay).sort()).toEqual([...SYMBOLS].sort());
     expect(ARCTIC.presentation.symbolDisplay.WOLF.label).toBe('Polar Bear');
+    // SPEC-065: fox/eagle/owl retired for other arctic fauna.
+    expect(ARCTIC.presentation.symbolDisplay.FOX.label).toBe('Arctic Hare');
+    expect(ARCTIC.presentation.symbolDisplay.EAGLE.label).toBe('Tundra Swan');
+    expect(ARCTIC.presentation.symbolDisplay.OWL.label).toBe('Orca');
   });
 
   it("Arctic's math measures in the generous RTP band", () => {

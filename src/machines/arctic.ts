@@ -20,11 +20,11 @@ import type { Machine, SymbolDisplay } from './types';
 /** Arctic's own reel creatures — polar identity over the shared 8 engine symbols (DEC-021). */
 const ARCTIC_SYMBOLS: SymbolDisplay = {
   DEER: { emoji: '🦌', label: 'Caribou' },
-  FOX: { emoji: '🦊', label: 'Arctic Fox' },
+  FOX: { emoji: '🐇', label: 'Arctic Hare' },
   SQUIRREL: { emoji: '🐧', label: 'Penguin' },
   BEAR: { emoji: '🦭', label: 'Seal' },
-  EAGLE: { emoji: '🦅', label: 'Eagle' },
-  OWL: { emoji: '🦉', label: 'Snowy Owl' },
+  EAGLE: { emoji: '🦢', label: 'Tundra Swan' },
+  OWL: { emoji: '🐋', label: 'Orca' },
   BISON: { emoji: '🦣', label: 'Mammoth' },
   WOLF: { emoji: '🐻‍❄️', label: 'Polar Bear' },
 };
