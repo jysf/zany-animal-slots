@@ -104,10 +104,11 @@ Format: `- [status] SPEC-ID (cycle) — one-line summary` · sizing **[S/M/L]**
 SPEC-063/064/065 as provisional labels; those are gated/deferred and will take the next-available numbers
 when (if) they are un-gated, per the repo's continuous-numbering rule.*
 
-- [ ] SPEC-063 (pending) — **Portrait layout fixes** *(bug/CSS)*: header-controls wrap so the Help trigger
-      is never off-screen; overlay sheets (help/paytable/stats) anchored to the viewport + capped at
-      viewport height so the title/close is always visible and the body scrolls. Preview-verified on 375px.
-      **[M]**
+- [x] SPEC-063 (shipped 2026-07-12, PR #74) — **Portrait layout fixes** *(bug/CSS)*: header-controls wrap
+      so the Help trigger is never off-screen; overlay sheets (help/paytable/stats) viewport-anchored +
+      `box-sizing:border-box` + `max-height:100dvh` + `overflow-y:auto` so the title/close is always visible
+      and the body scrolls; desktop keeps the sheet inside the framed cabinet. Browser-verified at
+      375×812 / 375×500 / 1100×760; +9-assertion contract test. **[M]**
 - [ ] SPEC-064 (pending) — **Slot-machine favicon** *(asset)*: a self-contained SVG slot-machine favicon +
       `index.html` `<link rel="icon">` wiring; no external request. **[S]**
 - [ ] SPEC-065 (pending) — **Per-machine reel-emoji refresh** *(presentation, Task 2)*: update each
@@ -115,7 +116,8 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       preview-verify per machine. Presentation-only — no engine/DEC-021 change. **[S]** *(awaiting the
       user's emoji lists.)*
 
-**Count:** 0 shipped / 0 active / 3 pending — 1×M + 2×S.
+**Count:** 1 shipped / 0 active / 2 pending — SPEC-063 shipped (PR #74); SPEC-064 (favicon) + SPEC-065
+(emoji refresh, awaiting the user's emoji lists) pending.
 
 ## Design Notes
 

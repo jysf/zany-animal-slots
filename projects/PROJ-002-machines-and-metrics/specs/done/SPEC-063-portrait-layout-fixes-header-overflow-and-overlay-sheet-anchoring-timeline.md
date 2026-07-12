@@ -31,5 +31,5 @@ Cycle prompts live in `prompts/SPEC-063-<cycle>.md`.
       + × close and scrolls its body (getBoundingClientRect top 0 / height 500 / scrollH 760); Help at
       375×812 fits with body text un-clipped; desktop (1100×760) keeps the sheet inside the framed cabinet.
       Console + network clean. Zero defects.
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged to main; CI all-green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #74 (squash-merged to main; CI all-green; branch deleted).
       First STAGE-013 UI-polish fix. Next: SPEC-064 (favicon), SPEC-065 (emoji refresh).
