@@ -56,7 +56,7 @@ export function PaytableSheet() {
         title="Paytable"
         onClick={() => setOpen(true)}
       >
-        ℹ
+        💰
       </button>
 
       {open && (

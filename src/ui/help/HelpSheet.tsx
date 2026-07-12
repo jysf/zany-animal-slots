@@ -113,7 +113,7 @@ export function HelpSheet() {
               <h3 className="help__section-title">Where to find things</h3>
               <dl className="help__list">
                 <div className="help__item">
-                  <dt className="help__term">ℹ Paytable</dt>
+                  <dt className="help__term">💰 Paytable</dt>
                   <dd className="help__desc">What each animal pays and how paylines work.</dd>
                 </div>
                 <div className="help__item">

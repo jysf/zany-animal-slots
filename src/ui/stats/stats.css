@@ -74,6 +74,7 @@
   /* box-sizing: border-box comes from the global reset (src/styles/reset.css, SPEC-066), so max-height
    * caps the TOTAL height incl. padding — otherwise content-box adds the vertical padding on top of the
    * cap and the top clips (SPEC-063). */
+  max-height: 100vh; /* SPEC-070: fallback first for older Safari (<15.4) that ignores dvh */
   max-height: 100dvh;
   overflow-y: auto;
 
