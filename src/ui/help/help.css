@@ -92,19 +92,12 @@
   }
 }
 
-/* SPEC-063: on desktop the cabinet is a bounded, overflow:hidden phone frame (device-frame.css),
- * so keep the sheet absolute WITHIN it — a fixed sheet would break out and span the whole viewport. */
-@media (min-width: 640px) {
-  .help__backdrop {
-    position: absolute;
-  }
-  .help__sheet {
-    position: absolute;
-    max-width: none;
-    margin-inline: 0;
-    max-height: 100%;
-  }
-}
+/* SPEC-069: the sheet is viewport-fixed at ALL sizes. The old desktop override made it
+ * position:absolute inside the centered, overflow:hidden cabinet — but `bottom:0` did not resolve to
+ * the cabinet bottom there, so on first-run/tall-content the sheet rested with its title + close clipped
+ * above the frame. The base fixed rule is already width-constrained (max-width:430px, centred), so it
+ * never spans the whole desktop viewport; keeping it fixed everywhere means the close button is always
+ * on-screen. */
 
 /* ─── Header row (title + close) ─────────────────────────────────────────────── */
 

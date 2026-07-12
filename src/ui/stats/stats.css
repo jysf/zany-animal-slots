@@ -90,18 +90,9 @@
   }
 }
 
-/* SPEC-063: desktop keeps the sheet inside the bounded, overflow:hidden phone frame. */
-@media (min-width: 640px) {
-  .stats__backdrop {
-    position: absolute;
-  }
-  .stats__sheet {
-    position: absolute;
-    max-width: none;
-    margin-inline: 0;
-    max-height: 100%;
-  }
-}
+/* SPEC-069: viewport-fixed at ALL sizes (removed the desktop position:absolute override — bottom:0
+ * didn't resolve to the cabinet bottom there, clipping the title/close on first-run). The base rule is
+ * width-constrained (max-width:430px, centred) so it never spans the whole desktop viewport. */
 
 /* ─── Header row (title + close) ─────────────────────────────────────────────── */
 
