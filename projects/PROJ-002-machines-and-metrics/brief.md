@@ -189,14 +189,16 @@ is the most separable and could be deferred or split off if the wave runs long.
       disclaimer, links to the Paytable for payouts. Client-only, engine untouched (DEC-001). **2 specs
       (SPEC-059 infra PR #69, SPEC-060 UI PR #70)**, shipped as framed; the onboarding model was pinned
       in **DEC-022**.
-- [~] STAGE-011 (framed 2026-07-10, awaiting `framing_approved`) — **Configurable usage
-      analytics (default OFF)**: a provider-agnostic usage beacon + config; a generic
-      HTTP-endpoint sink (self-hostable, no Cloudflare) + a reference Cloudflare Worker+KV
-      sink; optional private `/stats`. The DEC-005 amendment + SECURITY.md update + [OPS] KV
-      binding apply ONLY when a remote sink is enabled. **5-spec backlog framed
-      (SPEC-061–065, last optional); DEC-023 to be authored at SPEC-061.** This stage crosses
-      the no-backend posture when a remote sink is enabled, so its frame carries an
-      intent-level decision — `framing_approved: false` until the user reviews it.
+- [~] STAGE-011 (framed 2026-07-10; **Tier 1 approved + active 2026-07-11**) — **Configurable usage
+      analytics (default OFF)**: a provider-agnostic usage beacon + config. Split at the 2026-07-11
+      framing review into **Tier 1** (approved, building now) and **Tier 2** (gated). **Tier 1
+      (SPEC-061 event model + Sink seam + `VITE_ANALYTICS_SINK` gate + `NoopSink`; SPEC-062 recording
+      tap + ephemeral session + DNT)** is the default-off, **zero-network**, client-only seam — DEC-005
+      stays fully intact and DEC-023 (authored at SPEC-061) *affirms* it, making no no-backend amendment.
+      **Tier 2 (SPEC-063 self-hosted HttpSink, SPEC-064 Cloudflare Worker+KV, SPEC-065 `/stats`) is
+      GATED**: each enables a remote sink, which is what reverses no-backend — so Tier 2 needs a DEC
+      amending DEC-005 + a SECURITY.md update + an explicit user decision, deferred as a documented
+      follow-up. `framing_approved: true` covers Tier 1 only; `tier2_gated: true`.
 - [x] STAGE-012 (shipped 2026-07-09) — **Per-machine reel symbol identity**: Arctic/Desert/Ocean
       each render their own themed reel creatures (emoji + labels) on the reels + paytable;
       W&W keeps the forest-animal default. Presentation-only (engine untouched); corrected the
@@ -210,10 +212,11 @@ is the most separable and could be deferred or split off if the wave runs long.
 > standalone **spike/probe** to assess what "good" sounds like and whether the current Web-Audio synth
 > approach can get there or needs sampled assets. Deliberately NOT a PROJ-002 stage.
 
-**Count:** 5 shipped / 0 active / 1 framed-awaiting-approval (STAGE-010 shipped 2026-07-10, 2 specs
+**Count:** 5 shipped / 1 active (STAGE-011 Tier 1) / 0 pending (STAGE-010 shipped 2026-07-10, 2 specs
 SPEC-059 PR #69 + SPEC-060 PR #70; STAGE-012 shipped 2026-07-09; STAGE-011 analytics **framed 2026-07-10**,
-5-spec backlog, `framing_approved: false` pending user review). An audio-quality overhaul is parked as a
-future-project candidate (see the note above), not a PROJ-002 stage.
+**Tier 1 (SPEC-061/062) approved + active 2026-07-11**, Tier 2 (SPEC-063/064/065) gated behind a DEC-005
+amendment + explicit user go). An audio-quality overhaul is parked as a future-project candidate (see the
+note above), not a PROJ-002 stage.
 
 ## Dependencies
 
