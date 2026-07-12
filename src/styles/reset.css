@@ -1,0 +1,23 @@
+/*
+ * Base reset — global box-sizing.
+ *
+ * Imported first (before tokens.css) in src/main.tsx so it is the base layer
+ * every component builds on. Deliberately minimal: this is not a full reset
+ * (no margin/padding zeroing), only the box-sizing model.
+ *
+ * Why (SPEC-066): with the browser default `content-box`, an element's padding
+ * is added ON TOP of any width/height cap — so a fixed or scrolled panel with
+ * `max-height: 100dvh` plus vertical padding measures taller than the viewport
+ * and clips its own top/close button (the SPEC-063 overlay-sheet bug). Setting
+ * `border-box` globally makes padding count INSIDE the declared size, so caps
+ * mean what they say. SPEC-063 patched this locally on the three overlay sheets;
+ * this makes it the repo-wide default so future fixed/scrolled panels don't
+ * re-hit the trap. See feedback/2026-07-04-proj-002-signals.md
+ * (layout-bugs-need-preview-not-unit-tests-and-a-box-sizing-reset).
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
