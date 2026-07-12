@@ -74,6 +74,37 @@ cost:
         analytics tests), build, validate, cost-audit. git diff main..HEAD -- src/engine/ confirmed
         EMPTY (DEC-001); no fetch/sendBeacon/XHR/WebSocket in src/analytics/ source (tests only, guarded
         spies); no new dependency added.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill from subagent_tokens
+      recorded_at: 2026-07-11
+      note: >-
+        Cold verify session (not the builder). Reconciled git/disk against the build's self-report:
+        git diff --stat main..HEAD touches only src/analytics/** (5 source + 3 test files) plus this
+        spec's design artifacts (SPEC-061 spec+timeline, prompts/SPEC-061-build.md, DEC-023,
+        STAGE-011 frame, brief.md); git diff main..HEAD -- src/engine/ confirmed EMPTY (DEC-001); no
+        package.json/package-lock.json diff (no new dependency). Zero-network grep of src/analytics/
+        non-test source for fetch|sendBeacon|XMLHttpRequest|WebSocket|navigator\. found NONE. Full gate
+        re-run green: typecheck, lint, test (437/437 across 75 files, incl. the 12 new analytics tests),
+        build, validate, cost-audit. No .only/.skip/xit in src/analytics/*.test.ts. All 7 acceptance
+        criteria walked and backed by a specific test or code fact. Ran all 4 adversarial guard-mutations
+        from the spec's Notes, one at a time, reverting each before the next: (1) resolveSinkKind
+        unconditional passthrough broke exactly "resolveSinkKind returns off when unset, empty, or
+        unrecognized"; (2) createSink throwing-object-for-off broke the named identity test plus 2
+        cascading track.test.ts tests (getSink/resetSink default identity) — expected collateral since
+        track.ts's default active sink is also built via createSink(), not a coverage gap; (3) removing
+        track's try/catch broke exactly "track and flush never throw when the active sink throws"; (4)
+        track calling noopSink.track directly (ignoring activeSink) broke exactly "track dispatches to
+        the active sink; setSink swaps it". All 4 mutations reverted; git diff against the build commit
+        confirmed clean; full suite re-confirmed green (437/437) after revert. just decisions-audit
+        --changed main flagged DEC-023 as governing the touched src/analytics/** paths (consistent with
+        the build); just decisions-audit (no flag) reported 0 structural errors (29 pre-existing
+        scope-overlap warnings, none new, none involving DEC-023). DEC-005 confirmed UNAMENDED
+        (superseded_by: null, no diff on decisions/DEC-005-play-money-model.md); SECURITY.md and
+        public/_headers confirmed UNCHANGED (empty diff main..HEAD). Build reflection in ## Build
+        Completion answered honestly (matches transcription-only build). Zero defects found.
+        Verdict: APPROVED.
   totals:
     tokens_total: 0
     estimated_usd: 0

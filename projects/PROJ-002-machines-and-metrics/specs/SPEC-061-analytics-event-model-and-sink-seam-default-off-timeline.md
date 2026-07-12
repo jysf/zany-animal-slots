@@ -31,3 +31,26 @@ Cycle prompts live in `prompts/SPEC-061-<cycle>.md`.
       `just validate` and `just cost-audit`. `git diff main..HEAD -- src/engine/` confirmed EMPTY
       (DEC-001); zero fetch/sendBeacon/XHR in source; no new dependency. Left `[~]` for the orchestrator
       to close to `[x]` at ship per AGENTS §9. Local commit only — no push/PR (LOCAL ONLY build session).
+- [~] **verify** — 2026-07-11 (Sonnet, cold session, not the builder): reconciled git/disk against the
+      build's self-report — `git diff --stat main..HEAD` touches only `src/analytics/**` (5 source + 3
+      test files) plus this spec's design artifacts; `git diff main..HEAD -- src/engine/` confirmed
+      EMPTY (DEC-001); no `package.json`/`package-lock.json` diff. Zero-network grep of non-test
+      `src/analytics/*.ts` for `fetch|sendBeacon|XMLHttpRequest|WebSocket|navigator\.` found NONE. Full
+      gate re-run green (`typecheck`, `lint`, `test` — 437/437 across 75 files incl. 12 new analytics
+      tests —, `build`, `validate`, `cost-audit`). No `.only`/`.skip`/`xit` in `src/analytics/*.test.ts`.
+      All 7 acceptance criteria walked and backed by a specific test/code fact. Ran all 4 adversarial
+      guard-mutations one at a time, reverting each before the next: (1) `resolveSinkKind` unconditional
+      passthrough → broke exactly `"resolveSinkKind returns off when unset, empty, or unrecognized"`;
+      (2) `createSink` throwing-object-for-`'off'` → broke the named identity test plus 2 cascading
+      `track.test.ts` tests (expected collateral — `track.ts`'s default active sink is also built via
+      `createSink()`, not a coverage gap); (3) removing `track`'s try/catch → broke exactly `"track and
+      flush never throw when the active sink throws"`; (4) `track` calling `noopSink.track` directly →
+      broke exactly `"track dispatches to the active sink; setSink swaps it"`. All 4 reverted; full
+      suite re-confirmed green (437/437) after revert; `git diff` against the build commit clean before
+      committing bookkeeping. `just decisions-audit --changed main` flagged DEC-023 as governing the
+      touched paths (consistent); `just decisions-audit` (no flag): 0 structural errors, 29 pre-existing
+      scope-overlap warnings (none new, none involving DEC-023). DEC-005 confirmed UNAMENDED
+      (`superseded_by: null`, no diff); `SECURITY.md` / `public/_headers` confirmed UNCHANGED. Build
+      reflection answered honestly. **Zero defects. Verdict: ✅ APPROVED.** Left `[~]` for the
+      orchestrator to close to `[x]` at ship per AGENTS §9. Local commit only — no push/PR (LOCAL ONLY
+      verify session).
