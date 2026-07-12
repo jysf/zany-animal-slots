@@ -7,7 +7,7 @@
 task:
   id: SPEC-062
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -68,7 +68,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill from subagent_tokens
+      tokens_total: 137347    # from Agent result subagent_tokens
+      estimated_usd: 0.91     # 137347 tok × $6.6/M (Sonnet), list rate, no cache discount — order-of-magnitude
+      duration_minutes: 115.6 # 6937923 ms
       recorded_at: 2026-07-12
       note: >-
         Verbatim transcription of the spec's Notes drop-ins: 3 new source modules (session.ts,
@@ -82,7 +84,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill from subagent_tokens
+      tokens_total: 121690    # from Agent result subagent_tokens
+      estimated_usd: 0.80     # 121690 tok × $6.6/M (Sonnet), list rate, no cache discount — order-of-magnitude
+      duration_minutes: 10.8  # 649952 ms
       recorded_at: 2026-07-12
       note: >-
         Fresh COLD verify session (Sonnet), reconciled against git/disk, not the build's self-report.
@@ -109,10 +113,23 @@ cost:
         with it; DEC-005 file diff empty (unamended); DEC-004/DEC-010/DEC-022 advisory flags on the touched
         UI files are unrelated to this spec's change (broad path globs) and not violated. Defect count: 0.
         Verdict: APPROVED.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-12
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled build + verify against
+        git/disk, filled the build/verify cost from the Agent results' subagent_tokens (build 137347,
+        verify 121690), appended the Ship Reflection, pushed the branch, opened + CI-polled the PR (all
+        checks SUCCESS), squash-merged --delete-branch, closed the timeline cycles, archived the spec,
+        captured a brag, and logged the dogfood signals. Second + final Tier-1 spec — STAGE-011 Tier 1
+        complete.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 259037   # build 137347 + verify 121690 (design + ship main-loop, counted as 0)
+    estimated_usd: 1.71    # build 0.91 + verify 0.80
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-062: Analytics recording tap + ephemeral session + Do-Not-Track
@@ -925,10 +942,24 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Design the sink contract for the *final* consumer up front. SPEC-061 shipped `Sink.track(event)` and
+   SPEC-062 had to promote it to `Sink.track(TrackedEvent)` one spec later once the session-id/envelope
+   need became concrete. It was a clean, well-motivated evolution (and re-touching a just-shipped module
+   is normal in a tiered build), but had SPEC-061 anticipated that a sink records a *usage instance*, not
+   a bare event, the contract could have shipped envelope-shaped from the start. The tier split made the
+   iteration cheap, so this is a note, not a regret.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint/DEC change. This spec IMPLEMENTS DEC-023 with no new decision; DEC-005 stayed
+   UNAMENDED and SECURITY.md/`_headers` untouched — the Tier-1 posture held exactly. One reusable pattern
+   worth an AGENTS line (logged to the signals file instead for now): a **side-channel tap** that must
+   stay inert by default is best proven by a spy-sink test that drives the real seams (spin/switch/mark)
+   and asserts the captured events — plus the fetch/sendBeacon inert-proof — rather than by mocking the
+   emitter.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No new Tier-1 spec — **STAGE-011 Tier 1 is complete** (SPEC-061 seam + SPEC-062 tap, both shipped
+   default-OFF). The only remaining backlog is the **GATED Tier 2** (SPEC-063 self-hosted HttpSink,
+   SPEC-064 Cloudflare Worker+KV, SPEC-065 `/stats`), which must NOT be written/driven until a deliberate
+   decision amends DEC-005 + updates SECURITY.md + the user explicitly opts in. With Tier 1 done, PROJ-002
+   is a candidate for a project-level close-out — to surface, not auto-run.

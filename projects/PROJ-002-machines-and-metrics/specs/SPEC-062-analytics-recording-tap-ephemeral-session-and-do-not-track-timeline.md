@@ -25,7 +25,7 @@ Cycle prompts live in `prompts/SPEC-062-<cycle>.md`.
       modules and 6 test files (incl. the 2 SPEC-061 test updates) in the Notes. Five adversarial
       guard-mutations specified for verify. **[M]** Build prompt written.
 
-- [~] **build** — 2026-07-12 (Sonnet, local branch `feat/spec-062-analytics-recording-tap`, local commit
+- [x] **build** — 2026-07-12 (Sonnet, local branch `feat/spec-062-analytics-recording-tap`, local commit
       only — no push/PR): transcribed the spec's Notes drop-ins verbatim — 3 new source modules
       (`session.ts`, `lifecycle.ts`, `AnalyticsProvider.tsx`), 4 modified source files + `main.tsx`, 6 new
       test files, and the 2 updated SPEC-061 test files (`sink.test.ts`/`track.test.ts` promoted to the
@@ -36,7 +36,7 @@ Cycle prompts live in `prompts/SPEC-062-<cycle>.md`.
       confirmed (no `fetch`/`sendBeacon` outside the test spy that asserts they're never called). No
       deviations from spec. Left `[~]` for the orchestrator to close to `[x]` at ship.
 
-- [~] **verify** — 2026-07-12 (Sonnet, cold session, not the builder): reconciled git/disk against the
+- [x] **verify** — 2026-07-12 (Sonnet, cold session, not the builder): reconciled git/disk against the
       build's self-report. `git diff --stat main..HEAD` touches only `src/analytics/**`,
       `src/ui/analytics/**`, the three tapped seams (`useSlotMachine.ts`, `MachineProvider.tsx`,
       `HelpSeenProvider.tsx`), `src/main.tsx`, and this spec's design artifacts; `git diff main..HEAD --
@@ -66,3 +66,8 @@ Cycle prompts live in `prompts/SPEC-062-<cycle>.md`.
       advisory flags on the touched UI files are broad path-glob matches, not violations. **Zero defects.
       Verdict: ✅ APPROVED.** Left `[~]` for the orchestrator to close to `[x]` at ship. Local commit
       only — no push/PR (LOCAL ONLY verify session).
+
+- [ ] **ship** — (in progress by the orchestrator): filled build/verify cost from subagent_tokens
+      (build 137347, verify 121690; totals 259037 tok ≈ $1.71), appended the Ship Reflection, PR to
+      follow. Timeline closed to `[x]` with the PR number after squash-merge. **Completes STAGE-011
+      Tier 1** (SPEC-061 seam + SPEC-062 tap).
