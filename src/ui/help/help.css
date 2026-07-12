@@ -40,7 +40,10 @@
 /* ─── Backdrop ───────────────────────────────────────────────────────────────── */
 
 .help__backdrop {
-  position: absolute;
+  /* SPEC-063: anchor to the viewport (phone). On a short screen the cabinet grows taller than the
+   * viewport, so an absolute backdrop no longer covers what the user sees. Desktop reverts to absolute
+   * (the framed cabinet) below. */
+  position: fixed;
   inset: 0;
   background-color: var(--color-bg);
   opacity: 0.7;
@@ -59,13 +62,21 @@
 }
 
 .help__sheet {
-  position: absolute;
+  /* SPEC-063: anchor to the viewport (not the growable .cabinet) and cap at viewport height so the
+   * title + close are always visible and the body scrolls inside. Centre to the cabinet width with
+   * margin-inline (NOT transform) so the slide-up translateY keyframe stays free. */
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
+  margin-inline: auto;
+  max-width: 430px;
   z-index: 11;
 
-  max-height: 100%;
+  /* border-box so max-height caps the TOTAL height incl. padding (no global reset in this repo) —
+   * otherwise content-box adds the vertical padding on top of the cap and the top clips (SPEC-063). */
+  box-sizing: border-box;
+  max-height: 100dvh;
   overflow-y: auto;
 
   background-color: var(--color-surface);
@@ -78,6 +89,20 @@
 @media (prefers-reduced-motion: reduce) {
   .help__sheet {
     animation: none;
+  }
+}
+
+/* SPEC-063: on desktop the cabinet is a bounded, overflow:hidden phone frame (device-frame.css),
+ * so keep the sheet absolute WITHIN it — a fixed sheet would break out and span the whole viewport. */
+@media (min-width: 640px) {
+  .help__backdrop {
+    position: absolute;
+  }
+  .help__sheet {
+    position: absolute;
+    max-width: none;
+    margin-inline: 0;
+    max-height: 100%;
   }
 }
 

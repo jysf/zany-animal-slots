@@ -52,7 +52,9 @@
  * so the overlay scopes to the phone-shaped frame, not the whole desktop.
  */
 .paytable__backdrop {
-  position: absolute;
+  /* SPEC-063: viewport-anchored on phone (the cabinet grows taller than a short viewport); desktop
+   * reverts to absolute within the framed cabinet below. */
+  position: fixed;
   inset: 0;
   background-color: var(--color-bg);
   opacity: 0.7;
@@ -73,11 +75,22 @@
 /* ─── Sheet ──────────────────────────────────────────────────────────────────── */
 
 .paytable__sheet {
-  position: absolute;
+  /* SPEC-063: viewport-anchored + capped so the title/close never clip and the body scrolls inside
+   * (this sheet previously had NO max-height/overflow — a tall paytable stranded the close button).
+   * Centre with margin-inline (not transform) so the slide-up translateY keyframe stays free. */
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
+  margin-inline: auto;
+  max-width: 430px;
   z-index: 11;
+
+  /* border-box so max-height caps the TOTAL height incl. padding (no global reset in this repo) —
+   * otherwise content-box adds the vertical padding on top of the cap and the top clips (SPEC-063). */
+  box-sizing: border-box;
+  max-height: 100dvh;
+  overflow-y: auto;
 
   background-color: var(--color-surface);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -96,6 +109,19 @@
 @media (prefers-reduced-motion: reduce) {
   .paytable__sheet {
     animation: none;
+  }
+}
+
+/* SPEC-063: desktop keeps the sheet inside the bounded, overflow:hidden phone frame. */
+@media (min-width: 640px) {
+  .paytable__backdrop {
+    position: absolute;
+  }
+  .paytable__sheet {
+    position: absolute;
+    max-width: none;
+    margin-inline: 0;
+    max-height: 100%;
   }
 }
 

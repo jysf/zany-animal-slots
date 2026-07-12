@@ -147,22 +147,26 @@ touches the network boundary:
       never persisted); a `navigator.doNotTrack` short-circuit. Promoted the Sink contract to a
       `TrackedEvent` envelope so the session id has a live consumer. Still default-off (noop sink) — a
       test proves no transport fires when off; engine diff EMPTY; 453 tests; 0 verify defects. **[M]**
-- [ ] SPEC-063 (pending) — **[TIER 2 — GATED]** **Generic HTTP-endpoint sink** *(sink)*: an `HttpSink`
-      — batched `navigator.sendBeacon` with a `fetch(keepalive)` fallback, swallow-all-failures —
-      POSTing to a configured endpoint; the operator `connect-src` CSP note + `SECURITY.md` update for
-      the enabled case. Self-hostable, no Cloudflare. **Remote sink → reverses no-backend; needs the
-      DEC-005 amendment + user go.** **[M]**
-- [ ] SPEC-064 (pending) — **[TIER 2 — GATED]** **Reference Cloudflare Worker+KV sink + [OPS]**
-      *(sink/ops)*: a Worker ingestion route (alongside the assets binding, not a Pages Function —
-      DEC-014) writing to KV; the [OPS] KV-binding step, `wrangler.jsonc` wiring, and the DEC-005
-      amendment landed in `SECURITY.md`. Inert until deployed with a binding. **Remote sink → needs the
-      DEC-005 amendment + user go.** **[L]**
-- [ ] SPEC-065 (optional / stretch) — **[TIER 2 — GATED]** **Private `/stats` aggregate view** *(UI)*:
-      a read-only view over the KV sink's aggregates. Depends on SPEC-064; defer to a fast-follow. **[M]**
+*Numbering note: the Tier-2 items below were previously penciled in as SPEC-063/064/065, but those IDs were
+taken by STAGE-013 (UI polish, created 2026-07-12) since Tier 2 is gated/deferred. Per the repo's
+continuous-numbering rule, each Tier-2 spec takes the next-available SPEC ID **when it is actually un-gated
+and created** — the labels below are provisional (T2a/T2b/T2c), not reserved numbers.*
 
-**Count:** 2 shipped / 0 active / 3 pending — **✅ Tier 1 COMPLETE (SPEC-061 PR #72 seam + SPEC-062 PR #73
-tap, both shipped default-OFF 2026-07-11/12)**; **Tier 2: 3 (SPEC-063/064/065; 2×M + 1×L), GATED** behind
-a DEC-005 amendment + `SECURITY.md` update + explicit user go — not written, not driven.
+- [ ] Tier-2a (pending, GATED) — **Generic HTTP-endpoint sink** *(sink)*: an `HttpSink` — batched
+      `navigator.sendBeacon` with a `fetch(keepalive)` fallback, swallow-all-failures — POSTing to a
+      configured endpoint; the operator `connect-src` CSP note + `SECURITY.md` update for the enabled
+      case. Self-hostable, no Cloudflare. **Remote sink → reverses no-backend; needs the DEC-005
+      amendment + user go.** **[M]**
+- [ ] Tier-2b (pending, GATED) — **Reference Cloudflare Worker+KV sink + [OPS]** *(sink/ops)*: a Worker
+      ingestion route (alongside the assets binding, not a Pages Function — DEC-014) writing to KV; the
+      [OPS] KV-binding step, `wrangler.jsonc` wiring, and the DEC-005 amendment landed in `SECURITY.md`.
+      Inert until deployed with a binding. **Remote sink → needs the DEC-005 amendment + user go.** **[L]**
+- [ ] Tier-2c (optional / stretch, GATED) — **Private `/stats` aggregate view** *(UI)*: a read-only view
+      over the KV sink's aggregates. Depends on Tier-2b; defer to a fast-follow. **[M]**
+
+**Count:** 2 shipped / 0 active / 3 gated — **✅ Tier 1 COMPLETE (SPEC-061 PR #72 seam + SPEC-062 PR #73
+tap, both shipped default-OFF 2026-07-11/12)**; **Tier 2: 3 (2×M + 1×L), GATED** behind a DEC-005 amendment
++ `SECURITY.md` update + explicit user go — not written, not numbered, not driven.
 
 ## Design Notes
 
