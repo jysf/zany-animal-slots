@@ -7,7 +7,7 @@
 task:
   id: SPEC-061
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -65,7 +65,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill tokens_total from subagent_tokens
+      tokens_total: 101937   # from Agent result subagent_tokens
+      estimated_usd: 0.67    # 101937 tok × $6.6/M (Sonnet), list rate, no cache discount — order-of-magnitude
+      duration_minutes: 9.6  # 574431 ms
       recorded_at: 2026-07-11
       note: >-
         Transcribed all 5 source modules (events.ts, sink.ts, track.ts, env.d.ts, index.ts) and 3 test
@@ -77,7 +79,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator to fill from subagent_tokens
+      tokens_total: 118351   # from Agent result subagent_tokens
+      estimated_usd: 0.78    # 118351 tok × $6.6/M (Sonnet), list rate, no cache discount — order-of-magnitude
+      duration_minutes: 24.2 # 1449128 ms
       recorded_at: 2026-07-11
       note: >-
         Cold verify session (not the builder). Reconciled git/disk against the build's self-report:
@@ -105,10 +109,22 @@ cost:
         public/_headers confirmed UNCHANGED (empty diff main..HEAD). Build reflection in ## Build
         Completion answered honestly (matches transcription-only build). Zero defects found.
         Verdict: APPROVED.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-11
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Reconciled build + verify against
+        git/disk, filled the build/verify cost from the Agent results' subagent_tokens (build 101937,
+        verify 118351), appended the Ship Reflection, pushed the branch, opened + CI-polled the PR (all
+        checks SUCCESS), squash-merged --delete-branch, closed the timeline cycles, archived the spec,
+        captured a brag, and logged the dogfood signals. First Tier-1 spec of STAGE-011.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 220288   # build 101937 + verify 118351 (design + ship main-loop, counted as 0)
+    estimated_usd: 1.45    # build 0.67 + verify 0.78
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-061: Analytics event model and Sink seam (default OFF)
@@ -667,10 +683,23 @@ Process-focused: how did the build go? What friction did the spec create?
 from the process-focused build reflection above.*
 
 1. **What would I do differently next time?**
-   — <answer>
+   — Very little — the "measure-then-pin" discipline degenerates cleanly for a pure-infra spec (no game
+   math to simulate), so the drop-ins transcribed verbatim with zero deviations and the build/verify were
+   frictionless. The one judgement call worth flagging for the *next* Tier-1 spec (SPEC-062): the
+   `resolveSinkKind` fail-safe deliberately refuses even `'http'`/`'cloudflare'` in Tier 1 — that guard is
+   what makes "Tier 2 can't sneak on via an env var" true, and it should stay until Tier 2 is deliberately
+   taken up. Worth keeping the tier boundary mechanical, not just documented.
 
 2. **Does any template, constraint, or decision need updating?**
-   — <answer>
+   — No template/constraint change. DEC-023 was authored here and held cleanly through build + verify
+   (DEC-005 stayed UNAMENDED; SECURITY.md/`_headers` untouched — exactly the Tier-1 posture). One small
+   repo-first: this is the first `import.meta.env.VITE_*` read in the codebase; the self-contained
+   ambient `src/analytics/env.d.ts` (mirroring `src/build-info.d.ts`) typed it without pulling in
+   `vite/client`. If a future spec needs more `VITE_*` vars, that file is the place to extend — no
+   `vite/client` dependency needed.
 
 3. **Is there a follow-up spec I should write now before I forget?**
-   — <answer>
+   — No NEW spec — SPEC-062 (recording tap + ephemeral session + DNT) is already framed and is the exact
+   next step: it consumes this `track()` seam from the STAGE-008/009/010 recording points, adds the
+   in-memory session id, and short-circuits on `navigator.doNotTrack`. The Tier-2 specs (SPEC-063/064/065)
+   remain GATED behind a DEC-005 amendment + explicit user decision — deliberately NOT queued.

@@ -24,14 +24,14 @@ Cycle prompts live in `prompts/SPEC-061-<cycle>.md`.
       `git diff src/engine/` MUST stay EMPTY); no new dependency. Complete drop-in code for all 5 source
       modules + 3 test files in the spec's Notes. Four adversarial guard-mutations specified for verify.
       **[M]** Build prompt written.
-- [~] **build** — 2026-07-11 (Sonnet): transcribed the spec's drop-in `src/analytics/` modules
+- [x] **build** — 2026-07-11 (Sonnet): transcribed the spec's drop-in `src/analytics/` modules
       (`events.ts`, `sink.ts`, `track.ts`, `env.d.ts`, `index.ts`) + 3 test files verbatim on branch
       `feat/spec-061-analytics-sink-seam`, no deviations. Full gate green: `just typecheck && just lint
       && just test && just build` (437/437 tests across 75 files, incl. 12 new analytics tests), plus
       `just validate` and `just cost-audit`. `git diff main..HEAD -- src/engine/` confirmed EMPTY
       (DEC-001); zero fetch/sendBeacon/XHR in source; no new dependency. Left `[~]` for the orchestrator
       to close to `[x]` at ship per AGENTS §9. Local commit only — no push/PR (LOCAL ONLY build session).
-- [~] **verify** — 2026-07-11 (Sonnet, cold session, not the builder): reconciled git/disk against the
+- [x] **verify** — 2026-07-11 (Sonnet, cold session, not the builder): reconciled git/disk against the
       build's self-report — `git diff --stat main..HEAD` touches only `src/analytics/**` (5 source + 3
       test files) plus this spec's design artifacts; `git diff main..HEAD -- src/engine/` confirmed
       EMPTY (DEC-001); no `package.json`/`package-lock.json` diff. Zero-network grep of non-test
@@ -54,3 +54,6 @@ Cycle prompts live in `prompts/SPEC-061-<cycle>.md`.
       reflection answered honestly. **Zero defects. Verdict: ✅ APPROVED.** Left `[~]` for the
       orchestrator to close to `[x]` at ship per AGENTS §9. Local commit only — no push/PR (LOCAL ONLY
       verify session).
+- [ ] **ship** — (in progress by the orchestrator): filled build/verify cost from subagent_tokens
+      (build 101937, verify 118351; totals 220288 tok ≈ $1.45), appended the Ship Reflection, PR to
+      follow. Timeline closed to `[x]` with the PR number after squash-merge.
