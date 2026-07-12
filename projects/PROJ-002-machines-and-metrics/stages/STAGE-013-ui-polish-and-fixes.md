@@ -135,9 +135,14 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       wrap); Wild & Whimsical gets its own vibrant magical-plum theme instead of the dull default campfire.
       Two user-reported fixes from live testing. **[S]**
 
-**Count:** 6 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76) +
-SPEC-066 (PR #77) + SPEC-067 (PR #78) + SPEC-068 (PR #79) all shipped. (Stage grew past its framed backlog
-with live-testing polish fixes.)
+- [x] SPEC-069 (shipped 2026-07-12, PR #80) — **Overlay-sheet clip fix (viewport-fixed at all sizes)**
+      *(bug)*: removed SPEC-063's desktop `position:absolute` override so Help/Paytable/Stats are
+      viewport-`fixed` everywhere — a user-reported first-run clip where the sheet's title/close sat above
+      the frame. Verified at 918×1054 / 918×600 / 390×667. **[S]**
+
+**Count:** 7 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76) +
+SPEC-066 (PR #77) + SPEC-067 (PR #78) + SPEC-068 (PR #79) + SPEC-069 (PR #80) all shipped. (Stage grew well
+past its framed backlog absorbing live-testing polish + bug fixes.)
 
 ## Design Notes
 

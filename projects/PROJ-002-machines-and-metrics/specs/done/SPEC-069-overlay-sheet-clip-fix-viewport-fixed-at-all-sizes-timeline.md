@@ -20,4 +20,4 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       100dvh, box-sizing border-box, overflow-y auto). Verified first-run help at 918×1054 / 918×600 /
       390×667 — title + close always visible, body scrolls. CSS-only; engine diff EMPTY; the SPEC-063
       contract test still passes (base rule unchanged). Full gate green (471, worktree excluded). **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #80 (squash-merged; CI green; branch deleted).
