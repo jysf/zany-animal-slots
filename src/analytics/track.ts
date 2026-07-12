@@ -5,6 +5,7 @@
 
 import type { AnalyticsEvent } from './events';
 import { createSink, type Sink } from './sink';
+import { getSessionId } from './session';
 
 let activeSink: Sink = createSink();
 
@@ -23,10 +24,18 @@ export function getSink(): Sink {
   return activeSink;
 }
 
-/** Record one analytics event. Fire-and-forget; swallows all errors (never breaks the game). */
+/**
+ * Record one analytics event. Stamps it with the per-load envelope (ts + ephemeral session id + app
+ * version) and hands it to the active sink. Fire-and-forget; swallows all errors (never breaks the game).
+ */
 export function track(event: AnalyticsEvent): void {
   try {
-    activeSink.track(event);
+    activeSink.track({
+      event,
+      ts: Date.now(),
+      sessionId: getSessionId(),
+      appVersion: __APP_VERSION__,
+    });
   } catch {
     // analytics is a side channel — never propagate
   }

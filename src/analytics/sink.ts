@@ -4,7 +4,7 @@
 // Tier 2 (SPEC-063/064, GATED) adds real remote sinks to createSink()'s switch — each of which
 // reverses no-backend and needs a DEC-005 amendment + SECURITY.md update before it may be wired in.
 
-import type { AnalyticsEvent } from './events';
+import type { TrackedEvent } from './events';
 
 /**
  * A pluggable analytics sink. `track` records one event; `flush` is a hint to send any buffered
@@ -12,7 +12,7 @@ import type { AnalyticsEvent } from './events';
  * side channel that must never break the game (the DEC-005 never-throw ethos).
  */
 export interface Sink {
-  track(event: AnalyticsEvent): void;
+  track(tracked: TrackedEvent): void;
   flush(): void;
 }
 

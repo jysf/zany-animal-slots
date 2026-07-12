@@ -1,11 +1,18 @@
 // src/analytics/sink.test.ts — the Sink interface, noop, and config gate (SPEC-061). Plain Vitest.
 import { noopSink, resolveSinkKind, createSink } from './sink';
+import type { TrackedEvent } from './events';
 
 describe('noopSink', () => {
   it('track/flush are no-ops that return undefined and never throw', () => {
-    expect(() => noopSink.track({ type: 'session_start' })).not.toThrow();
+    const sample: TrackedEvent = {
+      event: { type: 'session_start' },
+      ts: 0,
+      sessionId: 't',
+      appVersion: '0.0.0',
+    };
+    expect(() => noopSink.track(sample)).not.toThrow();
     expect(() => noopSink.flush()).not.toThrow();
-    expect(noopSink.track({ type: 'session_start' })).toBeUndefined();
+    expect(noopSink.track(sample)).toBeUndefined();
     expect(noopSink.flush()).toBeUndefined();
   });
 });

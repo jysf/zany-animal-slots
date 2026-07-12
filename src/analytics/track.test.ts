@@ -2,6 +2,7 @@
 import { track, flush, setSink, resetSink, getSink } from './track';
 import { noopSink, type Sink } from './sink';
 import type { AnalyticsEvent } from './events';
+import type { TrackedEvent } from './events';
 
 const SAMPLE_EVENTS: AnalyticsEvent[] = [
   { type: 'session_start' },
@@ -36,12 +37,17 @@ describe('analytics track seam', () => {
     if (beaconSpy) expect(beaconSpy).not.toHaveBeenCalled();
   });
 
-  it('track dispatches to the active sink; setSink swaps it', () => {
-    const seen: AnalyticsEvent[] = [];
-    const spy: Sink = { track: (e) => seen.push(e), flush: () => {} };
+  it('track dispatches to the active sink as a TrackedEvent; setSink swaps it', () => {
+    const seen: TrackedEvent[] = [];
+    const spy: Sink = { track: (t) => seen.push(t), flush: () => {} };
     setSink(spy);
     track({ type: 'help_seen' });
-    expect(seen).toEqual([{ type: 'help_seen' }]);
+    expect(seen).toHaveLength(1);
+    expect(seen[0].event).toEqual({ type: 'help_seen' });
+    expect(typeof seen[0].ts).toBe('number');
+    expect(typeof seen[0].sessionId).toBe('string');
+    expect(seen[0].sessionId.length).toBeGreaterThan(0);
+    expect(seen[0].appVersion).toBe(__APP_VERSION__);
   });
 
   it('resetSink restores the noop default', () => {
