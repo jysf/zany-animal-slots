@@ -70,7 +70,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex-shrink: 0;
+  /* SPEC-063: the cluster grew to 5 controls (selector + mute + paytable + stats + help).
+   * Wrap instead of overflowing a narrow phone row, so the last control (Help) is never
+   * pushed off-screen. The wide machine selector takes the first line; the buttons wrap
+   * beneath, all on-screen and ≥44px (touch-targets-44). */
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 /* ─── Win banner band (SPEC-019, repositioned) ──────────────────────────────── */
