@@ -117,10 +117,17 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       (unicorn jackpot), Arctic (hare/swan/orca), Desert (cactus/scorpion/bat), Ocean (jellyfish jackpot);
       no glyph repeats across machines (new symbol-uniqueness contract test). Verified across all 4
       machines live. Presentation-only (DEC-001/DEC-021); no DEC. **[S]**
+- [x] SPEC-066 (shipped 2026-07-12, PR #NN) — **Global `box-sizing: border-box` reset** *(chore/CSS)*:
+      the SPEC-063 follow-up the signal called for. New `src/styles/reset.css`
+      (`*, *::before, *::after { box-sizing: border-box }`) imported before `tokens.css`; retires the
+      per-sheet `box-sizing` decls SPEC-063 added locally. Removes the root cause of the max-height-vs-padding
+      trap so future fixed/scrolled panels don't re-hit it. Preview-verified at 375×812 / 375×500 / 1100×760
+      (measured `border-box` + `height==innerHeight` on the sheets after removing the local crutch);
+      +3-assertion contract test. Presentation-only. **[S]**
 
-**Count:** 3 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76)
-shipped. STAGE-013's originally-framed backlog is complete; a follow-up (SPEC-066, global box-sizing reset)
-is being pulled in from the spawned box-sizing task.
+**Count:** 4 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76) +
+SPEC-066 (PR #NN) all shipped. STAGE-013 complete (the originally-framed 3 + the SPEC-066 box-sizing
+follow-up pulled in from the spawned task).
 
 ## Design Notes
 

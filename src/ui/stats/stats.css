@@ -71,9 +71,9 @@
   max-width: 430px;
   z-index: 11;
 
-  /* border-box so max-height caps the TOTAL height incl. padding (no global reset in this repo) —
-   * otherwise content-box adds the vertical padding on top of the cap and the top clips (SPEC-063). */
-  box-sizing: border-box;
+  /* box-sizing: border-box comes from the global reset (src/styles/reset.css, SPEC-066), so max-height
+   * caps the TOTAL height incl. padding — otherwise content-box adds the vertical padding on top of the
+   * cap and the top clips (SPEC-063). */
   max-height: 100dvh;
   overflow-y: auto;
 
