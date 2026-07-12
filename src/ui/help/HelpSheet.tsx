@@ -51,8 +51,13 @@ export function HelpSheet() {
   return (
     <>
       {/* Always-rendered trigger — does NOT shift game layout when the sheet is closed. */}
-      <button className="help__trigger" aria-label="How to play" onClick={() => setOpen(true)}>
-        ❓ How to play
+      <button
+        className="help__trigger"
+        aria-label="How to play"
+        title="How to play"
+        onClick={() => setOpen(true)}
+      >
+        ❓
       </button>
 
       {open && (

@@ -70,12 +70,31 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  /* SPEC-063: the cluster grew to 5 controls (selector + mute + paytable + stats + help).
-   * Wrap instead of overflowing a narrow phone row, so the last control (Help) is never
-   * pushed off-screen. The wide machine selector takes the first line; the buttons wrap
-   * beneath, all on-screen and ≥44px (touch-targets-44). */
-  flex-wrap: wrap;
+  /* SPEC-068: the five controls (selector + mute + paytable + stats + help) now sit on ONE clean
+   * row (SPEC-063's wrap looked ragged). The action triggers are icon-only + fixed-width; the wide
+   * machine selector flexes and shrinks to fill what's left. min-width:0 lets the selector shrink
+   * below its content width instead of forcing an overflow. On a narrow phone the whole cluster
+   * still drops below the title (the parent .cabinet__header wraps), giving a tidy title-row +
+   * single-controls-row header. */
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* The machine selector is the one flexible control — it absorbs the leftover width and truncates
+   its label gracefully rather than pushing the icon triggers off-screen (SPEC-068). */
+.cabinet__header-controls .machine-selector {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The icon-only action triggers keep their ≥44px square footprint and never shrink (SPEC-068). */
+.cabinet__header-controls .mute-toggle,
+.cabinet__header-controls .paytable__trigger,
+.cabinet__header-controls .stats__trigger,
+.cabinet__header-controls .help__trigger {
+  flex: 0 0 auto;
 }
 
 /* ─── Win banner band (SPEC-019, repositioned) ──────────────────────────────── */

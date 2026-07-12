@@ -53,9 +53,10 @@ export function PaytableSheet() {
       <button
         className="paytable__trigger"
         aria-label="Paytable"
+        title="Paytable"
         onClick={() => setOpen(true)}
       >
-        ℹ Paytable
+        ℹ
       </button>
 
       {open && (
