@@ -54,6 +54,8 @@ Cycle prompts live in `prompts/SPEC-061-<cycle>.md`.
       reflection answered honestly. **Zero defects. Verdict: ✅ APPROVED.** Left `[~]` for the
       orchestrator to close to `[x]` at ship per AGENTS §9. Local commit only — no push/PR (LOCAL ONLY
       verify session).
-- [ ] **ship** — (in progress by the orchestrator): filled build/verify cost from subagent_tokens
-      (build 101937, verify 118351; totals 220288 tok ≈ $1.45), appended the Ship Reflection, PR to
-      follow. Timeline closed to `[x]` with the PR number after squash-merge.
+- [x] **ship** — shipped 2026-07-11 via **PR #72** (squash-merged to main, commit `fec7d2e`; all 7 CI
+      checks SUCCESS; branch deleted). Filled build/verify cost from subagent_tokens (build 101937,
+      verify 118351; totals 220288 tok ≈ $1.45), appended the Ship Reflection, closed the timeline. First
+      Tier-1 spec of STAGE-011 (the default-OFF analytics Sink seam). Next: **SPEC-062** (recording tap +
+      ephemeral session + DNT) — the second and final Tier-1 spec. Tier 2 (SPEC-063/064/065) stays GATED.

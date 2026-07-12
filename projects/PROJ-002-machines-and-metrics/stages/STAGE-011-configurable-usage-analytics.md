@@ -135,13 +135,12 @@ touches the network boundary:
   update + an explicit user decision**, none of which is granted by the Tier-1 approval. Framed as a
   documented follow-up; no Tier-2 spec may enter the cycle until that decision is made.
 
-- [ ] SPEC-061 (pending) — **[TIER 1]** **Analytics event model + Sink seam (default OFF)** *(infra)*:
-      the typed `AnalyticsEvent` union, the `Sink` interface + `NoopSink` default, the
-      `VITE_ANALYTICS_SINK` build-config gate (default `off`), and a `track()` seam that is a proven
-      no-op with no sink. No network, no UI. Authors **DEC-023** (analytics posture) — which, in the
-      Tier-1 scope, **affirms DEC-005 holds** (default build is zero-network) and **defers** any
-      no-backend amendment to a future Tier-2 decision; it does NOT amend DEC-005 now. Engine diff
-      EMPTY. **[M]**
+- [x] SPEC-061 (shipped 2026-07-11, PR #72) — **[TIER 1]** **Analytics event model + Sink seam (default
+      OFF)** *(infra)*: the typed `AnalyticsEvent` union, the `Sink` interface + `noopSink` default, the
+      `VITE_ANALYTICS_SINK` build-config gate (default `off`), and a never-throw `track()` seam proven
+      no-op with no sink. No network, no UI. Authored **DEC-023** (analytics posture) — affirms DEC-005
+      (default build zero-network), no no-backend amendment. Engine diff EMPTY; 12 new tests incl. a
+      zero-network inert-proof; 0 verify defects. **[M]**
 - [ ] SPEC-062 (pending) — **[TIER 1]** **Recording tap + ephemeral session + DNT** *(seam)*: emit
       `session_start` / `spin` / `cash_in` / `machine_switch` / `help_seen` from the existing
       STAGE-008/009/010 seams into `track()`; an in-memory-only session id; a `navigator.doNotTrack`
@@ -160,8 +159,9 @@ touches the network boundary:
 - [ ] SPEC-065 (optional / stretch) — **[TIER 2 — GATED]** **Private `/stats` aggregate view** *(UI)*:
       a read-only view over the KV sink's aggregates. Depends on SPEC-064; defer to a fast-follow. **[M]**
 
-**Count:** 0 shipped / 0 active / 5 pending — **Tier 1: 2 (SPEC-061/062, both M), approved**;
-**Tier 2: 3 (SPEC-063/064/065; 2×M + 1×L), GATED** behind a DEC-005 amendment + explicit user go.
+**Count:** 1 shipped / 0 active / 4 pending — **Tier 1: SPEC-061 shipped (PR #72); SPEC-062 pending
+(M), approved**; **Tier 2: 3 (SPEC-063/064/065; 2×M + 1×L), GATED** behind a DEC-005 amendment + explicit
+user go.
 
 ## Design Notes
 
