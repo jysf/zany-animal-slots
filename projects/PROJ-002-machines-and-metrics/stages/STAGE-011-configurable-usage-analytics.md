@@ -141,11 +141,12 @@ touches the network boundary:
       no-op with no sink. No network, no UI. Authored **DEC-023** (analytics posture) — affirms DEC-005
       (default build zero-network), no no-backend amendment. Engine diff EMPTY; 12 new tests incl. a
       zero-network inert-proof; 0 verify defects. **[M]**
-- [ ] SPEC-062 (pending) — **[TIER 1]** **Recording tap + ephemeral session + DNT** *(seam)*: emit
-      `session_start` / `spin` / `cash_in` / `machine_switch` / `help_seen` from the existing
-      STAGE-008/009/010 seams into `track()`; an in-memory-only session id; a `navigator.doNotTrack`
-      short-circuit. Still default-off (NoopSink) so the default build is unchanged; a test proves no
-      transport fires when off. **[M]**
+- [x] SPEC-062 (shipped 2026-07-12, PR #73) — **[TIER 1]** **Recording tap + ephemeral session + DNT**
+      *(seam)*: emits `session_start` / `spin` / `cash_in` / `machine_switch` / `help_seen` from the
+      existing STAGE-008/009/010 seams into `track()`; an in-memory-only session id (`crypto.randomUUID`,
+      never persisted); a `navigator.doNotTrack` short-circuit. Promoted the Sink contract to a
+      `TrackedEvent` envelope so the session id has a live consumer. Still default-off (noop sink) — a
+      test proves no transport fires when off; engine diff EMPTY; 453 tests; 0 verify defects. **[M]**
 - [ ] SPEC-063 (pending) — **[TIER 2 — GATED]** **Generic HTTP-endpoint sink** *(sink)*: an `HttpSink`
       — batched `navigator.sendBeacon` with a `fetch(keepalive)` fallback, swallow-all-failures —
       POSTing to a configured endpoint; the operator `connect-src` CSP note + `SECURITY.md` update for
@@ -159,9 +160,9 @@ touches the network boundary:
 - [ ] SPEC-065 (optional / stretch) — **[TIER 2 — GATED]** **Private `/stats` aggregate view** *(UI)*:
       a read-only view over the KV sink's aggregates. Depends on SPEC-064; defer to a fast-follow. **[M]**
 
-**Count:** 1 shipped / 0 active / 4 pending — **Tier 1: SPEC-061 shipped (PR #72); SPEC-062 pending
-(M), approved**; **Tier 2: 3 (SPEC-063/064/065; 2×M + 1×L), GATED** behind a DEC-005 amendment + explicit
-user go.
+**Count:** 2 shipped / 0 active / 3 pending — **✅ Tier 1 COMPLETE (SPEC-061 PR #72 seam + SPEC-062 PR #73
+tap, both shipped default-OFF 2026-07-11/12)**; **Tier 2: 3 (SPEC-063/064/065; 2×M + 1×L), GATED** behind
+a DEC-005 amendment + `SECURITY.md` update + explicit user go — not written, not driven.
 
 ## Design Notes
 

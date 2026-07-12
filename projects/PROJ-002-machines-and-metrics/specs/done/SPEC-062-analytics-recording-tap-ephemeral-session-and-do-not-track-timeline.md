@@ -67,7 +67,8 @@ Cycle prompts live in `prompts/SPEC-062-<cycle>.md`.
       Verdict: ✅ APPROVED.** Left `[~]` for the orchestrator to close to `[x]` at ship. Local commit
       only — no push/PR (LOCAL ONLY verify session).
 
-- [ ] **ship** — (in progress by the orchestrator): filled build/verify cost from subagent_tokens
-      (build 137347, verify 121690; totals 259037 tok ≈ $1.71), appended the Ship Reflection, PR to
-      follow. Timeline closed to `[x]` with the PR number after squash-merge. **Completes STAGE-011
-      Tier 1** (SPEC-061 seam + SPEC-062 tap).
+- [x] **ship** — shipped 2026-07-12 via **PR #73** (squash-merged to main, commit `4bd2485`; all 7 CI
+      checks SUCCESS; branch deleted). Filled build/verify cost from subagent_tokens (build 137347,
+      verify 121690; totals 259037 tok ≈ $1.71), appended the Ship Reflection, closed the timeline.
+      **Completes STAGE-011 Tier 1** (SPEC-061 seam + SPEC-062 tap, both shipped default-OFF). Remaining
+      backlog is the GATED Tier 2 (SPEC-063/064/065), blocked behind a DEC-005 amendment + explicit user go.
