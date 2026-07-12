@@ -112,13 +112,15 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
 - [x] SPEC-064 (shipped 2026-07-12, PR #75) — **Slot-machine favicon** *(asset)*: a self-contained SVG
       slot-machine favicon (`public/favicon.svg`) + `index.html` `<link rel="icon">` wiring + the missing
       meta description; no external request; browser-verified render, `dist/favicon.svg` produced. **[S]**
-- [ ] SPEC-065 (pending) — **Per-machine reel-emoji refresh** *(presentation, Task 2)*: update each
-      machine's `symbolDisplay` emoji (+ labels) to the user-provided sets; update the pinned-symbol tests;
-      preview-verify per machine. Presentation-only — no engine/DEC-021 change. **[S]** *(awaiting the
-      user's emoji lists.)*
+- [x] SPEC-065 (shipped 2026-07-12, PR #76) — **Per-machine reel-emoji refresh** *(presentation, Task 2)*:
+      refreshed each machine's `symbolDisplay` to the user-approved sets — W&W → whimsical menagerie
+      (unicorn jackpot), Arctic (hare/swan/orca), Desert (cactus/scorpion/bat), Ocean (jellyfish jackpot);
+      no glyph repeats across machines (new symbol-uniqueness contract test). Verified across all 4
+      machines live. Presentation-only (DEC-001/DEC-021); no DEC. **[S]**
 
-**Count:** 2 shipped / 0 active / 1 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) shipped; SPEC-065
-(emoji refresh) pending, awaiting the user's four emoji lists.
+**Count:** 3 shipped / 0 active / 0 pending — SPEC-063 (PR #74) + SPEC-064 (PR #75) + SPEC-065 (PR #76)
+shipped. STAGE-013's originally-framed backlog is complete; a follow-up (SPEC-066, global box-sizing reset)
+is being pulled in from the spawned box-sizing task.
 
 ## Design Notes
 

@@ -20,5 +20,5 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       from the DOM (all correct), Ocean screenshotted. Full suite green (466, `.claude/worktrees/`
       concurrently-spawned task excluded — git-ignored, CI unaffected). Presentation-only (DEC-001/DEC-021);
       no DEC. **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted). Completes
+- [x] **ship** — shipped 2026-07-12 via PR #76 (squash-merged; CI green; branch deleted). Completes
       STAGE-013 (3/3) and the user's Task 2.
