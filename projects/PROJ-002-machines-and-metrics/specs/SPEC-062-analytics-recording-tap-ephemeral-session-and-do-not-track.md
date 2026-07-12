@@ -79,6 +79,36 @@ cost:
         HelpSeenProvider guard, track() envelope fields, emitSessionStart once-guard,
         applyAnalyticsPolicy dnt branch) — each broke exactly its named test, then reverted; working tree
         confirmed clean before commit. `git diff main..HEAD -- src/engine/` is EMPTY. No new dependency.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator to fill from subagent_tokens
+      recorded_at: 2026-07-12
+      note: >-
+        Fresh COLD verify session (Sonnet), reconciled against git/disk, not the build's self-report.
+        Scope: `git diff --stat main..HEAD` touches only src/analytics/**, src/ui/analytics/**, the
+        three tapped seams (useSlotMachine.ts, MachineProvider.tsx, HelpSeenProvider.tsx), main.tsx, and
+        this spec's design artifacts; `git diff main..HEAD -- src/engine/` EMPTY; no package.json/lock
+        change. Zero-network + posture confirmed: no fetch/sendBeacon/XHR/WebSocket in non-test
+        analytics/tap code; createSink() always resolves noopSink in Tier 1; session id never written to
+        localStorage (grepped session.ts); SECURITY.md, public/_headers, decisions/DEC-005 all empty-diff;
+        no HttpSink/remote sink/endpoint anywhere. Full gate green: typecheck, lint, test (81 files / 453
+        tests, including the SPEC-061 "no network call for any event under the off sink" test still
+        passing against the promoted TrackedEvent contract), build, validate, cost-audit. No
+        .only/.skip/xit in new/updated test files. All acceptance criteria walked and backed by a test or
+        code fact. Ran all 5 spec-specified adversarial guard-mutations (MachineProvider guard,
+        HelpSeenProvider guard, track() envelope fields, emitSessionStart once-guard, applyAnalyticsPolicy
+        dnt branch); reverted each and reconfirmed 453/453 green. 4 of 5 broke exactly their named test;
+        mutation 4 (emitSessionStart once-guard) broke its named lifecycle.test.ts assertion PLUS
+        AnalyticsProvider.test.tsx's "consumes the one-shot session_start on mount" test — incidental
+        extra coverage of the same once-guard invariant, not missing coverage; not treated as a defect.
+        Contract-evolution sanity: SPEC-061's sink.test.ts/track.test.ts confirmed updated to TrackedEvent
+        and passing; tap API (callers pass a domain event to track()) unchanged; existing seam tests
+        (MachineProvider/HelpSeenProvider/useSlotMachine.stats/App) still green. `just decisions-audit
+        --changed main` ran: DEC-023 correctly flagged as governing src/analytics/**, build consistent
+        with it; DEC-005 file diff empty (unamended); DEC-004/DEC-010/DEC-022 advisory flags on the touched
+        UI files are unrelated to this spec's change (broad path globs) and not violated. Defect count: 0.
+        Verdict: APPROVED.
   totals:
     tokens_total: 0
     estimated_usd: 0

@@ -35,3 +35,34 @@ Cycle prompts live in `prompts/SPEC-062-<cycle>.md`.
       clean before commit. `git diff main..HEAD -- src/engine/` EMPTY; no new dependency; zero network
       confirmed (no `fetch`/`sendBeacon` outside the test spy that asserts they're never called). No
       deviations from spec. Left `[~]` for the orchestrator to close to `[x]` at ship.
+
+- [~] **verify** — 2026-07-12 (Sonnet, cold session, not the builder): reconciled git/disk against the
+      build's self-report. `git diff --stat main..HEAD` touches only `src/analytics/**`,
+      `src/ui/analytics/**`, the three tapped seams (`useSlotMachine.ts`, `MachineProvider.tsx`,
+      `HelpSeenProvider.tsx`), `src/main.tsx`, and this spec's design artifacts; `git diff main..HEAD --
+      src/engine/` confirmed EMPTY (DEC-001); no `package.json`/lock diff. Zero-network grep of non-test
+      `src/analytics/**` + the taps for `fetch|sendBeacon|XMLHttpRequest|WebSocket` found NONE;
+      `createSink()` confirmed to always resolve `noopSink` in Tier 1; session id confirmed never written
+      to `localStorage`/cookie (grepped `session.ts`); `SECURITY.md`, `public/_headers`,
+      `decisions/DEC-005` all empty-diff; no `HttpSink`/remote sink/endpoint anywhere. Full gate re-run
+      green: `typecheck`, `lint`, `test` (81 files / 453 tests, incl. the SPEC-061 "no network call for
+      any event under the off sink" test still passing against the promoted `TrackedEvent` contract),
+      `build`, `validate`, `cost-audit`. No `.only`/`.skip`/`xit` in new/updated test files. All 9
+      acceptance criteria walked and backed by a specific test/code fact. Ran all 5 spec-specified
+      adversarial guard-mutations one at a time, reverting each before the next: (1) `MachineProvider`
+      guard drop → broke exactly "re-selecting the current machine emits nothing"; (2) `HelpSeenProvider`
+      guard drop → broke exactly "emits help_seen once, on the first mark"; (3) `track()` envelope fields
+      dropped → broke exactly the track "dispatches … TrackedEvent" assertion; (4) `emitSessionStart`
+      once-guard removed → broke its named lifecycle test PLUS `AnalyticsProvider.test.tsx`'s "consumes
+      the one-shot session_start on mount" test (expected collateral — both assert the same once-guard
+      invariant; not a coverage gap); (5) `applyAnalyticsPolicy` ignoring `dnt` → broke exactly "forces
+      the noopSink under Do-Not-Track". All 5 reverted; full suite re-confirmed green (453/453) after
+      each revert and again at the end; working tree clean before committing bookkeeping.
+      Contract-evolution sanity: SPEC-061's `sink.test.ts`/`track.test.ts` confirmed updated to the
+      `TrackedEvent` contract and passing; tap API (`track(domainEvent)`) unchanged; existing seam tests
+      (`MachineProvider`/`HelpSeenProvider`/`useSlotMachine.stats`/`App`) still green. `just
+      decisions-audit --changed main` ran: DEC-023 correctly flagged as governing `src/analytics/**`,
+      build consistent with it; DEC-005 confirmed UNAMENDED (empty diff); DEC-004/DEC-010/DEC-022
+      advisory flags on the touched UI files are broad path-glob matches, not violations. **Zero defects.
+      Verdict: ✅ APPROVED.** Left `[~]` for the orchestrator to close to `[x]` at ship. Local commit
+      only — no push/PR (LOCAL ONLY verify session).
