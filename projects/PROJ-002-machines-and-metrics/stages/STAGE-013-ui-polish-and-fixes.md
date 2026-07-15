@@ -144,9 +144,12 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       Paytable header trigger `ℹ` → `💰` (+ matching help reference); a `100vh` fallback before `100dvh`
       on the overlay sheets for older Safari (<15.4). **[S]**
 
-**Count:** 8 shipped / 0 active / 0 pending — SPEC-063 (#74) + SPEC-064 (#75) + SPEC-065 (#76) + SPEC-066
-(#77) + SPEC-067 (#78) + SPEC-068 (#79) + SPEC-069 (#80) + SPEC-070 (#81) all shipped. (Stage grew well past
-its framed 3-spec backlog absorbing the live-testing polish + bug fixes.)
+- [x] SPEC-071 (shipped 2026-07-12, PR #82) — **Header icon size fix (visible glyphs)** *(bug)*: the
+      iconified header triggers were stuck at 12.8px (text-label era), so 💰/📊/❓ rendered tiny; bumped to
+      `font-size-lg`. **[S]**
+
+**Count:** 9 shipped / 0 active / 0 pending — SPEC-063 (#74) → SPEC-071 (#82) all shipped. (Stage grew well
+past its framed 3-spec backlog absorbing live-testing polish + bug fixes.)
 
 ## Design Notes
 

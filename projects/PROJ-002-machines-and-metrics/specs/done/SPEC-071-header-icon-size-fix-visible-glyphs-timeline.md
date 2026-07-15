@@ -16,4 +16,4 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       text-label era, vs the mute toggle's 16px). Fix: `font-size: var(--font-size-lg)` + `line-height:1`
       on the four header icon triggers. Verified in-browser at 375px — 💰/📊/❓ clear + consistent, one
       row kept. Engine diff EMPTY; full gate green (471, worktree excluded). **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #82 (squash-merged; CI green; branch deleted).
