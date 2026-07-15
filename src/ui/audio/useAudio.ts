@@ -3,6 +3,7 @@
 // unlocked is intentionally exposed here; SPEC-027 will consume it.
 import { useState, useEffect, useCallback } from 'react';
 import { readMute, writeMute } from './muteStorage';
+import { ensureAudio } from './audioEngine';
 
 export function useAudio() {
   const [muted, setMuted] = useState<boolean>(() => readMute());
@@ -14,7 +15,14 @@ export function useAudio() {
 
   useEffect(() => {
     if (unlocked) return;
-    const onGesture = () => setUnlocked(true);
+    const onGesture = () => {
+      // iOS Safari requires the AudioContext to be resumed (Tone.start()) SYNCHRONOUSLY inside the
+      // user-gesture handler — a resume deferred to a later effect (as the old flow did, only flipping
+      // `unlocked` here and starting audio in reactive effects) leaves the context suspended on iOS, so
+      // nothing plays (SPEC-072). ensureAudio() is guarded and never throws.
+      ensureAudio();
+      setUnlocked(true);
+    };
     document.addEventListener('pointerdown', onGesture, { once: true });
     document.addEventListener('keydown', onGesture, { once: true });
     return () => {

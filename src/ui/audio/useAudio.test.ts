@@ -1,11 +1,15 @@
-// Tests for useAudio (SPEC-026).
+// Tests for useAudio (SPEC-026, SPEC-072).
 import { renderHook, act } from '@testing-library/react';
 import { useAudio } from './useAudio';
 import { readMute } from './muteStorage';
+import { ensureAudio } from './audioEngine';
+
+vi.mock('./audioEngine', () => ({ ensureAudio: vi.fn() }));
 
 describe('useAudio', () => {
   beforeEach(() => {
     localStorage.clear();
+    vi.clearAllMocks();
   });
 
   it('starts unmuted by default', () => {
@@ -41,5 +45,13 @@ describe('useAudio', () => {
     // Second gesture keeps it true
     act(() => { document.dispatchEvent(new Event('pointerdown')); });
     expect(result.current.unlocked).toBe(true);
+  });
+
+  it('resumes the AudioContext synchronously in the gesture (SPEC-072 — iOS unlock)', () => {
+    renderHook(() => useAudio());
+    expect(ensureAudio).not.toHaveBeenCalled();
+    act(() => { document.dispatchEvent(new Event('pointerdown')); });
+    // ensureAudio() must run inside the gesture handler, not deferred to a later effect.
+    expect(ensureAudio).toHaveBeenCalledTimes(1);
   });
 });
