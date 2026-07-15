@@ -89,12 +89,16 @@
   min-width: 0;
 }
 
-/* The icon-only action triggers keep their ≥44px square footprint and never shrink (SPEC-068). */
+/* The icon-only action triggers keep their ≥44px square footprint and never shrink (SPEC-068), and
+ * render their emoji at a clear, consistent size (SPEC-071 — they were left at the small text-label
+ * font-size after SPEC-068 iconified them, so the glyphs, esp. the detailed 💰, were barely visible). */
 .cabinet__header-controls .mute-toggle,
 .cabinet__header-controls .paytable__trigger,
 .cabinet__header-controls .stats__trigger,
 .cabinet__header-controls .help__trigger {
   flex: 0 0 auto;
+  font-size: var(--font-size-lg);
+  line-height: 1;
 }
 
 /* ─── Win banner band (SPEC-019, repositioned) ──────────────────────────────── */
