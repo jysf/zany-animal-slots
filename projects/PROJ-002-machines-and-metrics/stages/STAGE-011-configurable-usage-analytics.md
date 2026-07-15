@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-011                     # the roadmap's reserved analytics slot (auto-tool assigned 013; renumbered)
-  status: active                    # proposed | active | shipped | cancelled | on_hold  (Tier 1 in flight 2026-07-11)
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold  (Tier 1 shipped 2026-07-12; Tier 2 gated)
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -24,7 +24,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-10
-shipped_at: null
+shipped_at: 2026-07-12
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -235,12 +235,32 @@ touches the no-backend posture, these settle the intent-level choices the user s
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1c (Stage Ship) in FIRST_SESSION_PROMPTS.md to draft.*
+*Shipped 2026-07-12 (Tier-1 scope). Drafted per Prompt 1d (Stage Ship).*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes, for Tier 1** — the provider-agnostic,
+  default-OFF analytics **seam** shipped: an `AnalyticsEvent` model, a pluggable `Sink` interface with a
+  `NoopSink` default, the `VITE_ANALYTICS_SINK` build gate, a never-throw `track()` façade, the recording
+  tap into the STAGE-008/009/010 seams, an ephemeral in-memory session id, and a Do-Not-Track
+  short-circuit. The public build makes **zero network calls** (browser-verified inert), sets no cookie,
+  carries no PII, and DEC-005 stays fully intact — DEC-023 *affirms* it rather than amending it. What the
+  stage frame described as Tier 2 (any *remote* sink — self-hosted HTTP endpoint, Cloudflare Worker+KV, or
+  the `/stats` view) is **deliberately deferred and gated** behind a DEC-005 amendment + `SECURITY.md`
+  update + an explicit user decision. So the "measurable real play" capability exists as an opt-in seam;
+  it is not yet *collecting* data (by design).
+- **How many specs did it actually take?** **2** (SPEC-061 seam + SPEC-062 tap) vs. the frame's 5-spec
+  backlog — because the stage was split at the 2026-07-11 framing review into an approved Tier 1 (these 2)
+  and a gated Tier 2 (the remaining 3, un-numbered until taken up).
+- **What changed between starting and shipping?** The stage was tiered (Tier 1 approved, Tier 2 gated) so
+  the whole seam could land without touching the security/privacy posture; and the `Sink` contract had to
+  evolve one spec later (SPEC-061 domain-event → SPEC-062 `TrackedEvent` envelope) once the session id
+  needed a live consumer.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - The stage-frame `framing_approved` boolean can't express *partial/tiered* approval — pair it with an
+    explicit `<x>_gated:` flag + a tiered backlog (logged: `framing-approved-boolean-cannot-express-tiered-approval`).
+  - Encode a gated capability's boundary in **code** (a fail-safe resolver + an inert-proof test), not just
+    prose (logged: `gated-scope-boundary-belongs-in-code-not-only-prose`).
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - Yes — "design a seam for its *final* consumer, not the first tier" (the `Sink` re-touch) is a
+    stage-level lesson, already in the signals file.
+  - **Tier 2 stays GATED** — no remote sink until a deliberate DEC-005 amendment + user go (memory:
+    `stage-011-tier2-gated`).

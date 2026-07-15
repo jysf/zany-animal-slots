@@ -4,7 +4,7 @@
 
 project:
   id: PROJ-002
-  status: active                    # proposed | active | shipped | cancelled
+  status: shipped                   # proposed | active | shipped | cancelled
   priority: medium
   target_ship: null                 # play/dogfood project — no hard external date
 
@@ -12,7 +12,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-03
-shipped_at: null
+shipped_at: 2026-07-12
 
 # Business value. Testable claim, not marketing copy.
 value:
@@ -236,12 +236,41 @@ note above), not a PROJ-002 stage.
 
 ## Project-Level Reflection
 
-*Filled in when status moves to shipped.*
+*Shipped 2026-07-12. Drafted per Prompt 1e (Project Ship).*
 
-- **Did we deliver the outcome in "What This Project Is"?** <yes/no + notes>
-- **How many stages did it actually take?** <number, compare to plan>
-- **What changed between starting and shipping?** <one or two sentences>
+- **Did we deliver the outcome in "What This Project Is"?** **Yes.** Animal Slots went from one hard-coded
+  game to a **configurable, measured** one, and the engine/presentation split held under it. All six
+  success signals landed: (1) a machine is a config object — Arctic/Desert/Ocean were added as *data* with
+  zero engine-logic change (STAGE-007/008, DEC-015); (2) the default machine was retuned to a deliberate,
+  *measured* target (~94% RTP, real medium-win band, bigger jackpots — STAGE-008, DEC-016) via an offline
+  metrics simulator rather than by vibe; (3) four distinct machines (theme + music + math) switch and
+  persist (STAGE-008/012, per-machine themes + emoji); (4) an in-app stats view shows winnings-over-time,
+  biggest win, spins, and cash-ins (STAGE-009); (5) usage tracking is a **provider-agnostic, default-OFF**
+  beacon behind a pluggable `Sink` seam (STAGE-011 Tier 1) — it *exists and is inert*, with actual
+  collection gated behind a deliberate Tier-2 decision; (6) a first-timer understands how to play, and the
+  observed onboarding failure is fixed (STAGE-010). STAGE-013 then polished/hardened the whole surface
+  against real-device testing.
+- **How many stages did it actually take?** **7** (STAGE-007→013) vs. the brief's "2–5, top of the range"
+  plan. The overrun was STAGE-013 — a framed 3-spec polish stage that ballooned to 9 specs absorbing
+  live-device bug reports.
+- **What changed between starting and shipping?** The analytics stage (STAGE-011) was **split into an
+  approved default-OFF Tier 1 and a gated Tier 2** so the seam could land without crossing DEC-005's
+  no-backend posture; and a large, unplanned UI-polish/hardening stage (STAGE-013) emerged from playing
+  the live build — the biggest lesson being that real-device/Safari behaviours (overlay clipping, `dvh`,
+  iOS audio unlock) are invisible to a Chromium preview and a unit suite.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - Visual/layout/audio work must be verified in a **real browser (ideally the target one) and a real
+    device**, not by unit tests — most STAGE-013 bugs were preview-/test-invisible.
+  - The stage `framing_approved` boolean can't express **tiered/partial approval** — pair it with an
+    explicit `<x>_gated:` flag when a stage carries an intent-level decision only *some* specs trigger.
+  - When a wave adds `localStorage` keys or a network seam, **reconcile `SECURITY.md` with the code** as a
+    close-out step (done in SPEC-067). All the above are captured in
+    `feedback/2026-07-04-proj-002-signals.md`.
 - **What did we defer to the next project?**
-  - <one-line items>
+  - **STAGE-011 Tier 2** — any *remote* analytics sink (self-hosted HTTP endpoint, Cloudflare Worker+KV,
+    `/stats` view). GATED behind a DEC amending DEC-005 + a `SECURITY.md` update + an explicit user
+    decision. This is the natural spine of a data-grounded PROJ-003 (retune from observed play).
+  - **The audio-quality overhaul** — the synth SFX/music (and the looping ambient "bed") read as cheap;
+    parked as a **future-project candidate** (likely a spike first: sampled-vs-synth, reconsider the loop),
+    not a PROJ-002 stage.
+  - A small cosmetic: `JackpotMoment` still shows a machine-agnostic 🐺 wolf (could become machine-aware).

@@ -5,7 +5,7 @@
 
 stage:
   id: STAGE-013                     # stable, zero-padded, continuous across the repo
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold  (shipped 2026-07-12)
   priority: medium                  # critical | high | medium | low
   target_complete: null             # optional: YYYY-MM-DD
 
@@ -15,7 +15,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-12
-shipped_at: null
+shipped_at: 2026-07-12
 
 # What part of the project's value thesis this stage advances.
 value_contribution:
@@ -184,13 +184,30 @@ well past its framed 3-spec backlog absorbing live-testing polish + bug fixes.)
 
 ## Stage-Level Reflection
 
-*Filled in when status moves to shipped. Run Prompt 1c (Stage Ship) in
-FIRST_SESSION_PROMPTS.md to draft this.*
+*Shipped 2026-07-12. Drafted per Prompt 1d (Stage Ship).*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes, and then some.** The framed goal — make
+  the shipped surfaces feel finished on a real phone — was delivered: the header no longer wraps its
+  controls raggedly (one clean icon row), the overlay sheets never clip their title/close, the app has a
+  slot-machine favicon, and each machine has a refreshed, distinct reel-emoji identity. Then real-device
+  testing surfaced a run of follow-on bugs the stage absorbed: a global box-sizing gap, missing hardening
+  (no error boundary; a stale SECURITY.md), a Wild & Whimsical stuck on the dull default theme, a
+  Safari-specific overlay clip, tiny header icons, and no audio on iPhone — all fixed.
+- **How many specs did it actually take?** **9** (SPEC-063–072) vs. the framed backlog of **3** (layout,
+  favicon, emoji). The extra 6 came almost entirely from the user playing the live build and reporting
+  what the Chromium preview couldn't show.
+- **What changed between starting and shipping?** It stopped being a tidy 3-spec polish stage and became a
+  live-testing bug-fix loop — every device round-trip added a spec.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - **Layout/overflow/clip and audio bugs need REAL-device + Safari testing** — the Chromium preview
+    missed the Safari sheet clip, the tiny icons, and the iOS audio unlock. (Logged:
+    `layout-bugs-need-preview-not-unit-tests-and-a-box-sizing-reset`.)
+  - **A modal/sheet wants `position: fixed` to the viewport at all sizes** — the desktop `absolute`-in-a-
+    container variant (SPEC-063) clipped; SPEC-069 unified it.
+  - **Add a global `box-sizing: border-box` reset** (done, SPEC-066) — its absence caused the
+    max-height-vs-padding clip.
+  - **Iconify a button in the same change you drop its text** (set the icon font-size then) — SPEC-068
+    iconified the header but left the text-era 12.8px size, hiding the 💰 until SPEC-071.
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - Yes — "visual/layout/audio work must be verified in a real browser (ideally the target one), not by
+    unit tests," and "pair `vh` with `dvh`," are both stage-level takeaways (in the signals file).
