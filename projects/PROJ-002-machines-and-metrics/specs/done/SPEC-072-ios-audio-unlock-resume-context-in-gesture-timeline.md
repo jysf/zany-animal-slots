@@ -19,4 +19,4 @@ _(Timeline will be populated as the architect writes each cycle's prompt.)_
       synchronously on the gesture (1 call), no console errors. Engine diff EMPTY; full gate green (472,
       worktree excluded). iPhone playback needs a device re-test (silent switch is a separate hardware
       caveat). **[S]**
-- [x] **ship** — shipped 2026-07-12 via PR #NN (squash-merged; CI green; branch deleted).
+- [x] **ship** — shipped 2026-07-12 via PR #83 (squash-merged; CI green; branch deleted).

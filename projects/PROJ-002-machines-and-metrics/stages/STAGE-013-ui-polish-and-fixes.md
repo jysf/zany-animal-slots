@@ -148,8 +148,12 @@ when (if) they are un-gated, per the repo's continuous-numbering rule.*
       iconified header triggers were stuck at 12.8px (text-label era), so 💰/📊/❓ rendered tiny; bumped to
       `font-size-lg`. **[S]**
 
-**Count:** 9 shipped / 0 active / 0 pending — SPEC-063 (#74) → SPEC-071 (#82) all shipped. (Stage grew well
-past its framed 3-spec backlog absorbing live-testing polish + bug fixes.)
+- [x] SPEC-072 (shipped 2026-07-12, PR #83) — **iOS audio unlock** *(bug)*: resume the AudioContext
+      synchronously inside the first-gesture handler (was deferred to a later effect, leaving iOS Safari
+      suspended/silent). Browser-verified resume-in-gesture; needs an iPhone device re-test. **[S]**
+
+**Count:** 10 shipped / 0 active / 0 pending — SPEC-063 (#74) → SPEC-072 (#83) all shipped. (Stage grew
+well past its framed 3-spec backlog absorbing live-testing polish + bug fixes.)
 
 ## Design Notes
 
