@@ -1,94 +1,71 @@
-# Animal Slots
+# 🎰 Zany Animal Slots
 
-A play-money, mobile-first web slot game themed on North American wildlife
-("Wild & Whimsical").
+A **play-money, mobile-first web slot game** — spin a 5×3 reel of animals across four themed machines,
+chase the jackpot, and watch your session stats. No real money, ever: it's built purely for fun (and as
+a clean, config-driven demo of an engine/presentation split).
 
-This repo uses a spec-driven workflow where Claude plays every role (architect, implementer, reviewer) across different sessions.
+**▶ Play it:** [zany-animal-slots.jysf.org](https://zany-animal-slots.jysf.org)
 
-## Hierarchy
+> **Play-money only.** The balance is a cosmetic number in `localStorage`; **Reset** tops it back up.
+> There is no real currency, wagering, or purchases of any kind, and no advertised return-to-player — the
+> reel math is tuned for *feel*, not a regulated payout.
 
-```
-Repo (this app)
- └─ Project (a wave of work: "MVP", "v2 improvements")
-     └─ Stage (a coherent chunk within a project)
-         └─ Spec (an individual task)
-              └─ Cycle (Frame → Design → Build → Verify → Ship)
-```
+## Features
 
-## Getting started
+- **Four machines, four worlds** — **Wild & Whimsical** (a rainbow menagerie under a magical-plum theme),
+  **Arctic**, **Desert**, and **Ocean**. Each has its own reel creatures, color theme, music, and tuned
+  math. Switch anytime from the header; your choice persists across reloads.
+- **Real slot mechanics** — 5×3 reels, **20 fixed paylines**, weighted reel strips, Small / Big / Jackpot
+  win tiers, adjustable bet levels, and hands-free **auto-spin**.
+- **Juice** — paw-print trails, particle bursts, a balance count-up, a jackpot moment, and tier-scaled
+  synthesized sound (with a `prefers-reduced-motion` fallback).
+- **Session stats** — a winnings-over-time sparkline, biggest win, spin count, and cash-ins, all persisted
+  locally.
+- **How-to-play** — a first-run explainer so newcomers understand the game without help.
+- **Privacy-first** — 100% client-side; no accounts, no PII, no third-party trackers, no ads. A pluggable
+  usage-analytics seam ships **OFF by default** (zero network calls) and honors Do-Not-Track.
 
-**First time?** Read `GETTING_STARTED.md` — it walks you through your first project end-to-end.
+## Tech
 
-**Daily work?** Run `just --list` to see available commands.
+- **TypeScript** (strict), **React 18** + **Vite**
+- Vanilla CSS + **design tokens** (no UI library); per-machine theming via CSS custom properties
+- **Tone.js** — all audio is synthesized in the browser (no audio asset files)
+- **No backend** — a static SPA deployed on **Cloudflare Workers Static Assets**
+- **Vitest** + React Testing Library; ESLint + Prettier
+- The game **engine** (`src/engine/**`) is pure TypeScript with **zero DOM coupling** — a "machine" is
+  just config data, so adding a variant or retuning the math is *data, not code*.
 
-**Common commands:**
+## Run it locally
+
 ```bash
-just status                        # See active project, stage, specs by cycle
-just backlog                       # Spec-grained: what's next in the active stage
-just roadmap                       # Stage-grained: where this project is going
-just new-spec "title" STAGE-001    # Scaffold a new spec
-just advance-cycle SPEC-001 verify # Update a spec's cycle
-just archive-spec SPEC-001         # Move a shipped spec to done/
-just weekly-review                 # Print the weekly review prompt
-just report-daily                  # Generate today's daily report
-just report-weekly                 # Generate this week's weekly report
-just daily-status-report           # Snapshot `just status` to reports/daily/<date>-status.md
+npm install
+npm run dev        # start the Vite dev server (http://localhost:5173)
+npm test           # run the test suite (Vitest)
+npm run lint       # ESLint (incl. the engine/no-DOM import boundary)
+npm run typecheck  # tsc --noEmit (strict)
+npm run build      # production build → static assets in dist/
 ```
 
-## Reports
-
-`just report-daily` and `just report-weekly` generate quantitative
-snapshots under `reports/daily/` and `reports/weekly/` from spec
-front-matter and git log. Daily reports show specs by cycle, value
-thesis, cost activity today, and flags. Weekly reports aggregate
-ships, cycle times, cost by cycle and interface, and value
-advancement. Reports are stand-alone artifacts — re-running
-overwrites, so they're always a current snapshot.
-
-## Key discipline in this variant
-
-Because Claude plays every role, context contamination is the biggest risk. Four habits keep it at bay:
-
-1. **New Claude session per cycle** (especially design → build and build → verify)
-2. **The spec file is the source of truth** between sessions — no "as I said earlier"
-3. **Weekly review is non-optional** (`just weekly-review`)
-4. **Honest confidence values** on decisions
-
-See `AGENTS.md` section 15 for the full discipline.
-
-## The app itself
-
-Animal Slots is a play-money, mobile-first web slot game themed on North
-American wildlife ("Wild & Whimsical"). This wave of work (PROJ-001, the MVP)
-delivers a fully playable, juiced 5×3 slot — real spin/win logic plus the
-celebratory feel from the design spec — built as a small web app whose game
-logic is cleanly separable from its presentation. Why now / why this app: it
-doubles as a dogfood vehicle for the spec-driven template against a real-time,
-animation-heavy, non-CRUD frontend project. Success: all five game states are
-reachable and visually distinct, the engine is fully unit-tested with zero DOM
-coupling, and at least one spec completes the design→build→verify→ship loop
-without the loop fighting the animation work.
-
-There is no real money, wagering, or purchases of any kind — balance and reset
-are local-only and tuned for fun, not a regulated payout. See
-`projects/PROJ-001-animal-slots/brief.md` for the full project frame, and
-AGENTS.md Section 6 for run/test commands.
+`just` wrappers exist too (`just dev`, `just test`, `just build`, …) — run `just --list`.
 
 ## Where things live
 
-| Path | Purpose |
+| Path | What |
 |---|---|
-| `AGENTS.md` | Conventions for Claude working in this repo |
-| `.repo-context.yaml` | Structured metadata about the app |
-| `docs/` | Architecture, data model, API contract |
-| `guidance/` | Repo-level rules and open questions |
-| `decisions/` | Decision log (accumulates across projects) |
-| `projects/` | Each project (wave of work) lives here |
-| `projects/*/brief.md` | What this project is and why |
-| `projects/*/stages/` | Stages within a project |
-| `projects/*/specs/` | Specs within a project (with folded-in Implementation Context) |
-| `src/` | [REPLACE: the actual app code] |
+| `src/engine/**` | Pure game logic — RNG, reel strips, spin, paylines, win tiers, balance. No DOM. |
+| `src/machines/**` | The four machines as **config objects** (symbols, weights, paytable, theme, audio). |
+| `src/ui/**` | React components, per-machine theming, and the juice layer. |
+| `src/analytics/**` | The default-OFF, provider-agnostic usage-analytics seam. |
+| `docs/architecture.md` | Module layout + the engine/presentation rationale. |
+| `decisions/` | Architecture decision records (`DEC-*`). |
+| `SECURITY.md` | Security posture (client-only, no PII, default-off analytics). |
+
+## How this repo is built
+
+Zany Animal Slots is developed with a **spec-driven, AI-agent workflow** (architect → implementer →
+reviewer, across separate sessions). You don't need any of it to run or hack on the game — that machinery
+lives in [`AGENTS.md`](AGENTS.md) and [`docs/spec-driven-workflow.md`](docs/spec-driven-workflow.md).
 
 ## License
 
-[REPLACE]
+[Apache License 2.0](LICENSE).
