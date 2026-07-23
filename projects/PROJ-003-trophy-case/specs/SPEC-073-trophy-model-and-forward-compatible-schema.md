@@ -53,6 +53,16 @@ cost:
         strictly-greater, cap 10, sort desc, spinIndex = pre-increment spins). Authored DEC-024 (the
         trophy model + additive-schema-evolution rule) as part of this design. Build is transcription
         of the drop-in code in ## Notes.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null   # orchestrator fills the real number from the Agent result / `/cost` at ship
+      recorded_at: 2026-07-23
+      note: >-
+        Transcribed the spec's drop-in code into sessionStats.ts/statsStorage.ts and added the
+        Failing Tests to both *.test.ts files. One deviation: tier 'high' (used in a few Failing-Tests
+        prose examples) isn't a valid WinTier ('none'|'small'|'big'|'jackpot') — substituted 'small'
+        or 'jackpot' where a non-'big' tier was needed. Full gate green; src/engine/** diff empty.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -396,18 +406,43 @@ import { emptyStats, STATS_VERSION, type SessionStats, type TopWin } from './ses
 
 *Filled in at the end of the **build** cycle, before advancing to verify.*
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-073-trophy-model`
+- **PR (if applicable):** none yet — orchestrator opens it.
+- **All acceptance criteria met?** Yes. `emptyStats()` seeds `topWins: []`; `STATS_VERSION`
+  stays `1`; `recordSpin` accepts optional `grid`/`lineWins` and records a `TopWin` with
+  1-based `spinIndex` for winning spins only; `topWins` is sorted desc, capped at 10,
+  strictly-greater insert (verified tie-does-not-displace); `topWins[0].amount` agrees
+  with `biggestWin.amount`; `recordSpin` is immutable (input's `topWins` array unchanged,
+  same reference; output is a new array); `readStats()` normalizes a missing or
+  non-array `topWins` to `[]` without discarding the rest of the blob; `writeStats` →
+  `readStats` round-trips a record with trophies; a version mismatch still discards
+  (unchanged). `src/engine/**` diff is empty (`git diff --stat main..HEAD -- src/engine/`
+  produced no output); no new dependency was added.
+- **New decisions emitted:** none — this build only transcribes DEC-024 (authored during
+  design) into code.
+- **Deviations from spec:** The Failing Tests' prose examples use tier `'high'` for a
+  couple of non-`'big'`/`'jackpot'` example wins, but `WinTier` (from `src/engine/tiers.ts`)
+  is `'none' | 'small' | 'big' | 'jackpot'` — there is no `'high'` tier. Substituted
+  `'small'` (or `'jackpot'` where a distinctly-largest win was wanted) in those tests;
+  behavior asserted (sort order, cap, tie rule, biggestWin agreement) is unaffected by
+  which valid tier label is used. Everything else in `## Notes for the Implementer` was
+  transcribed as given.
+- **Follow-up work identified:** none beyond the already-scheduled SPEC-074 (record-seam
+  widening in `useSlotMachine.ts`, out of scope here).
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Only the `tier: 'high'`
+   mismatch above; the drop-in code itself required no interpretation, just placement
+   (hoisting `spins` before the trophy computation, matching import order/style).
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No;
+   `DEC-024`, `DEC-020`, `DEC-001`, and `engine-no-dom` fully covered the surface touched.
+   It might be worth a repo-wide note (not just this spec) that `WinTier`'s valid values
+   should be quoted verbatim in specs to avoid the copy-paste drift seen here.
+3. **If you did this task again, what would you do differently?** — Nothing structural;
+   would just grep `WinTier`'s definition before transcribing example test data that uses
+   tier literals, to catch the `'high'` mismatch before writing the tests instead of at
+   typecheck time.
 
 ---
 
