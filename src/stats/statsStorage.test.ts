@@ -70,14 +70,30 @@ describe('statsStorage', () => {
     expect(readStats()).toEqual({ ...oldBlob, topWins: [] });
   });
 
-  it('readStats normalizes a non-array topWins to []', () => {
-    const blob = { ...emptyStats(), topWins: 'nope' };
+  it('readStats normalizes a non-array topWins to [] without resetting the record', () => {
+    // The surrounding fields carry NON-DEFAULT values on purpose: with emptyStats()'s
+    // zeroes here, a readStats() that wrongly reset the whole record would still satisfy
+    // the spins/series assertions and the test would pass while the record was destroyed.
+    const blob = {
+      ...emptyStats(),
+      spins: 42,
+      winningSpins: 7,
+      totalWagered: 420,
+      totalWon: 310,
+      cashIns: 3,
+      series: [-10, 25, -5],
+      topWins: 'nope',
+    };
     localStorage.setItem(STATS_KEY, JSON.stringify(blob));
 
     const result = readStats();
     expect(result.topWins).toEqual([]);
-    expect(result.spins).toBe(blob.spins);
-    expect(result.series).toEqual(blob.series);
+    expect(result.spins).toBe(42);
+    expect(result.winningSpins).toBe(7);
+    expect(result.totalWagered).toBe(420);
+    expect(result.totalWon).toBe(310);
+    expect(result.cashIns).toBe(3);
+    expect(result.series).toEqual([-10, 25, -5]);
   });
 
   it('writeStats round-trips a record carrying trophies', () => {

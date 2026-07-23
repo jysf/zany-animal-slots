@@ -7,7 +7,7 @@
 task:
   id: SPEC-073
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -56,7 +56,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null   # orchestrator fills the real number from the Agent result / `/cost` at ship
+      tokens_total: 99514    # from Agent result subagent_tokens
+      estimated_usd: 0.66    # 99514 tok × $6.6/M (Sonnet list, no cache discount) — order-of-magnitude
+      duration_minutes: 5.9  # 354440 ms
       recorded_at: 2026-07-23
       note: >-
         Transcribed the spec's drop-in code into sessionStats.ts/statsStorage.ts and added the
@@ -66,7 +68,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-5
-      tokens_total: null   # orchestrator fills the real number from the Agent result / `/cost` at ship
+      tokens_total: 92869      # from Agent result subagent_tokens
+      estimated_usd: 0.61      # 92869 tok × $6.6/M (Sonnet list, no cache discount) — order-of-magnitude
+      duration_minutes: 104.2  # 6252823 ms
       recorded_at: 2026-07-23
       note: >-
         Cold review. All 13 ACs verified against code, ticked. All 5 guard-mutations broke
@@ -83,10 +87,24 @@ cost:
         `{...emptyStats(), topWins: 'nope'}`, so its spins/series assertions can't distinguish
         "normalize topWins only" from "reset the whole record" — flagged for a future spec, not
         fixed here (out of scope for a verify cycle).
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-23
+      note: >-
+        main-loop, not separately metered (AGENTS §4); ship cycle. Acted on verify's non-blocking
+        flag rather than deferring it: tightened the "normalizes a non-array topWins" storage test
+        to seed NON-DEFAULT spins/winningSpins/totalWagered/totalWon/cashIns/series, so a readStats()
+        that wrongly reset the whole record now fails it (confirmed by re-running verify's
+        guard-mutation #5 — the test previously passed under that mutation, now breaks). A weak test
+        in the one spec whose entire thesis is "do not reset the record" was worth fixing in place.
+        Then full gate, PR + CI-poll + squash-merge, archive, brag, cost bookkeeping.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 192383   # build 99514 + verify 92869 (design/ship un-metered main-loop)
+    estimated_usd: 1.27    # build 0.66 + verify 0.61
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-073: Trophy model and forward-compatible persisted schema
@@ -468,6 +486,29 @@ import { emptyStats, STATS_VERSION, type SessionStats, type TopWin } from './ses
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Two things. (a) The spec's Failing-Tests
+   prose invented a tier literal (`'high'`) that doesn't exist in `WinTier`; when a design
+   pins example data against a union type, it should quote the union's actual members
+   rather than plausible-sounding ones — the build caught it at typecheck, but it cost a
+   round-trip. (b) More importantly: the spec specified *what* the forward-compat test
+   should assert but not *what the fixture must not be*. The build's non-array-normalization
+   test seeded its blob from `emptyStats()`, whose zeroes made the "record survived"
+   assertions unfalsifiable — verify caught it only by mutation, not by reading. A test
+   that guards against "the record got reset" must seed non-default values, and the spec
+   should have said so explicitly. It now does for the literal-fixture test, but not for
+   its sibling; that asymmetry is what let the weak test through.
+
+2. **Does any template, constraint, or decision need updating?** — No template change, but
+   a reusable lesson worth carrying: **for any test whose purpose is "X was preserved",
+   the fixture must make preservation falsifiable** (non-default values), otherwise the
+   test passes under the exact bug it exists to catch. This generalizes past this repo.
+   DEC-024 already records the additive-schema rule itself and needs no amendment.
+   Separately: `just lint` is currently unusable locally (1458 errors, all from git-ignored
+   `.claude/worktrees/**` + `audio-spike.html`); CI is unaffected, but every cycle now pays
+   a tax re-establishing that. Worth cleaning up the stale worktrees out-of-band.
+
+3. **Is there a follow-up spec I should write now before I forget?** — No new spec. The one
+   flagged gap (the weak normalization test) was fixed in this ship rather than deferred,
+   and re-checked against verify's guard-mutation #5 to confirm it now has teeth. SPEC-074
+   (the record seam) already exists in the backlog and is the direct next step: it flips
+   `grid`/`lineWins` from optional-for-compat to actually supplied at the call site.

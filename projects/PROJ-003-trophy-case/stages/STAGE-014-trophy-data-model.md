@@ -96,15 +96,15 @@ manual testing, rather than an empty one.
 
 ## Spec Backlog
 
-- [ ] SPEC-073 (frame) — Trophy model + forward-compatible persisted schema: `TopWin`,
-      `topWins` (cap 10, strictly-greater insert), widened `SpinRecordInput`, and a
-      `readStats()`/`isValid()` that tolerates and normalizes a missing `topWins`
-      without a version bump. Emits the trophy-model DEC.
+- [x] SPEC-073 (shipped on 2026-07-23) — Trophy model + forward-compatible persisted
+      schema: `TopWin`, `topWins` (cap 10, strictly-greater insert), widened
+      `SpinRecordInput`, and a `readStats()`/`isValid()` that tolerates and normalizes a
+      missing `topWins` without a version bump. Emitted **DEC-024**. 0 defects.
 - [ ] SPEC-074 (frame) — Record-seam widening: pass `grid` + `lineWins` from the
       resolved outcome through `recordSpin` at the `useSlotMachine` call site; assert
       trophies actually accumulate through the provider.
 
-**Count:** 0 shipped / 0 active / 2 pending
+**Count:** 1 shipped / 0 active / 1 pending
 
 ## Design Notes
 
