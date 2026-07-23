@@ -63,6 +63,26 @@ cost:
         Failing Tests to both *.test.ts files. One deviation: tier 'high' (used in a few Failing-Tests
         prose examples) isn't a valid WinTier ('none'|'small'|'big'|'jackpot') — substituted 'small'
         or 'jackpot' where a non-'big' tier was needed. Full gate green; src/engine/** diff empty.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-5
+      tokens_total: null   # orchestrator fills the real number from the Agent result / `/cost` at ship
+      recorded_at: 2026-07-23
+      note: >-
+        Cold review. All 13 ACs verified against code, ticked. All 5 guard-mutations broke
+        their target test and reverted clean (cap-slice off-by-one also broke the tie test,
+        and reversed-sort also broke the biggestWin-agreement test — expected blast radius,
+        not fake tests). Confirmed the pre-topWins storage test uses a genuine literal old-shape
+        object (no re-serialized emptyStats()). Scope clean: only src/stats/** + spec/decision
+        docs changed; src/engine/** and src/ui/** untouched; STATS_VERSION=1; biggestWin intact.
+        No .only/.skip/xit/todo. 'high'-tier deviation confirmed correct (not a valid WinTier).
+        Full gate green (typecheck, test, build, validate, cost-audit); `npx eslint
+        "src/**/*.{ts,tsx}"` exits 0; confirmed `just lint`'s 1458 errors originate entirely
+        from git-ignored `.claude/worktrees/**`. Zero defects. One minor test-quality note (not
+        blocking): the "normalizes a non-array topWins" test builds its blob from
+        `{...emptyStats(), topWins: 'nope'}`, so its spins/series assertions can't distinguish
+        "normalize topWins only" from "reset the whole record" — flagged for a future spec, not
+        fixed here (out of scope for a verify cycle).
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -119,25 +139,25 @@ tolerate and normalize a blob with a missing `topWins` **without bumping
 
 ## Acceptance Criteria
 
-- [ ] `emptyStats()` returns `topWins: []` and is otherwise unchanged (still version 1).
-- [ ] `STATS_VERSION` is still `1`.
-- [ ] `recordSpin` accepts `grid` + `lineWins` on its input and records a `TopWin`
+- [x] `emptyStats()` returns `topWins: []` and is otherwise unchanged (still version 1).
+- [x] `STATS_VERSION` is still `1`.
+- [x] `recordSpin` accepts `grid` + `lineWins` on its input and records a `TopWin`
       `{ amount, machineId, tier, bet, grid, lineWins, spinIndex }` for a winning spin.
-- [ ] `spinIndex` on a recorded trophy equals the spin's **1-based ordinal** (the value
+- [x] `spinIndex` on a recorded trophy equals the spin's **1-based ordinal** (the value
       of `stats.spins` *after* this spin — i.e. the 1st spin recorded is `spinIndex: 1`).
-- [ ] A losing spin (`totalWin === 0`) adds no trophy.
-- [ ] `topWins` is sorted by `amount` descending and capped at `TOP_WINS_CAP` (10).
-- [ ] Insert is **strictly-greater**: a win whose amount ties the current smallest entry
+- [x] A losing spin (`totalWin === 0`) adds no trophy.
+- [x] `topWins` is sorted by `amount` descending and capped at `TOP_WINS_CAP` (10).
+- [x] Insert is **strictly-greater**: a win whose amount ties the current smallest entry
       does not displace it once the list is full; among equal amounts the earlier win
       keeps the higher rank.
-- [ ] `topWins[0]?.amount === biggestWin?.amount` after any sequence of recorded spins.
-- [ ] `recordSpin` remains immutable (does not mutate its input or nested `topWins`).
-- [ ] `readStats()` on a blob **missing** `topWins` returns every existing field intact
+- [x] `topWins[0]?.amount === biggestWin?.amount` after any sequence of recorded spins.
+- [x] `recordSpin` remains immutable (does not mutate its input or nested `topWins`).
+- [x] `readStats()` on a blob **missing** `topWins` returns every existing field intact
       with `topWins: []` (no discard, no version bump).
-- [ ] `readStats()` on a blob whose `topWins` is present-but-not-an-array normalizes it
+- [x] `readStats()` on a blob whose `topWins` is present-but-not-an-array normalizes it
       to `[]` while keeping the rest of the record.
-- [ ] `writeStats` → `readStats` round-trips a record that has trophies.
-- [ ] `src/engine/**` diff is empty; no new dependency.
+- [x] `writeStats` → `readStats` round-trips a record that has trophies.
+- [x] `src/engine/**` diff is empty; no new dependency.
 
 ## Failing Tests
 
