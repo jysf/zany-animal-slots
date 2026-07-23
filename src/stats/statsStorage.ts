@@ -2,12 +2,12 @@
 // Mirrors src/machines/activeMachineStorage.ts (SPEC-049): namespaced zany:* key, guarded,
 // never throws (DEC-005). A single JSON blob; absent/corrupt/wrong-version ⇒ emptyStats().
 
-import { emptyStats, STATS_VERSION, type SessionStats } from './sessionStats';
+import { emptyStats, STATS_VERSION, type SessionStats, type TopWin } from './sessionStats';
 
 export const STATS_KEY = 'zany:stats';
 
 /** Narrow an unknown parse result to a well-formed, current-version SessionStats. */
-function isValid(v: unknown): v is SessionStats {
+function isValid(v: unknown): v is Omit<SessionStats, 'topWins'> & { topWins?: unknown } {
   if (typeof v !== 'object' || v === null) return false;
   const s = v as Record<string, unknown>;
   return (
@@ -19,6 +19,7 @@ function isValid(v: unknown): v is SessionStats {
     typeof s.cashIns === 'number' &&
     Array.isArray(s.series) &&
     (s.biggestWin === null || typeof s.biggestWin === 'object')
+    // NOTE: topWins is intentionally NOT required — an old blob has none.
   );
 }
 
@@ -28,7 +29,13 @@ export function readStats(): SessionStats {
     const raw = localStorage.getItem(STATS_KEY);
     if (raw === null) return emptyStats();
     const parsed: unknown = JSON.parse(raw);
-    return isValid(parsed) ? parsed : emptyStats();
+    if (!isValid(parsed)) return emptyStats();
+    // Additive-field normalization (DEC-024): default a missing/invalid topWins to []
+    // rather than discarding the whole record. No version bump.
+    const topWins = Array.isArray((parsed as { topWins?: unknown }).topWins)
+      ? ((parsed as { topWins: TopWin[] }).topWins)
+      : [];
+    return { ...(parsed as SessionStats), topWins };
   } catch {
     return emptyStats();
   }

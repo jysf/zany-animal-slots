@@ -1,12 +1,25 @@
-// sessionStats unit tests (SPEC-054, DEC-020). Plain Vitest, no DOM/JSX.
+// sessionStats unit tests (SPEC-054, DEC-020, SPEC-073, DEC-024). Plain Vitest, no DOM/JSX.
 import {
   STATS_VERSION,
   SERIES_CAP,
+  TOP_WINS_CAP,
   emptyStats,
   recordSpin,
   recordCashIn,
   deriveMetrics,
 } from './sessionStats';
+import type { Grid, LineWin } from '../engine';
+
+// A minimal, valid-shaped 5x3 grid + line win, used only as opaque payload data for the
+// trophy tests below (SPEC-073 does not care about paytable correctness, only pass-through).
+const G: Grid = [
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+];
+const LW: LineWin[] = [{ line: 'L1', symbol: 'DEER', count: 5, multiplier: 10, amount: 50 }];
 
 describe('sessionStats', () => {
   it('emptyStats returns a zeroed, versioned record', () => {
@@ -19,7 +32,12 @@ describe('sessionStats', () => {
       biggestWin: null,
       cashIns: 0,
       series: [],
+      topWins: [],
     });
+  });
+
+  it('emptyStats seeds topWins to an empty array', () => {
+    expect(emptyStats().topWins).toEqual([]);
   });
 
   it('recordSpin accumulates counters and appends the cumulative-net series point', () => {
@@ -113,5 +131,89 @@ describe('sessionStats', () => {
 
     expect(before).toEqual(snapshot);
     expect(after).not.toBe(before);
+  });
+
+  it('recordSpin records a TopWin for a winning spin with the full grid, lineWins, and 1-based spinIndex', () => {
+    const s = recordSpin(
+      emptyStats(),
+      { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW },
+      'ocean',
+    );
+    expect(s.topWins.length).toBe(1);
+    expect(s.topWins[0]).toEqual({
+      amount: 50,
+      machineId: 'ocean',
+      tier: 'big',
+      bet: 10,
+      grid: G,
+      lineWins: LW,
+      spinIndex: 1,
+    });
+  });
+
+  it('recordSpin records no TopWin for a losing spin', () => {
+    let s = recordSpin(emptyStats(), { totalWin: 0, bet: 10, tier: 'none', grid: G, lineWins: [] }, 'ocean');
+    expect(s.topWins).toEqual([]);
+    expect(s.spins).toBe(1);
+
+    s = recordSpin(s, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
+    expect(s.topWins[0].spinIndex).toBe(2);
+  });
+
+  it('topWins is sorted by amount descending', () => {
+    let s = emptyStats();
+    s = recordSpin(s, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
+    s = recordSpin(s, { totalWin: 500, bet: 10, tier: 'jackpot', grid: G, lineWins: LW }, 'ocean');
+    s = recordSpin(s, { totalWin: 200, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'ocean');
+    expect(s.topWins.map((w) => w.amount)).toEqual([500, 200, 50]);
+  });
+
+  it('topWins is capped at TOP_WINS_CAP, keeping the largest', () => {
+    let s = emptyStats();
+    for (let i = 1; i <= 12; i++) {
+      s = recordSpin(s, { totalWin: i * 10, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
+    }
+    expect(s.topWins.length).toBe(TOP_WINS_CAP);
+    expect(s.topWins[s.topWins.length - 1].amount).toBe(30);
+  });
+
+  it('a tie does not displace an existing entry once full', () => {
+    let s = emptyStats();
+    // Fill with 10 distinct wins: 10, 20, ..., 100 (smallest kept is 10, at spinIndex 1).
+    for (let i = 1; i <= 10; i++) {
+      s = recordSpin(s, { totalWin: i * 10, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
+    }
+    expect(s.topWins.length).toBe(10);
+    const originalSmallest = s.topWins.find((w) => w.amount === 10)!;
+    expect(originalSmallest.spinIndex).toBe(1);
+
+    // A newcomer tying the smallest (10) must not displace it.
+    s = recordSpin(s, { totalWin: 10, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'arctic');
+    expect(s.topWins.length).toBe(10);
+    const smallestAfter = s.topWins.find((w) => w.amount === 10)!;
+    expect(smallestAfter.spinIndex).toBe(originalSmallest.spinIndex);
+    expect(smallestAfter.machineId).toBe('ocean');
+  });
+
+  it('topWins[0] agrees with biggestWin', () => {
+    let s = emptyStats();
+    s = recordSpin(s, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
+    s = recordSpin(s, { totalWin: 500, bet: 10, tier: 'jackpot', grid: G, lineWins: LW }, 'arctic');
+    s = recordSpin(s, { totalWin: 200, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'desert');
+    expect(s.topWins[0].amount).toBe(s.biggestWin!.amount);
+    expect(s.topWins[0].machineId).toBe(s.biggestWin!.machineId);
+    expect(s.topWins[0].tier).toBe(s.biggestWin!.tier);
+  });
+
+  it('recordSpin does not mutate the input\'s topWins array', () => {
+    const before = emptyStats();
+    const beforeTopWinsLength = before.topWins.length;
+    const beforeTopWinsRef = before.topWins;
+
+    const after = recordSpin(before, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
+
+    expect(before.topWins.length).toBe(beforeTopWinsLength);
+    expect(before.topWins).toBe(beforeTopWinsRef);
+    expect(after.topWins).not.toBe(before.topWins);
   });
 });
