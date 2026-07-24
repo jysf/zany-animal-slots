@@ -1,0 +1,248 @@
+---
+# Maps to ContextCore task.* semantic conventions.
+
+task:
+  id: SPEC-079
+  type: story                      # epic | story | task | bug | chore
+  cycle: design                    # frame | design | build | verify | ship
+  blocked: false
+  priority: medium
+  complexity: S                    # S | M | L  (L means split it)
+
+project:
+  id: PROJ-003
+  stage: STAGE-015
+repo:
+  id: animal-slots
+
+agents:
+  architect: claude-opus-4-8       # design/frame: Opus (judgement-heavy). See AGENTS §8.
+  implementer: claude-sonnet-4-6   # build/verify: Sonnet (execution against the spec)
+  created_at: 2026-07-23
+
+references:
+  decisions:
+    - DEC-001   # engine-no-dom: presentation only
+    - DEC-010   # design tokens, no raw hex
+    - DEC-020   # the session-stats model whose display this reorganizes
+    - DEC-024   # the trophy model being surfaced
+  constraints:
+    - engine-no-dom
+    - portrait-first
+    - touch-targets-44
+    - respect-reduced-motion
+  related_specs:
+    - SPEC-076  # the TrophyCase component this mounts
+    - SPEC-056  # the StatsSheet being reorganized
+
+value_link: >-
+  The moment the trophy case becomes real for the player: trophies lead the sheet, the numbers
+  follow, and the sheet stops calling a record that survives reloads a "session".
+
+cost:
+  sessions:
+    - cycle: design
+      interface: claude-code
+      model: claude-opus-4-8
+      tokens_total: null   # design cycle runs on the orchestrator's main Opus loop — not separately metered
+      recorded_at: 2026-07-23
+      note: >-
+        Design authored on the main Opus loop (un-metered). Split out of SPEC-076 (which scored L).
+        Small integration spec, but it carries the user-visible rename and the hierarchy inversion,
+        plus the one drought stat. Flags the 375px hardware check as a ship-time obligation, not
+        something a Chromium preview can discharge.
+  totals:
+    tokens_total: 0
+    estimated_usd: 0
+    session_count: 0
+---
+
+# SPEC-079: Mount the trophy case in the record sheet
+
+## Context
+
+SPEC-076 built `TrophyCase` and deliberately left it unmounted. This spec puts it on screen
+and finishes the surface.
+
+Three things happen here. The sheet's **hierarchy inverts** — trophies lead, the numbers
+follow — because the trophies are now the reason to open it. The existing **"Biggest win"
+tile is subsumed** by the #1 trophy, which shows strictly more (the same amount, plus the
+reels, machine, bet, spin number, and multiplier); keeping both would be duplication.
+And the sheet is **renamed**: "Session stats" is a misnomer, since the record lives in
+`localStorage` and survives reloads — trophies from an hour ago are not "this session".
+
+## Goal
+
+Mount `TrophyCase` at the top of the stats sheet, invert the sheet's hierarchy, remove the
+now-redundant "Biggest win" tile, add the drought counter, and rename the sheet's user-facing
+strings — without changing the storage key or any recorded data.
+
+## Inputs
+
+- **Files to read:**
+  - `src/ui/stats/StatsSheet.tsx` + `StatsSheet.test.tsx` + `stats.css`
+  - `src/ui/trophies/TrophyCase.tsx` (SPEC-076) — the component being mounted
+  - `src/stats/sessionStats.ts` — `SessionStats`, `deriveMetrics`, `TopWin`
+  - `src/ui/controls.touch-target.test.ts` — asserts `.stats__trigger` sizing (do not break)
+
+## Outputs
+
+- **Files modified:**
+  - `src/ui/stats/StatsSheet.tsx` — mount `TrophyCase`, invert order, drop the biggest-win
+    tile, add the drought line, rename strings.
+  - `src/ui/stats/stats.css` — a section divider / spacing for the two zones.
+  - `src/ui/stats/StatsSheet.test.tsx` — updated + new assertions.
+
+## Acceptance Criteria
+
+- [ ] `TrophyCase` renders **above** the numeric tiles in the sheet's DOM order, receiving
+      `topWins` and `spins` from `useStats()`.
+- [ ] The **"Biggest win" tile is gone** — no `stat-biggest` testid remains and the amount is
+      not duplicated between the tile and the #1 trophy.
+- [ ] The remaining tiles (Spins, Win rate, Net winnings, Cash-ins) still render with their
+      existing testids and values — **no metric regression**.
+- [ ] The sparkline still renders, below the tiles.
+- [ ] A **drought counter** shows spins since the last trophy
+      (`spins − topWins[0].spinIndex`) when at least one trophy exists; it is **absent** when
+      `topWins` is empty (nothing to be in a drought from).
+- [ ] The drought counter reads `0` sensibly on the spin that just set a trophy (not `-0`,
+      not a negative number).
+- [ ] **Rename:** the sheet title, the trigger's `aria-label` and `title`, the dialog's
+      `aria-label`, the clear button, and the clear note no longer say "Session stats".
+      The new name is **"Your record"** (button: **"Clear record"**).
+- [ ] The `zany:stats` **localStorage key is unchanged** — renaming a persisted key would
+      orphan exactly the history this project exists to protect.
+- [ ] The clear note states that clearing removes trophies too.
+- [ ] `.stats__trigger` keeps its ≥44px sizing (`controls.touch-target.test.ts` still passes).
+- [ ] The trigger emoji stays **📊** (see Notes — deliberate).
+- [ ] `src/engine/**` and `src/ui/audio/**` diffs empty; no raw hex; no new dependency.
+
+## Failing Tests
+
+- **`src/ui/stats/StatsSheet.test.tsx`** (update + add)
+  - existing tests updated for the new strings; `stat-biggest` assertions **removed**, not
+    weakened (the tile is gone by design).
+  - `"renders the trophy case above the numeric tiles"` — assert DOM order: the trophy-case
+    element precedes the tile grid (e.g. via `compareDocumentPosition` or querying the sheet's
+    children in order).
+  - `"no longer renders a separate Biggest win tile"` — assert `queryByTestId('stat-biggest')`
+    is null.
+  - `"still renders spins, win rate, net, and cash-ins"` — pin the no-regression case.
+  - `"shows spins since the last trophy when a trophy exists"` — stats with
+    `spins: 143`, `topWins[0].spinIndex: 100` ⇒ text contains `43`.
+  - `"hides the drought counter when there are no trophies"` — empty `topWins` ⇒ absent.
+  - `"the sheet is named 'Your record', not 'Session stats'"` — assert the title and the
+    trigger's accessible name, and assert `/Session stats/` appears nowhere.
+  - `"clearing the record also clears trophies"` — seed stats with a trophy, click
+    **Clear record**, assert `topWins` is empty afterwards and the empty state shows.
+
+## Implementation Context
+
+### Decisions that apply
+
+- `DEC-024` — trophies are part of the same blob, so the existing `resetStats()` already
+  clears them. **Do not add new clearing logic**; just make the copy honest.
+- `DEC-020` — the numeric metrics are unchanged; only their position and the removal of the
+  biggest-win tile change.
+- `DEC-010` — tokens, no raw hex, `stats__*` prefix for sheet-level classes.
+
+### Constraints that apply
+
+- `portrait-first` — **the sheet is now much taller.** It already has
+  `max-height: 100dvh; overflow-y: auto` (SPEC-063/070), so it should scroll rather than
+  clip — confirm that still holds with the case at the top.
+- `touch-targets-44`, `respect-reduced-motion`.
+
+### Out of scope (for this spec specifically)
+
+- The celebration badge (SPEC-077) and replay (SPEC-078).
+- Any change to the stats model, storage, seam, or the `zany:stats` key.
+- Any change to `TrophyCase`'s internals — mount it as built.
+
+## Notes for the Implementer
+
+### Naming — use exactly these strings
+
+| Where | Old | New |
+|---|---|---|
+| `<h2 className="stats__title">` | Session stats | **Your record** |
+| trigger `aria-label` / `title` | Session stats | **Your record** |
+| dialog `aria-label` | Session stats | **Your record** |
+| clear button | Clear stats | **Clear record** |
+| clear note | "Clears this browser's session record only…" | "Clears this browser's record — trophies included. Your balance and machine are untouched." |
+
+**Keep the trigger emoji as 📊.** A 🏆 would arguably fit the new headline content better, but
+the emoji is the control's visual identity and players navigate by it; changing it is a
+discoverability cost this spec doesn't need to pay. Flagging it as a deliberate choice rather
+than an oversight.
+
+**Do not rename** the `zany:stats` storage key, the `stats__*` CSS class prefix, the
+`StatsSheet` component/file name, or any testid other than the removed `stat-biggest`. This is
+a **copy** change, not a refactor — keeping the blast radius small is the point.
+
+### Drought counter
+
+```tsx
+// Spins since the most recent trophy. topWins[0] is the LARGEST, not the most recent —
+// use the max spinIndex across trophies for "most recent".
+const lastTrophySpin = stats.topWins.length
+  ? Math.max(...stats.topWins.map((t) => t.spinIndex))
+  : null;
+const drought = lastTrophySpin === null ? null : Math.max(0, stats.spins - lastTrophySpin);
+```
+
+> Note the subtlety the acceptance criterion glosses: `topWins[0]` is the biggest win, not the
+> latest one. A player whose best win was spin 12 and most recent trophy was spin 140 is not in
+> a 128-spin drought. Use the max `spinIndex`. The `Math.max(0, …)` guard also kills the `-0`
+> case.
+
+Render it near the numeric tiles (it is a nerdier stat — it does not belong on the hero card).
+If the sheet feels crowded at 375px, this is the first thing to cut; say so in Build Completion
+rather than cutting it unilaterally.
+
+### Layout
+
+Keep it simple: `TrophyCase`, then a labelled divider, then the existing tile grid + drought +
+sparkline + clear button. The divider can be a plain `<h3>`-style label (e.g. "The numbers")
+using existing type tokens.
+
+### Adversarial guard-mutations for verify
+
+1. Render `TrophyCase` after the tiles ⇒ breaks the DOM-order test.
+2. Re-add the biggest-win tile ⇒ breaks "no longer renders a separate Biggest win tile".
+3. Drought uses `topWins[0].spinIndex` instead of the max ⇒ should break a test — **if it
+   doesn't, the drought tests are too weak; report that** (seed a fixture where the biggest
+   win and the most recent trophy are different spins).
+4. Revert the title string to "Session stats" ⇒ breaks the rename test.
+
+### Do NOT
+
+- Do not touch `src/engine/**` or `src/ui/audio/**`.
+- Do not change the storage key or any persisted data.
+- Do not `git add -A`, `git stash -u`, or `git add src/ui/` broadly
+  (`src/ui/audio/_spike/` must stay untracked).
+
+---
+
+## Build Completion
+
+- **Branch:**
+- **PR (if applicable):**
+- **All acceptance criteria met?**
+- **New decisions emitted:**
+- **Deviations from spec:**
+- **Follow-up work identified:**
+
+### Build-phase reflection (3 questions, short answers)
+
+1. **What was unclear in the spec that slowed you down?** —
+2. **Was there a constraint or decision that should have been listed but wasn't?** —
+3. **If you did this task again, what would you do differently?** —
+
+---
+
+## Reflection (Ship)
+
+1. **What would I do differently next time?** —
+2. **Does any template, constraint, or decision need updating?** —
+3. **Is there a follow-up spec I should write now before I forget?** —
