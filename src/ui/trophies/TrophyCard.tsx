@@ -4,6 +4,7 @@
 import { MACHINES, getMachine } from '../../machines/registry';
 import type { TopWin } from '../../stats/sessionStats';
 import TrophyGrid from './TrophyGrid';
+import { useTrophyReplay } from './useTrophyReplay';
 import './trophies.css';
 
 const RANK_MEDAL = ['🥇', '🥈', '🥉'] as const;
@@ -35,10 +36,13 @@ export function trophyMachineName(trophy: TopWin): string {
 export function TrophyDetail({ trophy }: { trophy: TopWin }) {
   const multiplier = formatMultiplier(trophy.amount, trophy.bet);
   const machineName = trophyMachineName(trophy);
+  // Card-local replay state (SPEC-078) — one instance per TrophyDetail mount, so cards and
+  // expanded rows each replay independently. Never lifted to TrophyCase/TrophyCase.
+  const { spinning, trailKey, replay } = useTrophyReplay();
 
   return (
     <div className="trophy-detail">
-      <TrophyGrid trophy={trophy} size="card" />
+      <TrophyGrid trophy={trophy} size="card" spinning={spinning} trailKey={trailKey} />
       <div className="trophy-detail__facts">
         <p className="trophy-detail__amount">{trophy.amount} coins</p>
         <p className="trophy-detail__machine">{machineName}</p>
@@ -51,6 +55,9 @@ export function TrophyDetail({ trophy }: { trophy: TopWin }) {
         </p>
         {multiplier && <p className="trophy-detail__multiplier">{multiplier} your bet</p>}
       </div>
+      <button type="button" className="trophy-detail__replay" onClick={replay}>
+        Replay this win
+      </button>
     </div>
   );
 }

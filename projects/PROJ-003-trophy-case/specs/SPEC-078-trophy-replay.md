@@ -56,6 +56,18 @@ cost:
         375px, so a main-reel replay would be literally invisible while the case is open. This also
         makes the stage's "must not collide with a live spin" criterion moot BY CONSTRUCTION rather
         than by guard (documented as a deliberate deviation from the stage file).
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null
+      recorded_at: 2026-07-24
+      note: >-
+        Extracted the state machine into useTrophyReplay.ts (idle/spinning/settled per Notes for
+        the Implementer), wired it into the shared TrophyDetail so cards and expanded rows both
+        get the replay button for free, and reused the existing prefersReducedMotion() util
+        (src/ui/prefersReducedMotion.ts) rather than re-inlining the matchMedia check. Two
+        pre-existing TrophyCase tests had to be rescoped to .trophy-row__toggle because the new
+        per-card replay button changed the page's button count/order.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -255,18 +267,34 @@ replays if it is icon-only (e.g. "Replay this win").
 
 ## Build Completion
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-078-trophy-replay`
+- **PR (if applicable):** not opened (build cycle only)
+- **All acceptance criteria met?** Yes — replay button is a real `<button>` (≥44px hit area
+  via `--space-7`, keyboard-operable), activating it spins that card's grid and settles it
+  with winning cells lit + paw popped; sibling isolation, no-mutation, re-activation, unmount,
+  and reduced-motion behaviors are all covered by tests and pass. `src/engine/**` and
+  `src/ui/audio/**` diffs are empty.
+- **New decisions emitted:** none — this build follows DEC-001/004/010/021/024 as specified.
+- **Deviations from spec:** none beyond the one the spec itself already documents (card-local
+  replay instead of driving the main reels). Reused the existing
+  `src/ui/prefersReducedMotion.ts` helper instead of re-inlining the `matchMedia` check the
+  Notes sketch inline — same behavior, one less duplicate implementation.
+- **Follow-up work identified:** none.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing major; the state-machine
+   sketch in the Notes was close to drop-in. The one open question was whether `trailKey`
+   should start non-null (so the paw shows on first mount) — the spec's "after the reveal
+   delay ... paw popped" phrasing settled it: `trailKey` starts `null` and only becomes
+   non-null once a replay has actually run.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No; the
+   existing `respect-reduced-motion` and `touch-targets-44` constraints already covered this
+   spec fully, and a shared `prefersReducedMotion()` util already existed to point at.
+3. **If you did this task again, what would you do differently?** — I'd grep for existing
+   `matchMedia`-mocking test patterns before writing new ones — this repo already has three
+   near-identical stub helpers (`ParticleBurst.test.tsx`, `prefersReducedMotion.test.ts`,
+   `reduced-motion.contract.test.tsx`); a shared test helper would avoid a fourth copy.
 
 ---
 
