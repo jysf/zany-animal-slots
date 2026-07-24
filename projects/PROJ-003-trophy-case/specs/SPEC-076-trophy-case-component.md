@@ -51,6 +51,15 @@ cost:
         case AND its sheet integration; that scored complexity L, so per AGENTS §"L means split it" the
         integration (hierarchy inversion, Biggest-win subsumption, drought counter, rename) was split
         into SPEC-079 and this spec stays a self-contained, independently testable component at M.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null
+      recorded_at: 2026-07-23
+      note: >-
+        Built TrophyCase/TrophyCard/TrophyRow + trophies.css additions + TrophyCase.test.tsx; all
+        Failing Tests pass, gate green. tokens_total not recorded by this session — orchestrator to
+        fill from subagent_tokens at ship (constraint cost-captured-per-cycle).
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -261,18 +270,45 @@ Ten `.trophy-case__plinth` placeholders in the same grid rhythm as the rows, eac
 
 ## Build Completion
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-076-trophy-case`
+- **PR (if applicable):** not opened (per instruction — build cycle only)
+- **All acceptance criteria met?** Yes. `TrophyCase`/`TrophyCard`/`TrophyRow` built as
+  specified: empty state renders `TOP_WINS_CAP` plinths + one line of copy; 1–3 trophies
+  render as cards only; >3 render exactly 3 cards + the remainder as expandable rows; each
+  card shows medal/amount/machine/tier/bet/spin #/bet multiplier via a `TrophyGrid
+  size="card"`; each row shows rank/amount/machine/`TrophyGrid size="thumb"` and expands in
+  place on a real `<button>` with `aria-expanded` and a 48px (`--space-7`) hit area; tier
+  framing uses only `--color-win-small`/`--color-win-big`/`--color-jackpot`; bar-to-beat
+  shows only at `topWins.length === TOP_WINS_CAP`; `formatMultiplier` matches the Notes'
+  spec and guards `bet <= 0`; the expand transition has a `prefers-reduced-motion: reduce`
+  off-switch. `src/engine/**` and `src/ui/audio/**` diffs are empty; no new dependency;
+  `StatsSheet.tsx` untouched.
+- **New decisions emitted:** none.
+- **Deviations from spec:** none of substance. One test-implementation note: the spec's
+  test list implies verifying keyboard operability; since the repo has no
+  `@testing-library/user-event` dependency (and adding one wasn't warranted for this spec),
+  the keyboard test asserts the toggle is a real, focusable `<button type="button">` with
+  `aria-expanded` — real buttons are natively keyboard-operable in a browser (jsdom doesn't
+  simulate the browser's default Enter/Space→click action, so a `fireEvent.keyDown`-based
+  assertion would be testing jsdom's fidelity, not the component) — and exercises the same
+  toggle via `fireEvent.click` to confirm the `aria-expanded` state machine.
+- **Follow-up work identified:** SPEC-079 mounts `TrophyCase` in the stats sheet (already
+  planned); no new follow-up beyond that.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing major; the Notes for
+   the Implementer (shape, multiplier formula, empty-state copy, tier-class mapping) were
+   detailed enough to implement directly without guessing.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — The
+   spec's failing-test list implies simulating real keyboard activation of the toggle
+   button, but the repo doesn't have `@testing-library/user-event` installed, and nothing
+   flags that gap. Worth a line in a future spec's Inputs noting which test-interaction
+   libraries are actually available.
+3. **If you did this task again, what would you do differently?** — Nothing structural;
+   I'd write the shared `TrophyDetail` component first (it de-risks the card/row markup
+   drift the spec explicitly calls out) before the two composing components, which is what
+   I did here.
 
 ---
 

@@ -28,3 +28,229 @@
   font-size: var(--font-size-xs);
   border-radius: 2px;
 }
+
+/*
+ * TrophyCase / TrophyCard / TrophyRow (SPEC-076).
+ * DEC-010: tokens only, no raw hex. Prefix: trophy-case__, trophy-card__, trophy-row__.
+ * constraint: portrait-first — single column, no fixed widths that overflow 375px.
+ * constraint: touch-targets-44 — .trophy-row__toggle.
+ * constraint: respect-reduced-motion — .trophy-row__expanded transition disabled below.
+ */
+
+.trophy-case {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.trophy-case__heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* ─── Empty state ────────────────────────────────────────────────────────────── */
+
+.trophy-case__empty-copy {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+  margin: 0 0 var(--space-3);
+}
+
+.trophy-case__plinths {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+.trophy-case__plinth {
+  height: var(--space-7);
+  border: 1px dashed var(--color-text-muted);
+  border-radius: var(--radius-md);
+  opacity: 0.4;
+}
+
+/* ─── Cards (#1-#3) ──────────────────────────────────────────────────────────── */
+
+.trophy-case__cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.trophy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border: 2px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+}
+
+.trophy-card--small {
+  border-color: var(--color-win-small);
+}
+.trophy-card--big {
+  border-color: var(--color-win-big);
+}
+.trophy-card--jackpot {
+  border-color: var(--color-jackpot);
+}
+
+.trophy-card__rank {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+/* ─── Shared detail block (card + expanded row) ─────────────────────────────── */
+
+.trophy-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.trophy-detail__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.trophy-detail__amount {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-coin);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.trophy-detail__machine {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.trophy-detail__meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.trophy-detail__tier {
+  font-weight: var(--font-weight-bold);
+}
+
+.trophy-detail__multiplier {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+/* ─── Rows (#4-#10) ──────────────────────────────────────────────────────────── */
+
+.trophy-case__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.trophy-row {
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.trophy-row__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--space-7); /* 48px — clears touch-targets-44 */
+  padding: var(--space-2) var(--space-3);
+
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+  cursor: pointer;
+  text-align: left;
+}
+
+.trophy-row__toggle:hover,
+.trophy-row__toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.trophy-row__rank {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.trophy-row__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.trophy-row__amount {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-coin);
+  font-variant-numeric: tabular-nums;
+}
+
+.trophy-row__machine {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.trophy-row__expanded {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-frame);
+  animation: trophy-row-expand 0.15s ease-out both;
+}
+
+@keyframes trophy-row-expand {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trophy-row__expanded {
+    animation: none;
+  }
+}
+
+/* ─── Bar to beat ────────────────────────────────────────────────────────────── */
+
+.trophy-case__bar-to-beat {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
