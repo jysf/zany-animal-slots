@@ -4,7 +4,7 @@
 task:
   id: SPEC-077
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: build                     # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -49,6 +49,21 @@ cost:
         DISAGREES with what was stored, so the design centres on a pure `trophyRank` predicate that
         shares insertTopWin's strictly-greater/cap semantics, plus a consistency test asserting the
         two can never diverge over arbitrary spin sequences.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null
+      recorded_at: 2026-07-24
+      note: >-
+        Implemented trophyRank/Celebration seam were already present in the working tree; found
+        and fixed the one real bug the spec warned about — `stats` was missing from the spin
+        callback's useCallback deps, a stale-closure that would report wrong ranks late in a
+        session. Built TrophyEarnedBadge + trophies.css treatment, mounted it in
+        .cabinet__winbanner alongside WinBadge (never overlays the reels), and wrote all Failing
+        Tests including the ~30-step trophyRank/insertTopWin consistency sequence. Made
+        Celebration.trophyRank optional (not required) so pre-existing Celebration literals in
+        src/ui/audio/** stay untouched (empty diff, per the hard rule) — the hook itself always
+        sets it.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -241,18 +256,46 @@ winning cells.
 
 ## Build Completion
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** feat/spec-077-trophy-earned
+- **PR (if applicable):** not opened (per instructions)
+- **All acceptance criteria met?** Yes. `trophyRank` derives from `insertTopWin` via the
+  identity-probe trick (cannot drift by construction); the sequence consistency test (30 fixed
+  amounts, with ties and just-below-cut values) passes against the real reducer; `Celebration`
+  carries `trophyRank`, computed pre-record; `TrophyEarnedBadge` renders nothing on `null`,
+  distinguishes rank 1 ("NEW BEST!") from ranks 2–10 ("TROPHY #{rank}") both in copy and
+  `data-rank`, uses `role="status"`, and has a `prefers-reduced-motion` off-switch. It sits
+  in-flow in `.cabinet__winbanner` alongside `WinBadge`, never overlaying the reel grid.
+  `src/engine/**` and `src/ui/audio/**` diffs are empty (confirmed via
+  `git diff --stat main..HEAD`). No audio added.
+- **New decisions emitted:** none.
+- **Deviations from spec:** `Celebration.trophyRank` was made optional
+  (`trophyRank?: number | null`) rather than required. The spec's literal wording said "gains
+  `trophyRank: number | null`"; making it required broke type-checking for every pre-existing
+  `Celebration` literal in the test suite, including three files under `src/ui/audio/**`
+  (`useDynamicMixing.test.ts`, `useGameSfx.test.ts`, `useWinJingle.test.ts`), which the hard
+  rule forbids touching (`src/ui/audio/**` must have an empty diff). Making the field optional
+  satisfies the type intent (still `number | null` whenever the hook sets it — which it always
+  does) without forcing an edit to those audio test files. All non-audio `Celebration` literals
+  (`JackpotMoment`, `ParticleBurst`, `Game`, `Status` tests) were left as-is since optional made
+  the fix unnecessary; only the two files the spec explicitly named (`sessionStats.ts`,
+  `useSlotMachine.ts`) plus new/mounting files were touched.
+- **Follow-up work identified:** none beyond SPEC-078 (replay), already tracked.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing major; the
+   `trophyRank`/`Celebration` seam described in the Notes was already implemented in the working
+   tree when the build session started (only the `stats` dep-array bug remained), so most of the
+   session was building the badge + tests rather than re-deriving the predicate.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — The
+   "`Celebration` gains `trophyRank: number | null`" acceptance line reads as a required field,
+   but the audio hard-rule (empty `src/ui/audio/**` diff) makes a required field unenforceable
+   without touching audio test files. Worth stating explicitly next time: "if a new required
+   `Celebration` field would force edits to `src/ui/audio/**`, make it optional instead."
+3. **If you did this task again, what would you do differently?** — Would check the
+   `useCallback` dependency array for the seam being modified before writing any new code, since
+   that is exactly the kind of stale-closure bug adversarial review looks for and is cheap to
+   catch early with a quick read.
 
 ---
 

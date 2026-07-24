@@ -90,6 +90,31 @@ export function insertTopWin(topWins: TopWin[], candidate: TopWin): TopWin[] {
 }
 
 /**
+ * The 1-based rank a win of `amount` would take in the trophy case, or null if it would not
+ * make the cut (SPEC-077). Shares insertTopWin's semantics BY CONSTRUCTION (DEC-024) — it asks
+ * the real reducer rather than re-deriving strictly-greater/cap rules, so the two cannot drift.
+ * A probe candidate is inserted and located by object identity (`indexOf`): it is found only if
+ * it survived the cap, which is exactly the "did this win earn a trophy?" question. Ties land
+ * below equal entries (insertTopWin's stable sort keeps the earlier win on top) and are sliced
+ * off when the case is full — so a tying amount correctly yields null once full.
+ */
+export function trophyRank(topWins: TopWin[], amount: number): number | null {
+  if (amount <= 0) return null;
+  const probe = {
+    amount,
+    machineId: '',
+    tier: 'small',
+    bet: 10,
+    grid: [],
+    lineWins: [],
+    spinIndex: -1,
+  } as unknown as TopWin;
+  const next = insertTopWin(topWins, probe);
+  const idx = next.indexOf(probe);
+  return idx === -1 ? null : idx + 1;
+}
+
+/**
  * Record one resolved spin. Immutable — returns a new record.
  * A "winning spin" is totalWin > 0; biggestWin updates only on a STRICTLY larger win (keeps the
  * earliest machine/tier on ties); the series appends the new cumulative net, FIFO-capped.

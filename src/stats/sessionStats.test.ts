@@ -7,7 +7,10 @@ import {
   recordSpin,
   recordCashIn,
   deriveMetrics,
+  trophyRank,
+  insertTopWin,
 } from './sessionStats';
+import type { TopWin } from './sessionStats';
 import type { Grid, LineWin } from '../engine';
 
 // A minimal, valid-shaped 5x3 grid + line win, used only as opaque payload data for the
@@ -215,5 +218,81 @@ describe('sessionStats', () => {
     expect(before.topWins.length).toBe(beforeTopWinsLength);
     expect(before.topWins).toBe(beforeTopWinsRef);
     expect(after.topWins).not.toBe(before.topWins);
+  });
+
+  // ─── trophyRank (SPEC-077, DEC-024) ────────────────────────────────────────────
+  // trophyRank must never disagree with what insertTopWin actually stores — see
+  // Notes for the Implementer in SPEC-077 for why it is built on the real reducer
+  // (an identity-tracked probe) rather than a second copy of the comparison rules.
+
+  describe('trophyRank', () => {
+    it('returns null for a losing spin', () => {
+      expect(trophyRank([], 0)).toBeNull();
+    });
+
+    it('returns a rank while the case is not full', () => {
+      let s = emptyStats();
+      s = recordSpin(s, { totalWin: 10, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'ocean');
+      s = recordSpin(s, { totalWin: 20, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'ocean');
+      s = recordSpin(s, { totalWin: 30, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'ocean');
+      expect(s.topWins.length).toBe(3);
+      expect(trophyRank(s.topWins, 5)).not.toBeNull();
+    });
+
+    it('returns 1 for a new best', () => {
+      let s = emptyStats();
+      for (let i = 1; i <= 5; i++) {
+        s = recordSpin(s, { totalWin: i * 10, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'ocean');
+      }
+      expect(trophyRank(s.topWins, 1000)).toBe(1);
+    });
+
+    it('returns null for a tie once the case is full', () => {
+      let s = emptyStats();
+      for (let i = 1; i <= TOP_WINS_CAP; i++) {
+        s = recordSpin(s, { totalWin: i * 10, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'ocean');
+      }
+      expect(s.topWins.length).toBe(TOP_WINS_CAP);
+      const smallest = Math.min(...s.topWins.map((w) => w.amount));
+      expect(trophyRank(s.topWins, smallest)).toBeNull();
+    });
+
+    it('trophyRank AGREES with insertTopWin across a sequence', () => {
+      // Fixed literal amounts (no RNG) — deliberately includes exact ties with entries
+      // already in the case (e.g. repeated 10s/90s) and values that fall just below
+      // the cut once the case is full (e.g. 5, 1), alongside new-best values (200, 300).
+      const amounts = [
+        50, 30, 80, 10, 60, 20, 90, 40, 70, 25, 100, 15, 65, 10, 5, 35, 95, 45, 10, 85, 55, 10,
+        200, 5, 90, 10, 60, 1, 300, 90,
+      ];
+
+      let before: TopWin[] = [];
+      amounts.forEach((amount, i) => {
+        const win: TopWin = {
+          amount,
+          machineId: 'ocean',
+          tier: 'small',
+          bet: 10,
+          grid: G,
+          lineWins: LW,
+          spinIndex: i + 1,
+        };
+
+        const rank = trophyRank(before, amount);
+        const after = insertTopWin(before, win);
+        // Object-identity check: did THIS win actually survive into the stored array?
+        // (Content-equal ties are indistinguishable by value, but identity pins down
+        // exactly the question trophyRank answers — the same trick trophyRank itself
+        // uses internally.)
+        const changed = after.includes(win);
+
+        expect(rank !== null).toBe(changed);
+        if (rank !== null) {
+          expect(after[rank - 1]).toBe(win);
+        }
+
+        before = after;
+      });
+    });
   });
 });
