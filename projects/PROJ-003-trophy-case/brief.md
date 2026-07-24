@@ -4,7 +4,7 @@
 
 project:
   id: PROJ-003
-  status: shipped                 # proposed | active | shipped | cancelled
+  status: active                  # proposed | active | shipped | cancelled (REOPENED 2026-07-24 for STAGE-016)
   priority: medium
   target_ship: null                 # play/dogfood project — no hard external date
 
@@ -12,7 +12,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-23
-shipped_at: 2026-07-24
+shipped_at: null   # was 2026-07-24; reopened same-day for STAGE-016 post-ship polish
 
 # Business value. Testable claim, not marketing copy.
 value:
@@ -181,13 +181,17 @@ schema-safety work reviewable on its own rather than buried in a UI diff.
       insert reducer, the forward-compatible `readStats()` normalization (no version
       bump, existing history preserved), and widening the `useSlotMachine` record seam
       to pass `grid` + `lineWins`. No visible UI change. ~2 specs (SPEC-073, SPEC-074).
+- [ ] STAGE-016 (active) — **Post-ship polish**: same-day user feedback on the shipped surface.
+      The record sheet becomes **tabbed** (Trophies / Numbers) so neither is buried and neither
+      requires scrolling past the other. Reopened the project rather than minting a new one —
+      this is feedback on PROJ-003's own output, matching PROJ-002's STAGE-013 precedent.
 - [x] STAGE-015 (shipped 2026-07-24) — **The trophy case**: trophy grid rendering (reusing `ReelGrid`), the
       ranked case at the top of the renamed record sheet (full cards #1–#3, tap-to-expand
       rows #4–#10, locked-plinth empty state, bet multiplier, bar-to-beat, drought
       counter), **trophy replay**, and the "trophy earned" moment on the win celebration.
       4 specs (SPEC-075–078).
 
-**Count:** 2 shipped / 0 active / 0 pending — 7 specs (SPEC-073–079), 0 escaped defects
+**Count:** 2 shipped / 1 active — 7 specs shipped (SPEC-073–079), 0 escaped defects; STAGE-016 reopened for post-ship polish
 
 ## Dependencies
 
