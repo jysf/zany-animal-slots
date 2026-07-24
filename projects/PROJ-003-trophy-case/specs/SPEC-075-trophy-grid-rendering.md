@@ -4,7 +4,7 @@
 task:
   id: SPEC-075
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -56,7 +56,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 108042    # from Agent result subagent_tokens
+      estimated_usd: 0.71     # 108042 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 4.5   # 269430 ms
       recorded_at: 2026-07-23
       note: >-
         Fixed winningCellKeys' payline coupling, added ReelGrid's paylines/size props (size='full'
@@ -66,7 +68,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-5
-      tokens_total: null
+      tokens_total: 95826     # from Agent result subagent_tokens
+      estimated_usd: 0.63     # 95826 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 33.3  # 1999290 ms
       recorded_at: 2026-07-23
       note: >-
         Cold review + all 4 guard-mutations run and reverted clean: (1) PAYLINES-import bypass
@@ -77,10 +81,21 @@ cost:
         962/962, build, validate, cost-audit, eslint src/** clean). engine/audio diffs empty; no
         case/card/row/empty-state/animation leakage; no raw hex in trophies.css; a11y summary
         reachable via role=img + aria-label. 0 defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-23
+      note: >-
+        main-loop, not separately metered (AGENTS 4); ship cycle. Full gate re-run, PR + CI-poll
+        to 7/7 + squash-merge, archive, brag, cost bookkeeping. The DEC-021 guard-mutation
+        (TrophyGrid using the active machine instead of the originating one) is the evidence that
+        mattered: it proves a saved Arctic win cannot silently render in Ocean's creatures.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 203868   # build 108042 + verify 95826 (design/ship un-metered main-loop)
+    estimated_usd: 1.34    # build 0.71 + verify 0.63
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-075: Trophy grid rendering
@@ -379,6 +394,24 @@ If a value has a token, prefer the token.
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Very little; this was the cleanest spec of the
+   project (0 defects, no deviations, Notes transcribed almost verbatim), and the reason is
+   worth naming: the design did the reading *first* and discovered `ReelGrid` already accepted
+   `grid` + `lineWins` + `symbolDisplay` and already lit winning cells. The original brief had
+   scoped a whole new "mini reel-grid component". Reading the existing component turned a build
+   into a wrapper plus two props. The lesson is to spend design budget on reading the code you
+   are about to duplicate.
+
+2. **Does any template, constraint, or decision need updating?** — No. DEC-021 needed no
+   amendment, but it earned its keep here: the "originating vs active machine" mutation is the
+   single most valuable guard in this spec, because that bug would be **invisible** in any
+   single-machine test and would only surface as a saved Arctic win quietly wearing Ocean's
+   creatures. Worth carrying forward: *when data is persisted, every implicit "current" lookup
+   (current machine, current line set, current config) becomes a latent correctness bug.* That
+   is also exactly why the `winningCellKeys` payline coupling was fixed here rather than left.
+
+3. **Is there a follow-up spec I should write now before I forget?** — No new spec needed;
+   SPEC-076 (the case) and SPEC-078 (replay) already cover what comes next and both consume
+   this primitive directly. One thing to carry into SPEC-076's real-device pass: the `thumb`
+   size (128px wide, `--font-size-xs` cells) is the legibility risk flagged in the stage file,
+   and it is unproven on hardware — a Chromium screenshot must not be treated as evidence.
