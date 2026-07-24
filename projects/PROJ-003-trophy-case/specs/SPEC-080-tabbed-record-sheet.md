@@ -45,6 +45,16 @@ cost:
         Design authored on the main Opus loop (un-metered). Small corrective spec: SPEC-079's
         hierarchy inversion was an AGENT decision, and the user's same-day verdict was that both
         surfaces matter. Tabs, not reordering, because reordering just moves which one is buried.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null
+      recorded_at: 2026-07-24
+      note: >-
+        Split StatsSheet into Trophies/Numbers tabs with the full ARIA tab pattern and
+        real conditional rendering (absence-asserted in tests, not CSS-hidden). Clear
+        record moved outside both tabpanels. Arrow-key roving focus skipped as
+        nice-to-have per spec. All gates green; engine/audio diffs empty.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -193,18 +203,43 @@ without real focus management. If you skip arrow keys, say so in Build Completio
 
 ## Build Completion
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `docs/release-notes-trophy-case`
+- **PR (if applicable):** none opened (per instructions)
+- **All acceptance criteria met?** Yes. Two tabs (Trophies default, Numbers), only the
+  selected panel's content is mounted (real conditional render, not CSS hidden — verified
+  by absence assertions in the tests), full ARIA tab pattern
+  (`tablist`/`tab`+`aria-selected`+`aria-controls`/`tabpanel`), real `<button>`s ≥44px
+  (`.stats__tab` uses `min-height`/`min-width: var(--space-7)`, same token as
+  `.stats__trigger`/`.stats__clear`), Clear record + its note moved outside both
+  tabpanels (visible on both tabs, still clears both trophies and numbers),
+  `stats__divider` removed, tab state is component `useState` with no localStorage key
+  (plus a belt-and-braces reset-on-close effect per the spec's note), no panel
+  transition added. `src/engine/**` and `src/ui/audio/**` diffs are empty.
+- **New decisions emitted:** none.
+- **Deviations from spec:** Arrow-key roving focus was **not** implemented — tabs are
+  plain `<button>`s relying on native Tab/Enter/Space, not roving tabindex with
+  Left/Right arrow handling. The spec calls this "nice to have," and both existing
+  requirements (real buttons, ≥44px, correct `aria-selected`/`aria-controls`) are met
+  without it.
+- **Follow-up work identified:** none.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing major; the existing
+   seam (trophy case → divider → grid → sparkline → clear) mapped cleanly onto
+   tabpanel-A / tabpanel-B / always-visible-footer. The one judgment call was what to do
+   with the pre-existing SPEC-079 tests that asserted trophy case and numeric tiles were
+   simultaneously visible after opening (e.g. "renders the trophy case above the numeric
+   tiles") — those assertions are now definitionally false, since only one panel mounts
+   at a time. I removed the ones that were fully superseded by the new
+   default-tab/switch-tab tests and adapted the rest to switch to the Numbers tab first
+   before asserting on tile content.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No;
+   `touch-targets-44`, `respect-reduced-motion`, and `portrait-first` were all already
+   listed and were sufficient.
+3. **If you did this task again, what would you do differently?** — Same approach. I'd
+   maybe pre-flag the SPEC-079-test conflict in the Notes section up front so a future
+   implementer doesn't have to rediscover it mid-build.
 
 ---
 

@@ -134,17 +134,53 @@
   outline-offset: 2px;
 }
 
-/* ─── Section divider (trophy case → numeric tiles, SPEC-079) ───────────────── */
+/* ─── Tabs (Trophies / Numbers, SPEC-080) ────────────────────────────────────
+ * Replaces the SPEC-079 `.stats__divider` heading — the tab label does that job
+ * now. Full ARIA tab pattern (role="tablist"/"tab"/"tabpanel" live in the JSX);
+ * this is just the visual treatment. No transition on the panel swap — simplest
+ * way to satisfy respect-reduced-motion (constraint) without an off-switch. */
 
-.stats__divider {
-  margin: var(--space-4) 0 var(--space-3);
-  font-family: var(--font-family-body);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
+.stats__tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.stats__tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--space-7);
+  min-width: var(--space-7);
+  padding: var(--space-2) var(--space-3);
+
+  background: transparent;
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-align: center;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.stats__tab:hover,
+.stats__tab:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-text);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.stats__tab[aria-selected='true'] {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+  background-color: var(--color-bg);
+}
+
+.stats__panel {
+  /* No transition on the panel swap by design — see comment above. */
 }
 
 /* ─── Metric tile grid (2-up, portrait-first) ────────────────────────────────── */
