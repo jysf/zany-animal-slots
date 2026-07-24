@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import TrophyCase from './TrophyCase';
 import { TOP_WINS_CAP, type TopWin } from '../../stats/sessionStats';
 import type { Grid, LineWin } from '../../engine/index';
+import { SPIN_DURATION_MS } from '../useSlotMachine';
 
 const TEST_GRID: Grid = [
   ['WOLF', 'DEER', 'FOX'],
@@ -251,6 +252,37 @@ describe('TrophyCase', () => {
       });
 
       expect(container.querySelector('.reel-grid--spinning')).toBeNull();
+    });
+
+    it('a restarted replay is not settled early by the first activation timer', () => {
+      // The test above cannot detect a missing clearTimeout: it runs ALL timers, so the
+      // stale timer and the fresh one both fire and the end state is settled either way.
+      // The real symptom of a stacked timer is a PREMATURE settle — the first activation's
+      // timeout firing mid-way through the restarted replay and stopping the spin early.
+      // Advancing to just past the first timer's deadline (but before the second's) is the
+      // only window where the bug is visible.
+      vi.useFakeTimers();
+      const { container } = render(<TrophyCase topWins={makeTrophies(1)} spins={1} />);
+      const replayButton = screen.getByRole('button', { name: /replay this win/i });
+
+      act(() => {
+        fireEvent.click(replayButton);
+      });
+      act(() => {
+        vi.advanceTimersByTime(200); // first replay in flight
+      });
+      act(() => {
+        fireEvent.click(replayButton); // restart — the first timer must be cancelled
+      });
+      // Now advance past when the FIRST timer would have fired (200 consumed + the rest),
+      // but not far enough for the restarted one to complete.
+      act(() => {
+        vi.advanceTimersByTime(SPIN_DURATION_MS - 100);
+      });
+
+      // Still spinning: the restart owns the timeline. With a stacked timer the stale one
+      // would have fired by now and wrongly cleared the spin.
+      expect(container.querySelector('.reel-grid--spinning')).not.toBeNull();
     });
 
     it('reveals instantly under prefers-reduced-motion', () => {

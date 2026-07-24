@@ -5,6 +5,6 @@ Status markers: `[ ]` not started · `[~]` in progress · `[x]` complete · `[?]
 ## Instructions
 
 - [x] **design** (Opus) — spec + failing tests; replay is CARD-LOCAL (see deviation). 2026-07-24.
-- [ ] **build** (Sonnet) — replay state machine + control + reduced-motion path.
-- [ ] **verify** (Opus, inline) — guard-mutations.
-- [ ] **ship** (Opus) — gate, PR, CI, squash-merge, archive, brag; then STAGE-015 + project ship.
+- [x] **build** (Sonnet) — useTrophyReplay + control + reduced-motion; gate green. 2026-07-24.
+- [x] **verify** (Opus, inline) — found + fixed an unkillable re-activation test. 2026-07-24.
+- [x] **ship** (Opus) — gate, PR, CI, merge, archive, brag. 2026-07-24.

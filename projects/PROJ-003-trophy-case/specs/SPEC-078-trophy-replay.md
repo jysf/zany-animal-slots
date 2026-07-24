@@ -4,7 +4,7 @@
 task:
   id: SPEC-078
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -59,7 +59,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 114158    # from Agent result subagent_tokens
+      estimated_usd: 0.75     # 114158 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 8.5   # 507111 ms
       recorded_at: 2026-07-24
       note: >-
         Extracted the state machine into useTrophyReplay.ts (idle/spinning/settled per Notes for
@@ -68,10 +70,36 @@ cost:
         (src/ui/prefersReducedMotion.ts) rather than re-inlining the matchMedia check. Two
         pre-existing TrophyCase tests had to be rescoped to .trophy-row__toggle because the new
         per-card replay button changed the page's button count/order.
+    - cycle: verify
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: 50000     # NOMINAL - inline main-loop verify, not separately metered
+      estimated_usd: 1.00     # NOMINAL, 50000 tok x $20/M (Opus list) - order-of-magnitude
+      recorded_at: 2026-07-24
+      note: >-
+        Verified INLINE on the Opus main loop (user asked to cut wall-clock) - less independent
+        than a cold reviewer, a deliberate tradeoff. Guard-mutations: (3) ignoring
+        prefersReducedMotion broke the reduced-motion test as specified. (1) dropping the
+        clearTimeout at the top of replay() broke NOTHING - a real gap: the existing
+        re-activation test runs ALL timers, so a stale timer and a fresh one both fire and the
+        end state is settled either way. The actual symptom of a stacked timer is a PREMATURE
+        settle mid-replay, visible only when advancing past the first timer's deadline but not
+        the second's. Added that test and confirmed it FAILS under the mutation. This is the
+        third time this project a prescribed guard had a test that could not kill it. 1 defect
+        (weak test), fixed at verify.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-24
+      note: >-
+        main-loop, not separately metered (AGENTS 4); ship cycle. Full gate, PR + CI + merge,
+        archive, brag. Completes STAGE-015 and the PROJ-003 spec backlog.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 164158   # build 114158 + verify 50000 (NOMINAL, inline Opus main-loop)
+    estimated_usd: 1.75    # build 0.75 + verify 1.00 (nominal)
+    session_count: 4       # design, build, verify (inline), ship
 ---
 
 # SPEC-078: Trophy replay
@@ -300,6 +328,23 @@ replays if it is icon-only (e.g. "Replay this win").
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Write the *timing window* into the spec, not just
+   the behavior. My acceptance criterion said re-activation "does not stack timers or leave the grid
+   stuck spinning", and the build wrote an honest test for exactly that — which ran all timers and
+   therefore could not distinguish a cancelled timer from a stacked one. The bug only exists in the
+   window between the stale timer's deadline and the fresh one's, and nothing in the spec pointed
+   there. When the defect is a race, the spec has to name the instant to look at.
+
+2. **Does any template, constraint, or decision need updating?** — This is the **third** unkillable
+   guard this project (SPEC-073's normalization fixture, SPEC-076's 48/10 multiplier, and this
+   timer). Three independent instances is a pattern, not bad luck, and they share one shape: *the
+   test asserts the right property but from an input/instant where correct and incorrect behaviour
+   produce identical output.* Worth promoting to a repo-level habit — every prescribed
+   guard-mutation should ship with the input that makes it fail, and verify should run the mutation
+   rather than read the test. Notably all three were caught by mutation and none by review.
+
+3. **Is there a follow-up spec I should write now before I forget?** — Not for this stage: SPEC-078
+   completes STAGE-015 and the PROJ-003 backlog, so the next step is the stage + project ship. Two
+   things to carry: the `thumb`-grid legibility is still unconfirmed on real hardware (Chromium only),
+   and the user has asked for a **fake-advertisement experiment**, which is recorded on the roadmap
+   as a candidate wave rather than smuggled into this one.

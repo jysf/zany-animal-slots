@@ -206,6 +206,44 @@ schema-safety work reviewable on its own rather than buried in a UI diff.
 - A fun-proxy signal for any future data-grounded retune: trophy amounts and the
   spins-between-trophies gap are exactly what a tuning loop would want to look at.
 
+## Parked — future-project candidates
+
+Recorded here so they are on the roadmap without being smuggled into this wave. Neither is a
+PROJ-003 stage.
+
+### 1. Fake-advertisement experiment (user-requested 2026-07-24)
+
+Try **mock ad units** in the cabinet — a banner slot, an interstitial between spins, a
+"rewarded" placement offering play-money credit — using **fabricated, obviously-fake house
+ads**, to see how they affect layout, pacing, and feel. This is a *design/UX probe*, not
+monetization.
+
+**What keeps it inside the existing posture** — and the line that must not be crossed:
+
+- **First-party and offline only.** The creatives are local assets/markup shipped with the
+  app. **No ad network, no third-party script, no external request, no tracking pixel.** That
+  keeps DEC-005 (no backend, no PII) intact and honours the PROJ-002 brief's explicit
+  out-of-scope on "third-party analytics, ads, trackers, or external JS of any kind."
+- **No real money.** Constraint `no-real-money` is absolute. A "rewarded" ad may grant
+  play-money credit only — no IAP, no revenue, no payment surface, ever.
+- **Obviously fake.** Invented brands, not real companies — a mock ad that impersonates a real
+  business is a different (and worse) artifact than a design probe.
+- **Real ads would be a posture reversal, not a stage.** Wiring an actual ad network would
+  cross DEC-005, introduce third-party JS, and monetize a gambling-styled product — that needs
+  its own decision and an explicit go, exactly like STAGE-011 Tier 2. It is *not* covered by
+  approving the fake-ad probe.
+
+Likely shape: a spike first (what do the placements even look like?), then a small stage if the
+answer is interesting. Open questions for framing: which placements are worth testing; whether
+an interstitial can exist without wrecking spin pacing; whether a rewarded placement makes the
+play-money economy more or less fun; and how it interacts with the reduced-motion and
+touch-target constraints.
+
+### 2. Audio-quality overhaul (carried over from PROJ-002)
+
+Still parked, still a future-project candidate, still likely preceded by a spike. Untouched by
+PROJ-003 by design — `src/ui/audio/**` has an empty diff across all seven specs.
+
 ## Project-Level Reflection
 
 *Filled in when status moves to shipped.*
