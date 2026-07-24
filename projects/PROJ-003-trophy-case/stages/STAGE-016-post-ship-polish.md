@@ -1,7 +1,7 @@
 ---
 stage:
   id: STAGE-016
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: medium
   target_complete: null
 
@@ -11,7 +11,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-24
-shipped_at: null
+shipped_at: 2026-07-24
 
 value_contribution:
   advances: >-
@@ -53,13 +53,12 @@ which predate this project and were fine — stay degraded by a change this proj
 
 ## Spec Backlog
 
-- [~] SPEC-080 — Tabbed record sheet: Trophies / Numbers (built, PR #93, awaiting user test).
-- [x] SPEC-081 (built) — Quiet by default: removed the ambient-bed loop + default sound to OFF.
-      User play-test found the default-on looping bed "terrible". DEC-025. (In PR #93; audible
-      check with the user.)
-- [x] SPEC-082 (built) — Centre the title, flank it with 🎰 (aria-hidden). (In PR #93.)
+- [x] SPEC-080 (shipped 2026-07-24) — Tabbed record sheet: Trophies / Numbers. 0 defects.
+- [x] SPEC-081 (shipped 2026-07-24) — Quiet by default: removed the ambient-bed loop + defaulted
+      sound OFF. User play-test found the default-on looping bed "terrible". DEC-025.
+- [x] SPEC-082 (shipped 2026-07-24) — Centre the title, flank it with 🎰 (aria-hidden).
 
-**Count:** 0 shipped / 3 active (in PR #93) / 0 pending
+**Count:** 3 shipped / 0 active / 0 pending — **stage complete** (PR #93)
 
 ## Design Notes
 
