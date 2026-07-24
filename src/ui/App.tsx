@@ -30,7 +30,6 @@ import JackpotMoment from './JackpotMoment';
 import { useSlotMachine } from './useSlotMachine';
 import { useAudio } from './audio/useAudio';
 import { useWinJingle } from './audio/useWinJingle';
-import { useAmbientBed } from './audio/useAmbientBed';
 import { useGameSfx } from './audio/useGameSfx';
 import { useDynamicMixing } from './audio/useDynamicMixing';
 import { useMachineTheme } from './theme/useMachineTheme';
@@ -59,7 +58,6 @@ export default function App() {
   } = useSlotMachine();
 
   useWinJingle(celebration, { muted, unlocked });
-  useAmbientBed({ muted, unlocked });
   useGameSfx(isSpinning, celebration, { muted, unlocked });
   useDynamicMixing(celebration, { muted, unlocked });
 

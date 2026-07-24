@@ -15,7 +15,13 @@ interface HeaderProps {
 export default function Header({ muted, onToggleMute }: HeaderProps) {
   return (
     <header className="cabinet__header">
-      <h1 className="cabinet__title">Zany Animal Slots</h1>
+      <h1 className="cabinet__title">
+        {/* Decorative flanking slot emoji — aria-hidden so the accessible name stays
+            "Zany Animal Slots", not "slot machine Zany Animal Slots slot machine". */}
+        <span className="cabinet__title-emoji" aria-hidden="true">🎰</span>
+        <span className="cabinet__title-text">Zany Animal Slots</span>
+        <span className="cabinet__title-emoji" aria-hidden="true">🎰</span>
+      </h1>
       <div className="cabinet__header-controls">
         <MachineSelector />
         <MuteToggle muted={muted} onToggle={onToggleMute} />

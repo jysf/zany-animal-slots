@@ -393,6 +393,30 @@ This is the running, cross-project record, distinct from the per-spec
 `just archive-spec SPEC-NNN`. If stage backlog is complete, run the
 Stage Ship prompt (which captures a milestone brag of its own).
 
+### During **project ship**
+
+In addition to the project-level reflection and the milestone brag,
+**append a player-facing entry to `/RELEASES.md`** — one entry per
+project, newest first, under a `## YYYY-MM-DD — <Release name>` heading.
+
+- **Audience is the player, not the repo.** "Your best wins are now saved
+  and you can watch them again", not "SPEC-073 widened `SpinRecordInput`".
+  Spec numbers belong in a small footnote, if anywhere.
+- **Per project, not per spec.** A spec is often invisible on its own —
+  SPEC-073 and SPEC-074 shipped nothing a player could see. The project
+  is the unit that actually changes the game.
+- **Say what did NOT change when it matters.** If a wave touches saved
+  data, state plainly that existing progress survived; that is the line
+  a player most wants to read.
+- **Write it after the last spec merges**, so it describes what shipped
+  rather than what was planned.
+
+> `/RELEASES.md` is **the app**. `/CHANGELOG.md` is **this template**
+> (its own `v5.x` line) — they are different artifacts with different
+> audiences. Note that `scripts/lifetime-report.sh` currently counts
+> `CHANGELOG.md` headings as "Releases", which reports the *template's*
+> release count for the app; fix that when the two are reconciled.
+
 ---
 
 ## 16. Session Hygiene (claude-only specific)

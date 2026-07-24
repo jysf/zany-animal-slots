@@ -12,24 +12,25 @@ describe('useAudio', () => {
     vi.clearAllMocks();
   });
 
-  it('starts unmuted by default', () => {
-    const { result } = renderHook(() => useAudio());
-    expect(result.current.muted).toBe(false);
-  });
-
-  it('rehydrates muted from storage', () => {
-    localStorage.setItem('mute', 'true');
+  it('starts muted by default — quiet by default (DEC-025)', () => {
     const { result } = renderHook(() => useAudio());
     expect(result.current.muted).toBe(true);
+  });
+
+  it('rehydrates an explicit un-mute from storage', () => {
+    localStorage.setItem('mute', 'false');
+    const { result } = renderHook(() => useAudio());
+    expect(result.current.muted).toBe(false);
   });
 
   it('toggleMute flips and persists', () => {
+    // Default is muted now, so the first toggle un-mutes.
     const { result } = renderHook(() => useAudio());
     act(() => { result.current.toggleMute(); });
-    expect(result.current.muted).toBe(true);
-    expect(readMute()).toBe(true);
-    act(() => { result.current.toggleMute(); });
     expect(result.current.muted).toBe(false);
+    expect(readMute()).toBe(false);
+    act(() => { result.current.toggleMute(); });
+    expect(result.current.muted).toBe(true);
   });
 
   it('starts locked', () => {

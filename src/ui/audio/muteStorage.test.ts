@@ -7,7 +7,12 @@ describe('muteStorage', () => {
     localStorage.clear();
   });
 
-  it('defaults to false when absent', () => {
+  it('defaults to muted (true) when absent — quiet by default (DEC-025)', () => {
+    expect(readMute()).toBe(true);
+  });
+
+  it('an explicit "false" un-mutes (a stored preference is honored)', () => {
+    localStorage.setItem(MUTE_KEY, 'false');
     expect(readMute()).toBe(false);
   });
 
@@ -20,10 +25,11 @@ describe('muteStorage', () => {
   it('round-trips false', () => {
     writeMute(false);
     expect(readMute()).toBe(false);
+    expect(localStorage.getItem(MUTE_KEY)).toBe('false');
   });
 
-  it('treats any non-"true" value as false', () => {
+  it('treats any value other than "false" as muted', () => {
     localStorage.setItem(MUTE_KEY, 'x');
-    expect(readMute()).toBe(false);
+    expect(readMute()).toBe(true);
   });
 });
