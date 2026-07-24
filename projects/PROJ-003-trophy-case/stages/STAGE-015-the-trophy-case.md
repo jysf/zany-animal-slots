@@ -126,14 +126,16 @@ currently-selected machine's.
       the numbers follow, "Biggest win" tile subsumed by #1, drought counter (max spinIndex),
       sheet renamed "Your record"/"Clear record" (storage key unchanged). Verified inline +
       real 375px browser render (DEC-021 confirmed visually). 0 defects.
-- [ ] SPEC-077 (frame) — "Trophy earned" moment: badge on the win celebration when a
-      spin enters the top ten, distinct treatment at #1, reduced-motion path.
+- [x] SPEC-077 (shipped on 2026-07-24) — "Trophy earned" moment: `TrophyEarnedBadge` on the win
+      celebration ("NEW BEST!" at rank 1, "TROPHY #n" for 2–10), driven by a pure `trophyRank`
+      predicate that asks the REAL `insertTopWin` (identity probe) so the badge can never claim a
+      trophy that wasn't stored. Silent — no audio. 0 defects.
 - [ ] SPEC-078 (frame) — Trophy replay: tapping a trophy re-spins the reels into that
       saved grid, reusing `ReelGrid`'s existing `spinning` + `trailKey` animation;
       instant reveal under `prefers-reduced-motion`; must not interfere with a live spin
       or auto-spin.
 
-**Count:** 3 shipped / 0 active / 2 pending
+**Count:** 4 shipped / 0 active / 1 pending
 
 ## Design Notes
 

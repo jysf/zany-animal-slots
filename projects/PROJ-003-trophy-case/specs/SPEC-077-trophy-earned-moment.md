@@ -4,7 +4,7 @@
 task:
   id: SPEC-077
   type: story                      # epic | story | task | bug | chore
-  cycle: build                     # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it)
@@ -52,7 +52,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 129467    # from Agent result subagent_tokens
+      estimated_usd: 0.85     # 129467 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 48.5  # 2908753 ms
       recorded_at: 2026-07-24
       note: >-
         Implemented trophyRank/Celebration seam were already present in the working tree; found
@@ -64,10 +66,40 @@ cost:
         Celebration.trophyRank optional (not required) so pre-existing Celebration literals in
         src/ui/audio/** stay untouched (empty diff, per the hard rule) — the hook itself always
         sets it.
+    - cycle: verify
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: 55000     # NOMINAL - inline main-loop verify, not separately metered
+      estimated_usd: 1.10     # NOMINAL, 55000 tok x $20/M (Opus list) - order-of-magnitude
+      recorded_at: 2026-07-24
+      note: >-
+        Verified INLINE on the Opus main loop (user asked to cut the wall-clock the Sonnet verify
+        subagents were costing) - less independent than a cold reviewer, a deliberate tradeoff.
+        All 4 guard-mutations run and reverted clean: (1) amount<=0 -> amount<0 broke the
+        losing-spin test; (2) dropping the idx===-1 check broke BOTH the tie test and the 30-step
+        consistency sequence (the load-bearing guard has teeth); (4) rendering the same treatment
+        for rank 1 and 2 broke the new-best test. Confirmed src/ui/audio/** diff EMPTY (build had
+        edited 3 audio test files then reverted - verified the revert was clean) and engine diff
+        empty. CORRECTED two build claims: trophyRank was NOT "already in the working tree" (its
+        own build commit added all 25 lines), and the `stats` dep-array addition does NOT fix a
+        reachable bug - removing `stats` again breaks no test because `balance` is also a dep and
+        moves on every spin, so the callback is rebuilt with fresh stats regardless. Kept the dep
+        (correct exhaustive-deps hygiene) but added a behavioral test pinning that a later win is
+        ranked against the UPDATED case (rank 1 then rank 2 on two equal wins), with a comment
+        stating honestly what it does and does not prove. 0 defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-24
+      note: >-
+        main-loop, not separately metered (AGENTS 4); ship cycle. Full gate, PR + CI-poll + merge,
+        archive, brag.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 184467   # build 129467 + verify 55000 (NOMINAL, inline Opus main-loop)
+    estimated_usd: 1.95    # build 0.85 + verify 1.10 (nominal)
+    session_count: 4       # design, build, verify (inline), ship
 ---
 
 # SPEC-077: The trophy-earned moment
@@ -301,6 +333,25 @@ winning cells.
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Two spec-authoring errors worth owning. (a) My
+   guard-mutation #3 ("compute the rank AFTER recordSpin") was **not a real guard**: within a single
+   callback `stats` is captured, so moving the call changes nothing — I prescribed a mutation that
+   cannot fail. (b) I warned about a stale-closure dep-array hazard that turns out to be
+   **unreachable**, because `balance` is already a dep and moves on every spin. Both errors pointed
+   the build at defending against non-problems. The lesson is the same one this project keeps
+   teaching from the other side: *before prescribing a guard, confirm the bug it guards is actually
+   reachable* — an unreachable hazard produces ceremony, an unkillable fixture produces false
+   comfort, and both feel like rigor.
+
+2. **Does any template, constraint, or decision need updating?** — No. But the `trophyRank`
+   implementation is worth carrying as a pattern: rather than re-deriving "would this win make the
+   cut?", it asks the **real reducer** and looks for its probe by object identity. The predicate
+   therefore cannot drift from the stored behavior — not because a test says so, but because there
+   is only one copy of the rule. Preferring "derive from the real thing" over "re-implement and test
+   for agreement" is the durable version of consistency.
+
+3. **Is there a follow-up spec I should write now before I forget?** — No. SPEC-078 (replay) is the
+   last of STAGE-015 and is already framed. One carry-forward: `Celebration.trophyRank` had to be
+   made **optional** rather than required, because required broke pre-existing `Celebration` literals
+   in `src/ui/audio/**` test files that this project is forbidden to touch. That is a small piece of
+   debt owned by the parked audio wave, not by this one — whoever unparks audio should tighten it.

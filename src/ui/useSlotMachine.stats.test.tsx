@@ -157,4 +157,38 @@ describe('useSlotMachine × trophyRank seam (SPEC-077)', () => {
     );
     expect(result.current.stats.stats.topWins[TOP_WINS_CAP - 1].spinIndex).toBe(10);
   });
+
+  it('computes the rank against the CURRENT case on a later spin', () => {
+    // Pins that a second win is ranked against the case as updated by the first, not against
+    // the case as it stood at mount. Both spins win exactly 40: the first earns rank 1, the
+    // second TIES it and must rank BELOW the incumbent.
+    //
+    // Note on what this does NOT prove: `stats` is in the spin callback's dep array, but
+    // removing it does not fail this test — `balance` is also a dep and changes on every
+    // spin, so the callback is rebuilt with fresh stats either way. The `stats` dep is
+    // correct hygiene (exhaustive-deps) rather than a fix for a reachable bug; there is no
+    // spin that mutates the case without also moving the balance.
+    const { result } = render({ nextSeed: () => 276 });
+
+    act(() => {
+      result.current.slot.spin();
+    });
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+    expect(result.current.slot.celebration?.trophyRank).toBe(1);
+    expect(result.current.stats.stats.topWins).toHaveLength(1);
+
+    act(() => {
+      result.current.slot.spin();
+    });
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+
+    // Case is NOT full, so a tying win still earns a slot — but it must rank BELOW the
+    // incumbent (rank 2), which is only possible if the callback saw the updated case.
+    expect(result.current.stats.stats.topWins).toHaveLength(2);
+    expect(result.current.slot.celebration?.trophyRank).toBe(2);
+  });
 });
