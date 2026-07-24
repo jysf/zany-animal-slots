@@ -63,6 +63,20 @@ cost:
         confirmed byte-identical to prior markup), and built TrophyGrid + trophies.css per the
         spec's Notes. Full gate green: typecheck, test (962 passed), build, validate, cost-audit,
         eslint on src/**. engine/audio diffs empty.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-5
+      tokens_total: null
+      recorded_at: 2026-07-23
+      note: >-
+        Cold review + all 4 guard-mutations run and reverted clean: (1) PAYLINES-import bypass
+        breaks "uses the supplied paylines" - confirmed; (2) active-machine substitution breaks
+        "renders the originating machine's symbols" (DEC-021 guard) - confirmed; (3) dropping
+        isKnown breaks "marks an unknown machineId" - confirmed; (4) always-append size class
+        breaks the size='full' no-regression test - confirmed. Full gate green (typecheck, test
+        962/962, build, validate, cost-audit, eslint src/** clean). engine/audio diffs empty; no
+        case/card/row/empty-state/animation leakage; no raw hex in trophies.css; a11y summary
+        reachable via role=img + aria-label. 0 defects.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -119,28 +133,28 @@ distinguished and an accessible text alternative — without regressing the live
 
 ## Acceptance Criteria
 
-- [ ] `winningCellKeys(lineWins, paylines)` takes the payline set as a **required** second
+- [x] `winningCellKeys(lineWins, paylines)` takes the payline set as a **required** second
       parameter; it no longer imports the module-level `PAYLINES`.
-- [ ] A `LineWin` referencing a line id absent from the supplied paylines is skipped (the
+- [x] A `LineWin` referencing a line id absent from the supplied paylines is skipped (the
       existing tolerant behavior is preserved, not made to throw).
-- [ ] `ReelGrid` accepts `paylines` and threads it to `winningCellKeys`; `Game.tsx` supplies
+- [x] `ReelGrid` accepts `paylines` and threads it to `winningCellKeys`; `Game.tsx` supplies
       the **active** machine's `math.paylines`.
-- [ ] `ReelGrid` accepts an optional `size` (`'full' | 'card' | 'thumb'`, default `'full'`);
+- [x] `ReelGrid` accepts an optional `size` (`'full' | 'card' | 'thumb'`, default `'full'`);
       `'full'` renders byte-identically to today (no live-reel regression).
-- [ ] `TrophyGrid` renders a `TopWin`'s grid using the **originating** machine's
+- [x] `TrophyGrid` renders a `TopWin`'s grid using the **originating** machine's
       `symbolDisplay` — verified by a test that renders a trophy won on one machine while a
       *different* machine is active, and asserts the originating machine's emoji appear.
-- [ ] `TrophyGrid` derives winning cells from the **originating** machine's `math.paylines`.
-- [ ] Winning cells are distinguished by **more than color alone** (the existing
+- [x] `TrophyGrid` derives winning cells from the **originating** machine's `math.paylines`.
+- [x] Winning cells are distinguished by **more than color alone** (the existing
       `.reel__cell--win` ring/glow qualifies; the trophy sizes must preserve it visibly).
-- [ ] `TrophyGrid` exposes an accessible summary (e.g. an `aria-label` / visually-hidden
+- [x] `TrophyGrid` exposes an accessible summary (e.g. an `aria-label` / visually-hidden
       text naming the amount, machine, and tier) so a screen reader gets the win rather than
       15 unlabelled emoji.
-- [ ] An unknown `machineId` does **not** silently render as Wild & Whimsical: `TrophyGrid`
+- [x] An unknown `machineId` does **not** silently render as Wild & Whimsical: `TrophyGrid`
       detects the miss and marks it (see Notes) rather than lying about provenance.
-- [ ] No animation is introduced by this spec; nothing new to gate behind
+- [x] No animation is introduced by this spec; nothing new to gate behind
       `prefers-reduced-motion` (replay is SPEC-078).
-- [ ] Token colors only, no raw hex (DEC-010). `src/engine/**` and `src/ui/audio/**` diffs
+- [x] Token colors only, no raw hex (DEC-010). `src/engine/**` and `src/ui/audio/**` diffs
       empty. No new dependency.
 
 ## Failing Tests
