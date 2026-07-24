@@ -246,6 +246,58 @@
   }
 }
 
+/*
+ * TrophyEarnedBadge (SPEC-077).
+ * Mirrors win-badge.css's pop-in idiom. Mounted in .cabinet__winbanner alongside
+ * WinBadge — an in-flow band under the header, never overlaying the reel grid, so a
+ * winning spin's lit cells stay visible (portrait-first constraint).
+ * Tokens only, no raw hex (DEC-010). Reduced-motion shows the badge statically
+ * (respect-reduced-motion constraint).
+ */
+
+@keyframes trophy-earned-pop-in {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.1); opacity: 1; }
+  80%  { transform: scale(0.95); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+.trophy-earned-badge {
+  z-index: 10;
+
+  background-color: var(--color-surface);
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4);
+
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-black);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+
+  animation: trophy-earned-pop-in 0.3s ease-out both;
+  pointer-events: none;
+}
+
+/* Rank-1 "new best" gets a visually distinct treatment: jackpot-gold instead of the
+   standard accent, and a larger size — this is deliberately the bigger moment. The text
+   itself ("NEW BEST!" vs "TROPHY #{rank}") is the primary, non-color signal. */
+.trophy-earned-badge[data-rank="best"] {
+  border-color: var(--color-jackpot);
+  color: var(--color-jackpot);
+  font-size: var(--font-size-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trophy-earned-badge {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
 /* ─── Bar to beat ────────────────────────────────────────────────────────────── */
 
 .trophy-case__bar-to-beat {

@@ -21,7 +21,10 @@
 // it to 0). Presentation uses it for the WinBadge and Status WIN readout (DEC-001).
 // SPEC-021: celebration is a one-shot signal — an object { id, tier, totalWin, lineWins }
 // with a monotonically incrementing id set at spin resolve on a win; null on no-win or
-// after reset(). Consumers key useEffect on celebration?.id to fire exactly once per win.
+// after reset().
+// SPEC-077: celebration also carries trophyRank — computed from the PRE-record stats.topWins
+// (via the pure trophyRank predicate) BEFORE recordSpin runs, so it reports the rank this win
+// is actually about to take, not one already reflecting its own insertion. Consumers key useEffect on celebration?.id to fire exactly once per win.
 // SPEC-042: the hook resolves the ACTIVE machine (opts.machine ?? getActiveMachine()) and
 // threads it into the engine + its own balance/bet init + reset (DEC-015). The default
 // machine's math is today's STARTING_BALANCE/DEFAULT_BET, so behavior is unchanged.
@@ -34,6 +37,7 @@ import { spin as engineSpin, canAfford, nextBet, prevBet } from '../engine/index
 import type { Grid, BetLevel, LineWin, WinTier } from '../engine/index';
 import { useActiveMachine } from './machine/MachineProvider';
 import { useStats } from './stats/StatsProvider';
+import { trophyRank } from '../stats/sessionStats';
 import type { Machine } from '../machines/types';
 import { INITIAL_GRID } from './reels/symbols';
 import { readBalance, writeBalance } from './storage';
@@ -65,6 +69,12 @@ export interface Celebration {
   tier: WinTier;       // 'small' | 'big' | 'jackpot' — never 'none', only set on a win
   totalWin: number;    // > 0
   lineWins: LineWin[];
+  /** 1-based trophy-case rank this win would take, or null if it doesn't make the case
+   *  (SPEC-077). Computed from the pre-spin topWins — never lies about what got stored.
+   *  Optional (rather than required) so pre-existing Celebration literals elsewhere in the
+   *  codebase — notably src/ui/audio/**, which this spec must leave untouched — remain valid
+   *  without adding the field; the hook itself always sets it. */
+  trophyRank?: number | null;
 }
 
 export interface UseSlotMachineResult {
@@ -105,7 +115,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
   const nextSeed = opts?.nextSeed ?? _defaultNextSeed;
   const activeMachine = useActiveMachine().machine;
   const machine = opts?.machine ?? activeMachine;
-  const { recordSpin, recordCashIn } = useStats();
+  const { stats, recordSpin, recordCashIn } = useStats();
 
   const [grid, setGrid] = useState<Grid>(INITIAL_GRID);
   // Init: explicit opts.initialBalance (used in tests) → persisted value → machine default.
@@ -204,13 +214,17 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
       setTier(outcome.tier);
       setLastWin(outcome.totalWin);
       // SPEC-021: set the one-shot celebration signal on a win; null on a loss.
+      // SPEC-077: trophyRank MUST be read from stats.topWins here, before recordSpin below
+      // runs — reading it after would see this win already inserted and always report a rank.
       if (outcome.totalWin > 0) {
         celebrationIdRef.current += 1;
+        const earnedRank = trophyRank(stats.topWins, outcome.totalWin);
         setCelebration({
           id: celebrationIdRef.current,
           tier: outcome.tier,
           totalWin: outcome.totalWin,
           lineWins: outcome.lineWins,
+          trophyRank: earnedRank,
         });
       } else {
         setCelebration(null);
@@ -255,7 +269,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
         }
       }
     }, SPIN_DURATION_MS);
-  }, [balance, bet, nextSeed, status, machine, recordSpin]);
+  }, [balance, bet, nextSeed, status, machine, recordSpin, stats]);
 
   // Keep spinRef pointing at the latest spin closure so scheduled continuations
   // always call the version that sees the current balance/bet/status.

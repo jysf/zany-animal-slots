@@ -25,6 +25,7 @@ import Game from './regions/Game';
 import Status from './regions/Status';
 import Action from './regions/Action';
 import WinBadge from './reels/WinBadge';
+import TrophyEarnedBadge from './trophies/TrophyEarnedBadge';
 import JackpotMoment from './JackpotMoment';
 import { useSlotMachine } from './useSlotMachine';
 import { useAudio } from './audio/useAudio';
@@ -72,6 +73,9 @@ export default function App() {
         <Header muted={muted} onToggleMute={toggleMute} />
         <div className="cabinet__winbanner">
           <WinBadge amount={lastWin} show={!isSpinning} tier={celebration?.tier} />
+          {/* SPEC-077: sits alongside WinBadge in the in-flow winbanner band — never
+              overlays the reel grid, so the lit winning cells stay visible on a win. */}
+          <TrophyEarnedBadge trophyRank={!isSpinning ? (celebration?.trophyRank ?? null) : null} />
         </div>
         <Game grid={grid} spinning={isSpinning} lineWins={lineWins} celebration={celebration} />
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />

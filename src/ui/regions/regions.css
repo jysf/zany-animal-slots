@@ -108,6 +108,8 @@
  * WinBadge ("WIN / BIG WIN / JACKPOT +N"); otherwise it is empty. Its height is
  * reserved at all times so the win display never covers the reels and appearing
  * causes no layout shift.
+ * SPEC-077: also hosts TrophyEarnedBadge alongside WinBadge on a trophy-earning
+ * win — `gap` keeps the two badges from touching when both render at once.
  */
 .cabinet__winbanner {
   background-color: var(--color-bg);
@@ -116,7 +118,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Positioning context is not needed — the badge is in-flow (centred here). */
+  gap: var(--space-3);
+  /* Positioning context is not needed — the badges are in-flow (centred here). */
 }
 
 /* ─── Game region ───────────────────────────────────────────────────────────── */
