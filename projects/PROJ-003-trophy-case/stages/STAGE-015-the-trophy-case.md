@@ -4,7 +4,7 @@
 
 stage:
   id: STAGE-015
-  status: proposed                  # proposed | active | shipped | cancelled | on_hold
+  status: active                    # proposed | active | shipped | cancelled | on_hold
   priority: medium
   target_complete: null
 
