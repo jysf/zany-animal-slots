@@ -2,7 +2,7 @@
 task:
   id: SPEC-080
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: S                    # S | M | L  (L means split it)
@@ -48,17 +48,45 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 93110     # from Agent result subagent_tokens
+      estimated_usd: 0.61     # 93110 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 3.6   # 218757 ms
       recorded_at: 2026-07-24
       note: >-
         Split StatsSheet into Trophies/Numbers tabs with the full ARIA tab pattern and
         real conditional rendering (absence-asserted in tests, not CSS-hidden). Clear
         record moved outside both tabpanels. Arrow-key roving focus skipped as
         nice-to-have per spec. All gates green; engine/audio diffs empty.
+    - cycle: verify
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: 45000     # NOMINAL - inline main-loop verify, not separately metered
+      estimated_usd: 0.90     # NOMINAL, 45000 tok x $20/M (Opus list) - order-of-magnitude
+      recorded_at: 2026-07-24
+      note: >-
+        Verified INLINE on the Opus main loop. All prescribed guard-mutations killed their targets
+        using the spec's killing inputs: (1) rendering both panels regardless of tab broke all three
+        show/hide tests - the ABSENCE assertions did the work, exactly as designed; (2) aria-selected
+        hardcoded true broke the ARIA-pattern test via the unselected-tab assertion; (4) neutralising
+        the reset-on-close broke "reopening returns to Trophies". (3) Clear record placement confirmed
+        structurally - it sits outside both panel conditionals. Also did a REAL 375px render: Numbers
+        tab is 643px against an 812px viewport = NO SCROLL AT ALL (was 1537px stacked), tabs are 48px
+        (>=44), aria-selected flips correctly, and the trophy case is genuinely absent from the DOM on
+        the Numbers tab rather than CSS-hidden. Trophies tab is 1395px - still scrolls, inherent to 3
+        full cards, and acceptable now that the numbers no longer sit behind them. 0 defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-24
+      note: >-
+        main-loop, not separately metered (AGENTS 4); ship cycle. Gate, PR + CI + merge, archive,
+        brag, RELEASES.md entry, then re-ship STAGE-016 + PROJ-003.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 138110   # build 93110 + verify 45000 (NOMINAL, inline Opus main-loop)
+    estimated_usd: 1.51    # build 0.61 + verify 0.90 (nominal)
+    session_count: 4       # design, build, verify (inline), ship
 ---
 
 # SPEC-080: Tabbed record sheet
@@ -245,6 +273,22 @@ without real focus management. If you skip arrow keys, say so in Build Completio
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Not made the layout call unilaterally in the first
+   place. SPEC-079's hierarchy inversion was reasonable in isolation, but "which of two good things
+   leads the sheet" is a taste question about the user's own game, and I decided it without asking
+   while asking about smaller things (N, placement) earlier. The tell was available before shipping:
+   the merged sheet measured **1537px against an 812px viewport**, and I noted that number at
+   SPEC-079's verify without treating it as the design smell it was.
+
+2. **Does any template, constraint, or decision need updating?** — No. This spec is, however, the
+   first to carry **killing inputs alongside each prescribed guard-mutation** (the repo lesson from
+   SPEC-073/076/078), and it paid off immediately: mutation 1 was killed specifically by the
+   *absence* assertions the spec insisted on, which a presence-only test would have missed. Worth
+   keeping as the default shape for a Failing Tests section.
+
+3. **Is there a follow-up spec I should write now before I forget?** — No spec, but two observations
+   from the real render worth carrying: (a) on a genuine first run the **help sheet and the record
+   sheet can be open simultaneously**, stacked — pre-existing (not caused here) and only reachable
+   before help is dismissed, but it looks broken if a player hits it; (b) the Trophies tab is still
+   1395px, inherent to three full cards, which is fine now that the numbers are one tap away rather
+   than behind them.

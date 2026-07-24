@@ -17,8 +17,9 @@ real reels.
 
 ### What's new
 
-- **A trophy case.** Open **Your record** (the 📊 in the header) and your ten best wins lead the
-  sheet — the actual 5×3 grid that produced each one, with the winning cells lit up.
+- **A trophy case.** Open **Your record** (the 📊 in the header) and you'll find two tabs —
+  **Trophies** and **Numbers**. The Trophies tab holds your ten best wins, each shown as the
+  actual 5×3 grid that produced it, with the winning cells lit up.
 - **Every trophy remembers its machine.** A win on Arctic shows Arctic's creatures, even while
   you're playing Ocean. Your trophies look like where you won them.
 - **A podium.** Your top three get full cards with medals and tier framing. Ranks 4–10 sit as
@@ -38,9 +39,13 @@ real reels.
 
 - **"Session stats" is now "Your record."** The old name was wrong: this record survives
   reloads and closing the tab. It's not a session, it's your history.
+- **Your stats now live on their own tab.** Spins, win rate, net winnings, cash-ins, the drought
+  counter, and the winnings-over-time chart are all on **Numbers** — visible at a glance without
+  scrolling past anything.
 - **The "Biggest win" tile is gone** — replaced by the #1 trophy, which tells you the same thing
   plus the reels, the machine, the bet, and the spin number.
-- **Clearing** is now **"Clear record"**, and it says plainly that trophies go too.
+- **Clearing** is now **"Clear record"**, and it says plainly that trophies go too. It's
+  available from either tab.
 
 ### Your existing stats were not touched
 
