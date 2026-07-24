@@ -44,7 +44,8 @@ emit_data() {
     # --- Repo-level context (source files behind the "why") ---
     echo "## Repo-level files (context for the 'why')"
     echo "- AGENTS.md"
-    echo "- CHANGELOG.md"
+    echo "- CHANGELOG.md"      # the TEMPLATE's tooling changelog (v5.x)
+    echo "- RELEASES.md"       # the APP's player-facing release notes
     for f in projects/*/brief.md; do
         [ -e "$REPO_ROOT/$f" ] && echo "- $f"
     done
@@ -66,14 +67,16 @@ emit_data() {
     done
     echo ""
 
-    # --- Releases: git tags + CHANGELOG headings ---
+    # --- Releases: git tags + RELEASES.md headings (the APP; not the template CHANGELOG) ---
     echo "## Releases (git tags)"
     if command -v git >/dev/null 2>&1 && [ -d "${REPO_ROOT}/.git" ]; then
         git -C "$REPO_ROOT" tag --sort=version:refname 2>/dev/null | sed 's|^|- |' || true
     fi
     echo ""
-    echo "## Release headings (from CHANGELOG.md)"
-    grep -E '^## ' "${REPO_ROOT}/CHANGELOG.md" 2>/dev/null | sed 's|^## |- |' || true
+    # The APP's releases live in RELEASES.md (one "## <date> — <name>" per project ship).
+    # CHANGELOG.md is the TEMPLATE's own tooling changelog and is NOT the app's release history.
+    echo "## Release headings (from RELEASES.md)"
+    grep -E '^## ' "${REPO_ROOT}/RELEASES.md" 2>/dev/null | sed 's|^## |- |' || true
     echo ""
 
     # --- Decisions across all projects ---
@@ -119,7 +122,7 @@ emit_glance() {
     n_projects=$(find "${REPO_ROOT}/projects" -maxdepth 2 -name brief.md 2>/dev/null | wc -l | tr -d ' ')
     n_stages=$(find "${REPO_ROOT}/projects" -path '*/stages/STAGE-*.md' 2>/dev/null | wc -l | tr -d ' ')
     n_decisions=$(find "${REPO_ROOT}/decisions" -name 'DEC-*.md' 2>/dev/null | wc -l | tr -d ' ')
-    n_releases=$(grep -cE '^## ' "${REPO_ROOT}/CHANGELOG.md" 2>/dev/null || echo 0)
+    n_releases=$(grep -cE '^## ' "${REPO_ROOT}/RELEASES.md" 2>/dev/null || echo 0)
     echo "## Lifetime at a glance"
     if command -v git >/dev/null 2>&1 && [ -d "${REPO_ROOT}/.git" ]; then
         first=$(git -C "$REPO_ROOT" log --reverse --format='%ad' --date=short 2>/dev/null | head -1) || true
@@ -130,7 +133,7 @@ emit_glance() {
     echo "- Projects:   ${n_projects}"
     echo "- Stages:     ${n_stages}"
     echo "- Decisions:  ${n_decisions}"
-    echo "- Releases:   ${n_releases}  (CHANGELOG headings)"
+    echo "- Releases:   ${n_releases}  (RELEASES.md headings — the app, not the template CHANGELOG)"
     echo "  (spec counts + recorded cost: see the specs-by-stage totals below)"
     echo ""
 }
@@ -145,7 +148,7 @@ Produce a full lifetime report on this repo: the arc of every project,
 stage, spec, decision, and release since the first commit. Not a status
 snapshot (`just status` already does that) — a narrative of how the tool
 got from nothing to where it is now. Use the pre-loaded data below;
-read the project briefs and CHANGELOG for the "why" behind each wave.
+read the project briefs and RELEASES.md for the "why" behind each wave.
 
 Head the report with `# <Repo> — Lifetime Report` and, directly under it, a
 `Generated: <date>` line — use the `Generated:` date given in the context block
