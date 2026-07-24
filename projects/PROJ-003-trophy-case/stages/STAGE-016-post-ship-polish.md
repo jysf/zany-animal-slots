@@ -53,9 +53,11 @@ which predate this project and were fine — stay degraded by a change this proj
 
 ## Spec Backlog
 
-- [ ] SPEC-080 (frame) — Tabbed record sheet: Trophies / Numbers.
+- [~] SPEC-080 — Tabbed record sheet: Trophies / Numbers (built, PR #93, awaiting user test).
+- [ ] SPEC-081 (design) — Quiet by default: remove the ambient-bed loop + default sound to OFF.
+      User play-test found the default-on looping bed "terrible". DEC-025.
 
-**Count:** 0 shipped / 1 active / 0 pending
+**Count:** 0 shipped / 2 active / 0 pending
 
 ## Design Notes
 
