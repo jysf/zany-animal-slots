@@ -4,7 +4,7 @@
 task:
   id: SPEC-074
   type: story                      # epic | story | task | bug | chore
-  cycle: build                     # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: S                    # S | M | L  (L means split it)
@@ -51,7 +51,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 106299    # from Agent result subagent_tokens
+      estimated_usd: 0.70     # 106299 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 8.7   # 523287 ms
       recorded_at: 2026-07-23
       note: >-
         Passed outcome.grid/lineWins through the recordSpin call site, tightened SpinRecordInput
@@ -66,7 +68,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-5
-      tokens_total: null
+      tokens_total: 77174     # from Agent result subagent_tokens
+      estimated_usd: 0.51     # 77174 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 53.9  # 3236024 ms
       recorded_at: 2026-07-23
       note: >-
         Cold review + guard-mutations, all confirmed as specified: (1) reverting the call
@@ -82,10 +86,22 @@ cost:
         (typecheck, test 953/953, build, validate, cost-audit); eslint on src/**/*.{ts,tsx}
         exits 0 (just lint's 1458 errors are entirely .claude/worktrees/** dist output +
         audio-spike.html, confirmed none from src/**). 0 defects found. Verdict: APPROVED.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-23
+      note: >-
+        main-loop, not separately metered (AGENTS 4); ship cycle. Full gate re-run green,
+        PR + CI-poll to 7/7 + squash-merge, stage rollup, archive, brag, cost bookkeeping.
+        Verify's critical call-site-revert mutation is the evidence that mattered here: it
+        proved the new hook test actually fails when the seam is disconnected, which is the
+        one thing this spec exists to guarantee.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 183473   # build 106299 + verify 77174 (design/ship un-metered main-loop)
+    estimated_usd: 1.21    # build 0.70 + verify 0.51
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-074: Record-seam widening
@@ -296,6 +312,23 @@ rather than inventing new.
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Split the compat debt differently. SPEC-073
+   shipped `grid`/`lineWins` as optional purely so the tree would typecheck, which meant the
+   trophy path was *merged to main as dead code* — correct by unit test, inert in production,
+   for one whole spec. Nothing broke, but "shipped and provably tested" and "actually doing
+   anything" were two different states for a full cycle, and only this spec's hook test could
+   tell them apart. If a spec must land a feature inert, the spec should say so in its own
+   Context (SPEC-073's did) *and* the stage should not be considered demonstrable until the
+   seam spec lands.
+
+2. **Does any template, constraint, or decision need updating?** — No template change. The
+   reusable lesson is about test altitude: a reducer test proves a reducer, never a seam.
+   The only test that could distinguish "connected" from "disconnected" here was one that
+   drove the real hook through the real provider — and verify's call-site-revert mutation is
+   what proved that test wasn't decorative. Worth carrying: **when a spec's whole value is
+   "X is wired to Y", the acceptance test must exercise the wire, and verify must mutate the
+   wire to prove the test would notice.**
+
+3. **Is there a follow-up spec I should write now before I forget?** — No. STAGE-014 is
+   complete (2/2) and the model is now genuinely collecting. STAGE-015 (SPEC-075–078) is
+   already framed and is the direct continuation: render what this now persists.
