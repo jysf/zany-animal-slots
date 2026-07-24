@@ -1,0 +1,30 @@
+/*
+ * Trophy grid size modifiers (SPEC-075).
+ * Scales down the two things that set reel size — wrapper max-width and cell
+ * font-size — while keeping .reel__cell--win's ring/glow intact so a winning
+ * cell stays legible even at thumb size (more-than-color-alone, DEC-010/a11y).
+ * Token-driven: no raw hex, no hardcoded theme colors (DEC-010).
+ */
+
+/* Card size — the hero trophy on a full card. */
+.trophy-grid .reel-grid--card {
+  max-width: 260px;
+  padding: var(--space-1);
+}
+.trophy-grid .reel-grid--card .reel__cell {
+  font-size: var(--font-size-lg);
+}
+
+/* Thumb size — the compact row. */
+.trophy-grid .reel-grid--thumb {
+  max-width: 128px;
+  padding: var(--space-1);
+  gap: 2px;
+}
+.trophy-grid .reel-grid--thumb .reel {
+  gap: 2px;
+}
+.trophy-grid .reel-grid--thumb .reel__cell {
+  font-size: var(--font-size-xs);
+  border-radius: 2px;
+}

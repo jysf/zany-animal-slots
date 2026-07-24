@@ -4,7 +4,7 @@
 
 stage:
   id: STAGE-015
-  status: proposed                  # proposed | active | shipped | cancelled | on_hold
+  status: active                    # proposed | active | shipped | cancelled | on_hold
   priority: medium
   target_complete: null
 
@@ -113,10 +113,11 @@ currently-selected machine's.
 
 ## Spec Backlog
 
-- [ ] SPEC-075 (frame) — Trophy grid at rest: reuse `ReelGrid` at trophy scale (card +
-      thumbnail sizes) rendering a saved grid in its originating machine's
-      `symbolDisplay` with winning cells lit; source winning cells from the machine's
-      `math.paylines`, not the module-level `PAYLINES` (see Design Notes).
+- [x] SPEC-075 (shipped on 2026-07-23) — Trophy grid at rest: `TrophyGrid` reuses `ReelGrid`
+      at card + thumb sizes, rendering a saved grid in its ORIGINATING machine's
+      `symbolDisplay` with winning cells lit; `winningCellKeys` now takes the machine's
+      `math.paylines` (module-level `PAYLINES` coupling fixed); unknown `machineId` is marked
+      rather than silently rendered as the default. 0 defects.
 - [ ] SPEC-076 (frame) — The trophy case in the record sheet: ranked layout (full cards
       #1–#3, tap-to-expand rows #4–#10), tier framing, hierarchy inversion, "Biggest
       win" tile subsumed, clear note updated. Includes the four near-free card details
@@ -129,7 +130,7 @@ currently-selected machine's.
       instant reveal under `prefers-reduced-motion`; must not interfere with a live spin
       or auto-spin.
 
-**Count:** 0 shipped / 0 active / 4 pending
+**Count:** 1 shipped / 0 active / 3 pending
 
 ## Design Notes
 

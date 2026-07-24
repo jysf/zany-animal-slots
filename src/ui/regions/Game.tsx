@@ -14,6 +14,7 @@
 // machine directly — the seam STAGE-008's selector plugs into.
 // SPEC-049: reads the active machine from useActiveMachine() (reactive, persisted context)
 // instead of the getActiveMachine() module-const read, so a future machine switch re-renders.
+// SPEC-075: passes the active machine's math.paylines into ReelGrid (now a required prop).
 import type { Grid, LineWin } from '../../engine/index';
 import type { Celebration } from '../useSlotMachine';
 import { useActiveMachine } from '../machine/MachineProvider';
@@ -39,6 +40,7 @@ export default function Game({ grid, spinning = false, lineWins = [], celebratio
         lineWins={lineWins}
         trailKey={celebration?.id ?? null}
         symbolDisplay={machine.presentation.symbolDisplay}
+        paylines={machine.math.paylines}
       />
       <ParticleBurst celebration={celebration} />
     </main>

@@ -2,11 +2,12 @@
 // SPEC-018: extended with winning-cell highlight tests.
 // SPEC-041: symbolDisplay is now a required prop, sourced from the default machine's
 // presentation slice; every render() call site supplies it.
+// SPEC-075: paylines is now a required prop; every render() call site supplies it.
 // Visual appearance is verified by the orchestrator's preview screenshot check.
 import { render, screen } from '@testing-library/react';
 import ReelGrid from './ReelGrid';
 import { SYMBOL_DISPLAY, INITIAL_GRID } from './symbols';
-import { SYMBOLS } from '../../engine/index';
+import { SYMBOLS, PAYLINES } from '../../engine/index';
 import type { Grid, LineWin } from '../../engine/index';
 import { WILD_AND_WHIMSICAL } from '../../machines/wildAndWhimsical';
 
@@ -24,12 +25,12 @@ const DEFAULT_DISPLAY = WILD_AND_WHIMSICAL.presentation.symbolDisplay;
 
 describe('ReelGrid', () => {
   it('renders 15 symbol cells for a 5×3 grid', () => {
-    render(<ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} />);
+    render(<ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />);
     expect(screen.getAllByRole('img')).toHaveLength(15);
   });
 
   it('renders the correct emoji and label per symbol', () => {
-    render(<ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} />);
+    render(<ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />);
 
     // WOLF slot — Wild & Whimsical's jackpot creature (SPEC-065: unicorn).
     const wolfCells = screen.getAllByLabelText('Unicorn');
@@ -52,7 +53,7 @@ describe('ReelGrid', () => {
   });
 
   it('lays out five reels with three cells each', () => {
-    const { container } = render(<ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} />);
+    const { container } = render(<ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />);
     const reels = container.querySelectorAll('.reel');
     expect(reels).toHaveLength(5);
     for (const reel of reels) {
@@ -77,7 +78,7 @@ describe('ReelGrid', () => {
 
   it('highlights the winning cells when resolved', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     // L1 count=3 covers reels 0,1,2 at row 1 → exactly 3 cells win.
     const winCells = container.querySelectorAll('.reel__cell--win');
@@ -93,7 +94,7 @@ describe('ReelGrid', () => {
 
   it('suppresses the highlight while spinning', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={true} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={true} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     // No cell should carry .reel__cell--win while spinning.
     expect(container.querySelectorAll('.reel__cell--win')).toHaveLength(0);
@@ -101,7 +102,7 @@ describe('ReelGrid', () => {
 
   it('no highlight when there are no wins', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[]} spinning={false} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[]} spinning={false} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     expect(container.querySelectorAll('.reel__cell--win')).toHaveLength(0);
   });
@@ -110,7 +111,7 @@ describe('ReelGrid', () => {
 
   it('renders a paw on each winning cell when a trail is active', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     // L1 count=3 covers reels 0/1/2 at row 1 → exactly 3 winning cells → 3 paws.
     expect(container.querySelectorAll('.reel__paw')).toHaveLength(3);
@@ -118,28 +119,28 @@ describe('ReelGrid', () => {
 
   it('renders no paws when there is no win', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[]} spinning={false} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[]} spinning={false} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
   });
 
   it('renders no paws while spinning', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={true} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={true} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
   });
 
   it('renders no paws when trailKey is null', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={null} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={null} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     expect(container.querySelectorAll('.reel__paw')).toHaveLength(0);
   });
 
   it('paws are decorative (aria-hidden) and do not change the symbol count', () => {
     const { container } = render(
-      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} />,
+      <ReelGrid grid={TEST_GRID} lineWins={[L1_WIN_3]} spinning={false} trailKey={1} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
     );
     // Paws must not add role="img" elements — symbol count stays at 15.
     expect(screen.getAllByRole('img')).toHaveLength(15);
@@ -157,12 +158,33 @@ describe('ReelGrid', () => {
       ...DEFAULT_DISPLAY,
       WOLF: { emoji: '🎰', label: 'Slot' },
     };
-    render(<ReelGrid grid={TEST_GRID} symbolDisplay={stubDisplay} />);
+    render(<ReelGrid grid={TEST_GRID} symbolDisplay={stubDisplay} paylines={PAYLINES} />);
 
     // A WOLF cell renders the stub's emoji/label, proving ReelGrid renders the
     // supplied map rather than importing SYMBOL_DISPLAY directly.
     const slotCells = screen.getAllByLabelText('Slot');
     expect(slotCells.length).toBeGreaterThan(0);
     expect(slotCells[0].textContent).toBe('🎰');
+  });
+
+  // ── SPEC-075: size variant — 'full' must be a strict no-op ──────────────────
+
+  it("size='full' is the default and adds no size modifier class", () => {
+    const { container: withDefault } = render(
+      <ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} />,
+    );
+    const { container: withExplicitFull } = render(
+      <ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} size="full" />,
+    );
+    // No 'full' class should ever appear — only the bare .reel-grid wrapper class.
+    expect(withDefault.querySelector('.reel-grid')?.className).toBe('reel-grid');
+    expect(withExplicitFull.querySelector('.reel-grid')?.className).toBe('reel-grid');
+  });
+
+  it("size='card' appends a reel-grid--card modifier class", () => {
+    const { container } = render(
+      <ReelGrid grid={TEST_GRID} symbolDisplay={DEFAULT_DISPLAY} paylines={PAYLINES} size="card" />,
+    );
+    expect(container.querySelector('.reel-grid--card')).not.toBeNull();
   });
 });

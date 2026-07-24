@@ -4,7 +4,7 @@
 
 stage:
   id: STAGE-014
-  status: active                  # proposed | active | shipped | cancelled | on_hold
+  status: shipped                 # proposed | active | shipped | cancelled | on_hold
   priority: medium
   target_complete: null
 
@@ -14,7 +14,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-23
-shipped_at: null
+shipped_at: 2026-07-23
 
 value_contribution:
   advances: >-
@@ -140,10 +140,32 @@ manual testing, rather than an empty one.
 
 *Filled in when status moves to shipped.*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes.** The app now silently
+  collects trophies: every winning spin records a `TopWin` carrying its full grid + lineWins,
+  bounded to 10 and sorted desc, persisted in the existing `zany:stats` blob. The stage's
+  riskiest requirement — *do not wipe existing stats* — held by construction: `STATS_VERSION`
+  is still 1, `isValid()` doesn't require the new field, and `readStats()` normalizes a
+  missing/malformed `topWins` to `[]` while returning the rest of the record intact, proven
+  against a literal pre-`topWins` fixture. Zero visible UI change, exactly as framed.
+- **How many specs did it actually take?** **2 (SPEC-073, SPEC-074)** — exactly as planned,
+  0 defects across both.
+- **What changed between starting and shipping?** Nothing in scope. One sequencing wrinkle
+  emerged: SPEC-073 had to land `grid`/`lineWins` as *optional* to keep the tree compiling,
+  so the trophy path sat on `main` as dead code for a full spec until SPEC-074 wired it.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - **A test asserting "X was preserved" must seed non-default values.** SPEC-073's
+    normalization test built its fixture from `emptyStats()`, whose zeroes made the
+    "record survived" assertions unfalsifiable — it passed even under a mutation that reset
+    the whole record. Caught by verify's mutation pass, not by reading. Generalizes well
+    beyond this repo.
+  - **A reducer test proves a reducer, never a seam.** When a spec's whole value is "X is
+    wired to Y", the acceptance test must drive the wire, and verify must *cut* the wire to
+    prove the test would notice. SPEC-074's call-site-revert mutation is the model.
+  - **Local `just lint` is currently unusable** (~1458 errors, all from git-ignored
+    `.claude/worktrees/**` + `audio-spike.html`). CI is unaffected, but every cycle pays a
+    tax re-establishing that. Stale worktrees should be pruned out-of-band.
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - Yes — both testing lessons above came from spec-level reflections (SPEC-073 ship,
+    SPEC-074 ship) and are the stage's most transferable output.
+  - Also worth carrying: when a spec must land a feature *inert* for compat, say so in its
+    Context (SPEC-073 did) and treat the stage as non-demonstrable until the seam spec lands.
