@@ -60,6 +60,22 @@ cost:
         Built TrophyCase/TrophyCard/TrophyRow + trophies.css additions + TrophyCase.test.tsx; all
         Failing Tests pass, gate green. tokens_total not recorded by this session — orchestrator to
         fill from subagent_tokens at ship (constraint cost-captured-per-cycle).
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-5
+      tokens_total: null
+      recorded_at: 2026-07-23
+      note: >-
+        Cold review: all 12 ACs verified against code, checkboxes ticked. 5/5 guard-mutations
+        broke the right test and reverted clean. Keyboard-test deviation ruled ACCEPTABLE (real
+        native <button type="button">, focusable, aria-expanded reflects state). TOP_WINS_CAP
+        imported not hardcoded; shared TrophyDetail confirmed used by both TrophyCard and
+        TrophyRow; DEC-010 clean (no raw hex); touch target 48px; reduced-motion off-switch
+        present. Gate green (typecheck/test 970/build/validate/cost-audit/eslint). 1 defect
+        found: the fractional-multiplier test uses amount=48/bet=10 (=4.8 exactly in floating
+        point), so the "return raw ratio" guard-mutation does NOT fail it — the test doesn't
+        actually exercise the toFixed(1) rounding path. Flagged, not fixed (test-only fix,
+        left for implementer/ship note).
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -112,30 +128,30 @@ empty state, and the bar-to-beat once the case is full.
 
 ## Acceptance Criteria
 
-- [ ] `TrophyCase` accepts `{ topWins: TopWin[]; spins: number }` and renders nothing
+- [x] `TrophyCase` accepts `{ topWins: TopWin[]; spins: number }` and renders nothing
       engine-related — pure presentation (DEC-001).
-- [ ] With 0 trophies, renders the **empty state**: `TOP_WINS_CAP` (10) locked plinth
+- [x] With 0 trophies, renders the **empty state**: `TOP_WINS_CAP` (10) locked plinth
       placeholders plus an inviting line of copy. No zeros, no blank.
-- [ ] With 1–3 trophies, renders that many **full cards** and no rows.
-- [ ] With >3 trophies, renders exactly 3 full cards and the remainder as **compact rows**.
-- [ ] Each full card shows: rank medal (🥇/🥈/🥉), amount, machine name, tier, bet,
+- [x] With 1–3 trophies, renders that many **full cards** and no rows.
+- [x] With >3 trophies, renders exactly 3 full cards and the remainder as **compact rows**.
+- [x] Each full card shows: rank medal (🥇/🥈/🥉), amount, machine name, tier, bet,
       `spinIndex` ("spin #143"), the **bet multiplier** (`amount / bet`, e.g. "24× your bet"),
       and a `TrophyGrid` at `size="card"`.
-- [ ] Each compact row shows rank, amount, machine name, and a `TrophyGrid` at
+- [x] Each compact row shows rank, amount, machine name, and a `TrophyGrid` at
       `size="thumb"`; tapping it **expands in place** to reveal the full card detail, and
       tapping again collapses it.
-- [ ] The row toggle is a real `<button>`, keyboard-operable, with `aria-expanded`
+- [x] The row toggle is a real `<button>`, keyboard-operable, with `aria-expanded`
       reflecting state, and a hit area ≥44px (constraint `touch-targets-44`).
-- [ ] Tier framing uses the existing tier tokens (`--color-win-small` / `--color-win-big` /
+- [x] Tier framing uses the existing tier tokens (`--color-win-small` / `--color-win-big` /
       `--color-jackpot`); **no new color tokens, no raw hex** (DEC-010).
-- [ ] When `topWins.length === TOP_WINS_CAP`, a **bar-to-beat** line shows
+- [x] When `topWins.length === TOP_WINS_CAP`, a **bar-to-beat** line shows
       `topWins[9].amount` ("Beat 35 to make the case"). When the case is not full, it is
       **absent** (every win still gets in, so there is no bar).
-- [ ] Bet multiplier renders sensibly for a non-integer ratio (e.g. 4.8× → shown to at most
+- [x] Bet multiplier renders sensibly for a non-integer ratio (e.g. 4.8× → shown to at most
       1 decimal, no `24.000000001×`).
-- [ ] Any flourish/animation is disabled under `prefers-reduced-motion`
+- [x] Any flourish/animation is disabled under `prefers-reduced-motion`
       (constraint `respect-reduced-motion`).
-- [ ] `src/engine/**` and `src/ui/audio/**` diffs empty; no new dependency.
+- [x] `src/engine/**` and `src/ui/audio/**` diffs empty; no new dependency.
 
 ## Failing Tests
 
