@@ -6,14 +6,14 @@ export const MUTE_KEY = 'mute';
 
 /**
  * Read the persisted mute state.
- * Returns false when the key is absent, storage is unavailable, or the stored
- * value is anything other than 'true' — never throws.
+ * Quiet by default (DEC-025): muted unless a stored preference explicitly says 'false'.
+ * Absent key, unavailable storage, or any non-'false' value ⇒ muted. Never throws.
  */
 export function readMute(): boolean {
   try {
-    return localStorage.getItem(MUTE_KEY) === 'true';
+    return localStorage.getItem(MUTE_KEY) !== 'false';
   } catch {
-    return false;
+    return true; // storage unavailable ⇒ stay quiet
   }
 }
 
