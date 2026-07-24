@@ -134,6 +134,19 @@
   outline-offset: 2px;
 }
 
+/* ─── Section divider (trophy case → numeric tiles, SPEC-079) ───────────────── */
+
+.stats__divider {
+  margin: var(--space-4) 0 var(--space-3);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
 /* ─── Metric tile grid (2-up, portrait-first) ────────────────────────────────── */
 
 .stats__grid {
@@ -153,7 +166,8 @@
   text-align: center;
 }
 
-/* The biggest-win tile spans both columns (it carries a longer subtitle). */
+/* The drought tile spans both columns (SPEC-079; the biggest-win tile it once
+ * belonged to is gone — the #1 trophy subsumes it). */
 .stats__tile--wide {
   grid-column: 1 / -1;
 }

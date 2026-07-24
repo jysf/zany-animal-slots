@@ -1,17 +1,19 @@
-// Session-stats panel — trigger + slide-up overlay sheet (SPEC-056).
-// Self-contained: owns its own open state; always renders the trigger. Mirrors
+// "Your record" panel — trigger + slide-up overlay sheet (SPEC-056; renamed + reorganized
+// in SPEC-079). Self-contained: owns its own open state; always renders the trigger. Mirrors
 // PaytableSheet (SPEC-020) 1:1 for the sheet/backdrop/Esc/focus idiom. Reads the
 // reactive session stats from useStats() (SPEC-055) and derives the display
-// metrics via deriveMetrics() (SPEC-054, DEC-020). "Clear stats" calls resetStats()
-// — DISTINCT from the wallet Reset (which is a counted cash-in, DEC-020).
+// metrics via deriveMetrics() (SPEC-054, DEC-020). Mounts TrophyCase (SPEC-076) above the
+// numeric tiles — the trophies are now the reason to open it. "Clear record" calls
+// resetStats() — DISTINCT from the wallet Reset (which is a counted cash-in, DEC-020); it
+// also clears topWins, since DEC-024 keeps trophies in the same persisted blob.
 // DEC-010: global CSS via stats.css, token colors only, no raw hex, prefixed classes.
 // DEC-001: pure presentation — reads the stats the seam already recorded; engine untouched.
 // constraint: touch-targets-44 — trigger, close, and Clear are ≥44px.
 import { useState, useEffect, useRef } from 'react';
 import { useStats } from './StatsProvider';
 import { deriveMetrics } from '../../stats/sessionStats';
-import { getMachine } from '../../machines/registry';
 import { Sparkline } from './Sparkline';
+import TrophyCase from '../trophies/TrophyCase';
 import './stats.css';
 
 /** Signed net winnings for display: 0 → "0", positive → "+N", negative keeps its "-". */
@@ -52,13 +54,20 @@ export function StatsSheet() {
   const metrics = deriveMetrics(stats);
   const winRatePct = Math.round(metrics.winRate * 100);
 
+  // Spins since the most recent trophy. topWins[0] is the LARGEST win, not the most recent —
+  // use the max spinIndex across trophies for "most recent" (Notes for the Implementer).
+  const lastTrophySpin = stats.topWins.length
+    ? Math.max(...stats.topWins.map((t) => t.spinIndex))
+    : null;
+  const drought = lastTrophySpin === null ? null : Math.max(0, stats.spins - lastTrophySpin);
+
   return (
     <>
       {/* Always-rendered trigger — does NOT shift game layout when the sheet is closed. */}
       <button
         className="stats__trigger"
-        aria-label="Session stats"
-        title="Session stats"
+        aria-label="Your record"
+        title="Your record"
         onClick={() => setOpen(true)}
       >
         📊
@@ -71,16 +80,20 @@ export function StatsSheet() {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Session stats"
+            aria-label="Your record"
             className="stats__sheet"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="stats__header">
-              <h2 className="stats__title">Session stats</h2>
+              <h2 className="stats__title">Your record</h2>
               <button ref={closeRef} className="stats__close" aria-label="Close" onClick={close}>
                 ✕
               </button>
             </div>
+
+            <TrophyCase topWins={stats.topWins} spins={stats.spins} />
+
+            <h3 className="stats__divider">The numbers</h3>
 
             <div className="stats__grid">
               <div className="stats__tile">
@@ -111,26 +124,14 @@ export function StatsSheet() {
                 <span className="stats__tile-label">Cash-ins</span>
               </div>
 
-              <div className="stats__tile stats__tile--wide">
-                {metrics.biggestWin ? (
-                  <>
-                    <span className="stats__tile-value" data-testid="stat-biggest">
-                      {metrics.biggestWin.amount}
-                    </span>
-                    <span className="stats__tile-label">
-                      Biggest win — {getMachine(metrics.biggestWin.machineId).name} ·{' '}
-                      {metrics.biggestWin.tier}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="stats__tile-value" data-testid="stat-biggest">
-                      —
-                    </span>
-                    <span className="stats__tile-label">Biggest win</span>
-                  </>
-                )}
-              </div>
+              {drought !== null && (
+                <div className="stats__tile stats__tile--wide">
+                  <span className="stats__tile-value" data-testid="stat-drought">
+                    {drought}
+                  </span>
+                  <span className="stats__tile-label">Spins since last trophy</span>
+                </div>
+              )}
             </div>
 
             <div className="stats__sparkline-wrap">
@@ -139,10 +140,11 @@ export function StatsSheet() {
             </div>
 
             <button className="stats__clear" onClick={resetStats}>
-              Clear stats
+              Clear record
             </button>
             <p className="stats__note">
-              Clears this browser&rsquo;s session record only. Your balance and machine are untouched.
+              Clears this browser&rsquo;s record — trophies included. Your balance and machine
+              are untouched.
             </p>
           </div>
         </>

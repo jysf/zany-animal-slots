@@ -4,7 +4,7 @@
 task:
   id: SPEC-079
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: build                     # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: S                    # S | M | L  (L means split it)
@@ -51,6 +51,16 @@ cost:
         Small integration spec, but it carries the user-visible rename and the hierarchy inversion,
         plus the one drought stat. Flags the 375px hardware check as a ship-time obligation, not
         something a Chromium preview can discharge.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null
+      recorded_at: 2026-07-23
+      note: >-
+        Mounted TrophyCase above the tile grid, removed the biggest-win tile, added the
+        drought counter (max spinIndex, not topWins[0]), applied the five renamed strings,
+        added the labelled divider. Full gate green; live-app check at 375x812 confirmed
+        scroll (not clip) with the case at the top.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -226,18 +236,43 @@ using existing type tokens.
 
 ## Build Completion
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** feat/spec-079-sheet-integration
+- **PR (if applicable):** none opened yet (build cycle only)
+- **All acceptance criteria met?** Yes. `TrophyCase` mounts above the tile grid (verified by
+  DOM-order test + `compareDocumentPosition`, and visually in the running app); the
+  "Biggest win" tile and `stat-biggest` testid are gone; Spins/Win rate/Net/Cash-ins are
+  unchanged; the sparkline still renders below the tiles; the drought counter
+  (`data-testid="stat-drought"`) shows spins since the most recent trophy using
+  `Math.max(...topWins.map(t => t.spinIndex))` (not `topWins[0]`), guarded with
+  `Math.max(0, …)`, and is absent when `topWins` is empty; all five renamed strings match the
+  table exactly; the `zany:stats` key, `stats__*` prefix, component/file name, and remaining
+  testids are untouched; the trigger emoji stays 📊; `.stats__trigger` still passes
+  `controls.touch-target.test.ts`; the sheet was confirmed live at 375×812 — `scrollHeight`
+  (1913px) exceeds `clientHeight` (812px) with `overflow-y: auto`, so it scrolls rather than
+  clips with the case at the top. The drought counter was kept — it did not need to be cut.
+- **New decisions emitted:** none.
+- **Deviations from spec:** none. The divider is a plain `<h3 className="stats__divider">The
+  numbers</h3>` using existing type tokens, per the Notes' "keep it simple" guidance.
+- **Follow-up work identified:** none beyond the already-gated SPEC-077 (celebration badge)
+  and SPEC-078 (replay), which stay out of scope here.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing major; the Notes section's
+   worked drought-counter snippet and exact rename table left little to interpret. The one
+   thing I double-checked myself was whether the drought tile should keep the
+   `stats__tile--wide` styling vacated by the removed biggest-win tile — the spec didn't say,
+   but it reads better wide (longer label) so I kept it.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No; the
+   spec's own adversarial guard-mutation #3 anticipated the exact bug this task is designed to
+   avoid (using `topWins[0].spinIndex` instead of the max), and the test fixture
+   (`shows spins since the last trophy when a trophy exists`) exercises a case where the
+   biggest win and the most recent trophy are different spins, so a regression to
+   `topWins[0]` does break it as the spec predicted.
+3. **If you did this task again, what would you do differently?** — Nothing structural; I'd
+   seed the live-app verification (localStorage `zany:stats`) earlier in the pass instead of
+   after the automated gate, since it caught nothing the tests hadn't already, but it's cheap
+   insurance for a DOM-order/scroll claim that's hard to fully trust from jsdom alone.
 
 ---
 
