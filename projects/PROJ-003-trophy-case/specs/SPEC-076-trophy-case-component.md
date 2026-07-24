@@ -4,7 +4,7 @@
 task:
   id: SPEC-076
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: M                    # S | M | L  (L means split it) — split out SPEC-079 to stay M
@@ -54,7 +54,9 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 93073     # from Agent result subagent_tokens
+      estimated_usd: 0.61     # 93073 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 12.6  # 758416 ms
       recorded_at: 2026-07-23
       note: >-
         Built TrophyCase/TrophyCard/TrophyRow + trophies.css additions + TrophyCase.test.tsx; all
@@ -63,7 +65,9 @@ cost:
     - cycle: verify
       interface: claude-code
       model: claude-sonnet-5
-      tokens_total: null
+      tokens_total: 85420     # from Agent result subagent_tokens
+      estimated_usd: 0.56     # 85420 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 9.3   # 560603 ms
       recorded_at: 2026-07-23
       note: >-
         Cold review: all 12 ACs verified against code, checkboxes ticked. 5/5 guard-mutations
@@ -76,10 +80,24 @@ cost:
         point), so the "return raw ratio" guard-mutation does NOT fail it — the test doesn't
         actually exercise the toFixed(1) rounding path. Flagged, not fixed (test-only fix,
         left for implementer/ship note).
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-23
+      note: >-
+        main-loop, not separately metered (AGENTS 4); ship cycle. Fixed verify's 1 flagged defect
+        rather than deferring: the fractional-multiplier test used amount 48 / bet 10, and since
+        48/10 === 4.8 EXACTLY in IEEE-754 the assertion passed even with toFixed(1) removed - the
+        rounding path was untested and guard-mutation #4 could not kill it. Added a second case
+        (29/25 === 1.16) that does not round-trip through one decimal, and confirmed by re-running
+        that same mutation: it now FAILS. Then full gate, PR + CI-poll to 7/7 + squash-merge,
+        archive, brag.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 178493   # build 93073 + verify 85420 (design/ship un-metered main-loop)
+    estimated_usd: 1.17    # build 0.61 + verify 0.56
+    session_count: 4       # design, build, verify, ship
 ---
 
 # SPEC-076: The trophy case component
@@ -330,6 +348,23 @@ Ten `.trophy-case__plinth` placeholders in the same grid rhythm as the rows, eac
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Choose test *inputs* as deliberately as test
+   assertions. This spec's Notes prescribed guard-mutation #4 (return the raw ratio) and the
+   build wrote a test for it — but with `amount: 48, bet: 10`, and `48/10` is exactly `4.8` in
+   IEEE-754, so the "rounded" and "un-rounded" outputs are the same string and the mutation
+   could not kill the test. The guard was theatre. This is the **second** time this project a
+   test passed under the exact bug it existed to catch (SPEC-073's normalization fixture was
+   the first), and both times the cause was the same: a fixture whose values make the correct
+   and incorrect behaviours indistinguishable.
+
+2. **Does any template, constraint, or decision need updating?** — No template change, but this
+   is now a pattern worth stating plainly: **when a spec prescribes a guard-mutation, the spec
+   should also prescribe an input that the mutation demonstrably changes.** Writing "test that
+   it rounds" is not enough — `48/10` doesn't need rounding. Both failures this project were
+   caught by the verify mutation pass and neither would have been caught by reading, which is
+   an argument for keeping the mutation discipline rather than trusting a green suite.
+
+3. **Is there a follow-up spec I should write now before I forget?** — No new spec. SPEC-079
+   (mount in the sheet) is already in the backlog and is the direct next step; this component
+   is deliberately unmounted until then. Carry forward to SPEC-079's ship: the `thumb` grid at
+   375px is still unproven on hardware, and that is the stage's flagged legibility risk.

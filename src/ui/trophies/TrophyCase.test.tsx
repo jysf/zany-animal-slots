@@ -102,6 +102,16 @@ describe('TrophyCase', () => {
     expect(screen.queryByText(/4\.800000/)).toBeNull();
   });
 
+  it('ROUNDS a ratio that is not already one-decimal exact', () => {
+    // 48/10 === 4.8 exactly in IEEE-754, so the case above passes even if the ratio is
+    // returned un-rounded — it cannot detect a missing toFixed(1). 29/25 === 1.16 does
+    // NOT round-trip through one decimal, so this case actually exercises the rounding.
+    const trophy = makeTrophy({ amount: 29, bet: 25 });
+    render(<TrophyCase topWins={[trophy]} spins={1} />);
+    expect(screen.getByText(/1\.2×/)).toBeInTheDocument();
+    expect(screen.queryByText(/1\.16×/)).toBeNull();
+  });
+
   it('the row toggle is a keyboard-operable button with aria-expanded', () => {
     render(<TrophyCase topWins={makeTrophies(4)} spins={4} />);
 

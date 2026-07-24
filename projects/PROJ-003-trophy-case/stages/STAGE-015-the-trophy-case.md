@@ -118,9 +118,10 @@ currently-selected machine's.
       `symbolDisplay` with winning cells lit; `winningCellKeys` now takes the machine's
       `math.paylines` (module-level `PAYLINES` coupling fixed); unknown `machineId` is marked
       rather than silently rendered as the default. 0 defects.
-- [ ] SPEC-076 (frame) — The trophy case COMPONENT: ranked layout (full cards #1–#3,
-      tap-to-expand compact rows #4–#10), tier framing, locked-plinth empty state, bet
-      multiplier, bar-to-beat. Standalone + independently testable; not yet mounted.
+- [x] SPEC-076 (shipped on 2026-07-23) — The trophy case COMPONENT: ranked layout (full cards
+      #1–#3, tap-to-expand compact rows #4–#10), tier framing, locked-plinth empty state, bet
+      multiplier, bar-to-beat. Standalone + independently tested; mounted by SPEC-079. 1 defect
+      (a fractional-multiplier test whose fixture made the guard-mutation unkillable), fixed at ship.
 - [ ] SPEC-079 (frame) — Mount the case in the record sheet: hierarchy inversion (trophies
       above the numbers), "Biggest win" tile subsumed by #1, the drought counter, the sheet
       **rename**, and the clear-action note. *Split out of SPEC-076, which scored complexity
@@ -132,7 +133,7 @@ currently-selected machine's.
       instant reveal under `prefers-reduced-motion`; must not interfere with a live spin
       or auto-spin.
 
-**Count:** 1 shipped / 0 active / 4 pending
+**Count:** 2 shipped / 0 active / 3 pending
 
 ## Design Notes
 
