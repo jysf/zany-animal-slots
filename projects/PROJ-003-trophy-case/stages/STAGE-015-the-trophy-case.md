@@ -122,10 +122,10 @@ currently-selected machine's.
       #1–#3, tap-to-expand compact rows #4–#10), tier framing, locked-plinth empty state, bet
       multiplier, bar-to-beat. Standalone + independently tested; mounted by SPEC-079. 1 defect
       (a fractional-multiplier test whose fixture made the guard-mutation unkillable), fixed at ship.
-- [ ] SPEC-079 (frame) — Mount the case in the record sheet: hierarchy inversion (trophies
-      above the numbers), "Biggest win" tile subsumed by #1, the drought counter, the sheet
-      **rename**, and the clear-action note. *Split out of SPEC-076, which scored complexity
-      L; AGENTS §"L means split it".*
+- [x] SPEC-079 (shipped on 2026-07-23) — Mounted the case in the record sheet: trophies lead,
+      the numbers follow, "Biggest win" tile subsumed by #1, drought counter (max spinIndex),
+      sheet renamed "Your record"/"Clear record" (storage key unchanged). Verified inline +
+      real 375px browser render (DEC-021 confirmed visually). 0 defects.
 - [ ] SPEC-077 (frame) — "Trophy earned" moment: badge on the win celebration when a
       spin enters the top ten, distinct treatment at #1, reduced-motion path.
 - [ ] SPEC-078 (frame) — Trophy replay: tapping a trophy re-spins the reels into that
@@ -133,7 +133,7 @@ currently-selected machine's.
       instant reveal under `prefers-reduced-motion`; must not interfere with a live spin
       or auto-spin.
 
-**Count:** 2 shipped / 0 active / 3 pending
+**Count:** 3 shipped / 0 active / 2 pending
 
 ## Design Notes
 
