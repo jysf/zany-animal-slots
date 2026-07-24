@@ -4,7 +4,7 @@
 
 stage:
   id: STAGE-015
-  status: active                    # proposed | active | shipped | cancelled | on_hold
+  status: shipped                   # proposed | active | shipped | cancelled | on_hold
   priority: medium
   target_complete: null
 
@@ -14,7 +14,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-23
-shipped_at: null
+shipped_at: 2026-07-24
 
 value_contribution:
   advances: >-
@@ -211,10 +211,32 @@ currently-selected machine's.
 
 *Filled in when status moves to shipped.*
 
-- **Did we deliver the outcome in "What This Stage Is"?** <yes/no + notes>
-- **How many specs did it actually take?** <number vs. plan>
-- **What changed between starting and shipping?** <one sentence>
+- **Did we deliver the outcome in "What This Stage Is"?** **Yes.** The record sheet leads with a
+  ranked trophy case: full cards for #1-#3, tap-to-expand rows for #4-#10, locked-plinth empty
+  state, bet multiplier, bar-to-beat, drought counter. Every trophy re-renders in its ORIGINATING
+  machine's creatures with the winning cells lit — confirmed visually at 375px, not only in tests.
+  A badge announces a trophy the moment it is earned, and tapping a trophy replays it.
+- **How many specs did it actually take?** **5 (SPEC-075, 076, 077, 078, 079)** vs. the 3 framed.
+  The overrun was deliberate and additive, not drift: SPEC-079 was split out when SPEC-076 scored
+  complexity L, and SPEC-078 (replay) was a mid-project user addition.
+- **What changed between starting and shipping?** Two design corrections on contact with reality:
+  the case was split into component (076) + integration (079) rather than one L spec, and replay
+  moved from the main reels into the trophy card once it was clear the sheet covers the reels at
+  375px — turning the "don't collide with a live spin" requirement from a runtime guard into a
+  structural impossibility.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - **Three unkillable guards in one project is a pattern, not luck.** SPEC-073's `emptyStats()`
+    fixture, SPEC-076's `48/10` multiplier, and SPEC-078's run-all-timers race test each asserted
+    the right property from an input or instant where correct and incorrect behaviour produce
+    identical output. All three were caught by running the mutation; none by reading the test.
+    Worth a repo-level habit: a prescribed guard-mutation should ship with the input that makes it
+    fail, and verify should *run* it rather than review it.
+  - **Read the component you are about to duplicate.** SPEC-075 collapsed a planned new component
+    into a wrapper plus two props because `ReelGrid` already did the work; SPEC-078 got its whole
+    animation for free the same way.
+  - **Once data is persisted, every implicit "current" lookup is a latent bug** (current machine,
+    current payline set). This is what made the `winningCellKeys` fix worth doing now.
 - **Should any spec-level reflections be promoted to stage-level lessons?**
-  - <one-line items>
+  - Yes — the unkillable-guard pattern (all three specs) and the derive-from-the-real-thing
+    approach in SPEC-077's `trophyRank`, which cannot drift from stored behaviour because there is
+    only one copy of the rule.
