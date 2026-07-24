@@ -63,9 +63,13 @@ currently-selected machine's.
 
 - Opening the record sheet shows trophies **above** the numbers, with #1 as a full card
   and the existing "Biggest win" tile gone (subsumed, not duplicated).
-- Tapping a trophy replays it: the reels re-spin into that saved grid with lines
-  lighting; under `prefers-reduced-motion` the grid appears instantly. A replay does not
-  start while a live spin or auto-spin is running (and vice versa).
+- Tapping a trophy replays it: the grid re-spins into that saved grid with lines lighting;
+  under `prefers-reduced-motion` it appears instantly. **Amended at SPEC-078 design:** the
+  replay animates in the TROPHY CARD, not on the main reels — the record sheet is
+  `position: fixed` and covers the viewport at 375px, so a main-reel replay would be invisible
+  exactly when triggered. The original "must not collide with a live spin or auto-spin"
+  criterion is therefore satisfied BY CONSTRUCTION (a card-local replay never reaches the live
+  reels, the hook, or auto-spin) rather than by a runtime guard.
 - The sheet is renamed from "Session stats" to an honest name across title, trigger,
   clear button, and note; the `zany:stats` storage key is unchanged.
 - With the case full, the bar-to-beat is shown; each card shows its bet multiplier; the
