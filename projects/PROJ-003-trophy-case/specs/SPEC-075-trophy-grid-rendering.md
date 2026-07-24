@@ -53,6 +53,16 @@ cost:
         grid + lineWins + symbolDisplay and lights winning cells, so this spec adds a size variant
         and a thin TrophyGrid wrapper rather than a parallel component. Also fixes the SPEC-018
         module-level PAYLINES coupling, which is latent-but-real once grids are STORED.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null
+      recorded_at: 2026-07-23
+      note: >-
+        Fixed winningCellKeys' payline coupling, added ReelGrid's paylines/size props (size='full'
+        confirmed byte-identical to prior markup), and built TrophyGrid + trophies.css per the
+        spec's Notes. Full gate green: typecheck, test (962 passed), build, validate, cost-audit,
+        eslint on src/**. engine/audio diffs empty.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -316,18 +326,40 @@ If a value has a token, prefer the token.
 
 ## Build Completion
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-075-trophy-grid`
+- **PR (if applicable):** none yet (not opened this cycle)
+- **All acceptance criteria met?** Yes.
+  - `winningCellKeys(lineWins, paylines)` — `paylines` required, no `PAYLINES` import; tolerant
+    skip of unknown line ids preserved and tested.
+  - `ReelGrid` accepts `paylines` (required) and `size` (`'full' | 'card' | 'thumb'`, default
+    `'full'`); `size='full'` appends no modifier class — verified by a dedicated test plus a
+    line-by-line diff read of `ReelGrid.tsx` (see report) showing the only change to the
+    live-reel path is `winningCellKeys(lineWins, paylines)` and an empty `sizeClass` string.
+  - `Game.tsx` passes `machine.math.paylines`.
+  - `TrophyGrid` renders via `getMachine(trophy.machineId)` (the originating machine), derives
+    winning cells from that machine's `math.paylines`, exposes an `aria-label` summary
+    (amount/machine/tier), and marks an unknown `machineId` with `.trophy-grid--unknown-machine`
+    plus an "Unknown machine (id)" label instead of silently falling back to Wild & Whimsical.
+  - Token colors only in `trophies.css`; `engine-no-dom` / `audio` diffs empty (confirmed via
+    `git diff --stat main..HEAD -- src/engine/ src/ui/audio/`).
+- **New decisions emitted:** none.
+- **Deviations from spec:** none — `TrophyGrid.tsx`, `trophies.css`, and the `ReelGrid`/
+  `winningCells` signatures were transcribed from the spec's Notes as given. Added two small
+  tests beyond the required list (a `size='card'` modifier-class check, and asserting the
+  `.trophy-grid--unknown-machine` class directly) as low-cost extra coverage alongside the
+  required cases — not a scope deviation.
+- **Follow-up work identified:** none beyond SPEC-076/077/078 already on the backlog.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing; the Notes' code was
+   directly transcribable and the acceptance criteria mapped 1:1 onto the Failing Tests list.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No gap
+   found; DEC-021/010/024 plus `guidance/constraints.yaml` covered every judgment call
+   (originating-machine lookup, token-only CSS, additive schema already in place from SPEC-073).
+3. **If you did this task again, what would you do differently?** — Nothing structural; would
+   again read `ReelGrid.test.tsx`/`Game.tsx` first to catch every call site needing the new
+   required `paylines` prop before editing, which avoided a second pass here.
 
 ---
 
