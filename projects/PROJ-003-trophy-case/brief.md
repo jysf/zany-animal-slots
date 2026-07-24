@@ -4,7 +4,7 @@
 
 project:
   id: PROJ-003
-  status: active                  # proposed | active | shipped | cancelled
+  status: shipped                 # proposed | active | shipped | cancelled
   priority: medium
   target_ship: null                 # play/dogfood project — no hard external date
 
@@ -12,7 +12,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-23
-shipped_at: null
+shipped_at: 2026-07-24
 
 # Business value. Testable claim, not marketing copy.
 value:
@@ -177,17 +177,17 @@ next move, and the forward-compatible-schema problem it forces is worth dogfoodi
 Two stages: the data has to exist before it can be shown, and the split keeps the
 schema-safety work reviewable on its own rather than buried in a UI diff.
 
-- [ ] STAGE-014 — **Trophy data model + record seam**: the `TopWin` type, the bounded
+- [x] STAGE-014 (shipped 2026-07-23) — **Trophy data model + record seam**: the `TopWin` type, the bounded
       insert reducer, the forward-compatible `readStats()` normalization (no version
       bump, existing history preserved), and widening the `useSlotMachine` record seam
       to pass `grid` + `lineWins`. No visible UI change. ~2 specs (SPEC-073, SPEC-074).
-- [ ] STAGE-015 — **The trophy case**: trophy grid rendering (reusing `ReelGrid`), the
+- [x] STAGE-015 (shipped 2026-07-24) — **The trophy case**: trophy grid rendering (reusing `ReelGrid`), the
       ranked case at the top of the renamed record sheet (full cards #1–#3, tap-to-expand
       rows #4–#10, locked-plinth empty state, bet multiplier, bar-to-beat, drought
       counter), **trophy replay**, and the "trophy earned" moment on the win celebration.
       4 specs (SPEC-075–078).
 
-**Count:** 0 shipped / 0 active / 2 pending
+**Count:** 2 shipped / 0 active / 0 pending — 7 specs (SPEC-073–079), 0 escaped defects
 
 ## Dependencies
 
@@ -248,10 +248,43 @@ PROJ-003 by design — `src/ui/audio/**` has an empty diff across all seven spec
 
 *Filled in when status moves to shipped.*
 
-- **Did we deliver the outcome in "What This Project Is"?** <yes/no + notes>
-- **How many stages did it actually take?** <number, compare to plan>
-- **What changed between starting and shipping?** <one or two sentences>
+*Shipped 2026-07-24.*
+
+- **Did we deliver the outcome in "What This Project Is"?** **Yes.** Winning now leaves a mark.
+  The engine's full outcome is no longer discarded at the record seam: the ten best wins of a
+  session persist with their grid and lineWins, and the record sheet leads with a trophy case that
+  re-renders each as real reels — in the machine it was won on, winning cells lit — with a badge
+  the moment one is earned and a replay when you tap it. All five success signals landed, including
+  the one that mattered most to the user: **an existing stats blob loads intact**, because
+  `STATS_VERSION` never moved and `readStats()` normalizes the new field instead of discarding the
+  record.
+- **How many stages did it actually take?** **2, as planned** (STAGE-014, STAGE-015) — but **7
+  specs against the 5 framed.** Both additions were deliberate: SPEC-079 split off when SPEC-076
+  scored complexity L, and SPEC-078 (replay) was a mid-project user request.
+- **What changed between starting and shipping?** The brief's "mini reel-grid component" dissolved
+  on contact with the existing code — `ReelGrid` already did the job, so SPEC-075 became a wrapper
+  and SPEC-078 inherited its animation for free. And replay moved from the main reels into the
+  trophy card once it was clear the record sheet covers the reels at 375px.
 - **Lessons that should update AGENTS.md, templates, or constraints?**
-  - <one-line updates>
+  - **Three unkillable guards in one project is a pattern.** Each test asserted the right property
+    from an input where correct and incorrect behaviour produce the same output. All three were
+    caught by running the mutation, none by reading the test. A prescribed guard-mutation should
+    ship with the input that makes it fail.
+  - **A reducer test proves a reducer, never a seam** (SPEC-074): when a spec's value is "X is
+    wired to Y", verify must cut the wire.
+  - **Prefer deriving from the real thing over re-implementing and testing for agreement**
+    (SPEC-077's `trophyRank` asks the real reducer, so it cannot drift).
+  - **Persisted data turns every implicit "current" lookup into a latent bug** (SPEC-075's payline
+    source).
 - **What did we defer to the next project?**
-  - <one-line items>
+  - **A real-iPhone legibility check** on the compact-row thumbnails at 375px. Chromium looked
+    good; the project's own rule says only hardware counts. This is the one open verification debt.
+  - **The fake-advertisement experiment** (user-requested 2026-07-24) — parked as a future-project
+    candidate with its first-party/no-real-money boundary written down. See Parked, above.
+  - **The audio-quality overhaul**, still parked from PROJ-002. `src/ui/audio/**` has an empty diff
+    across all seven specs.
+  - `Celebration.trophyRank` is optional rather than required, because required would have forced
+    edits to `src/ui/audio/**` test files this project may not touch — small debt owned by the
+    audio wave.
+  - Two stale git worktrees (`.claude/worktrees/**`) make local `just lint` unusable (~1458 phantom
+    errors). CI unaffected; worth pruning out-of-band.
