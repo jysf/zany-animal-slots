@@ -23,6 +23,7 @@ import { useSlotMachine, SPIN_DURATION_MS, AUTO_SPIN_COUNT, AUTO_SPIN_DELAY_MS }
 import { INITIAL_GRID } from './reels/symbols';
 import { writeBalance, readBalance } from './storage';
 import { WILD_AND_WHIMSICAL } from '../machines/wildAndWhimsical';
+import { StatsProvider, useStats } from './stats/StatsProvider';
 
 describe('useSlotMachine', () => {
   beforeEach(() => {
@@ -553,5 +554,50 @@ describe('useSlotMachine', () => {
 
     act(() => { result.current.reset(); });
     expect(result.current.celebration).toBeNull();
+  });
+
+  // ── SPEC-074: record-seam widening (grid/lineWins reach the trophy case) ────
+
+  it("a winning spin records a trophy carrying the outcome's grid and lineWins", () => {
+    // seed 276 → small win (see SPEC-046 re-baseline note atop this file): totalWin 40,
+    // balance 1030, 3 line wins. Drives the REAL hook inside a StatsProvider so this
+    // fails if the recordSpin call site stops forwarding grid/lineWins.
+    const { result } = renderHook(
+      () => ({ slot: useSlotMachine({ nextSeed: () => 276 }), stats: useStats() }),
+      { wrapper: StatsProvider },
+    );
+    act(() => {
+      result.current.slot.spin();
+    });
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+
+    expect(result.current.slot.tier).toBe('small');
+    expect(result.current.slot.lastWin).toBe(40);
+
+    const { topWins } = result.current.stats.stats;
+    expect(topWins.length).toBe(1);
+    expect(topWins[0].grid).toEqual(result.current.slot.grid);
+    expect(topWins[0].lineWins).toEqual(result.current.slot.lineWins);
+    expect(topWins[0].amount).toBe(40);
+  });
+
+  it('a losing spin records no trophy', () => {
+    // seed 12345 → no win.
+    const { result } = renderHook(
+      () => ({ slot: useSlotMachine({ nextSeed: () => 12345 }), stats: useStats() }),
+      { wrapper: StatsProvider },
+    );
+    act(() => {
+      result.current.slot.spin();
+    });
+    act(() => {
+      vi.advanceTimersByTime(SPIN_DURATION_MS);
+    });
+
+    expect(result.current.slot.tier).toBe('none');
+    expect(result.current.stats.stats.topWins).toEqual([]);
+    expect(result.current.stats.stats.spins).toBe(1);
   });
 });

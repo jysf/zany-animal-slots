@@ -4,7 +4,7 @@
 task:
   id: SPEC-074
   type: story                      # epic | story | task | bug | chore
-  cycle: design                    # frame | design | build | verify | ship
+  cycle: build                     # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: S                    # S | M | L  (L means split it)
@@ -48,6 +48,21 @@ cost:
         Design authored on the main Opus loop (un-metered). Small spec: one production call site plus
         a type tightening (grid/lineWins optional → required) that discharges the compat debt SPEC-073
         deliberately created and its reflection flagged as this spec's job.
+    - cycle: build
+      interface: claude-code
+      model: claude-sonnet-4-6
+      tokens_total: null
+      recorded_at: 2026-07-23
+      note: >-
+        Passed outcome.grid/lineWins through the recordSpin call site, tightened SpinRecordInput
+        to require them, simplified the trophy condition to input.totalWin > 0, and fixed all 17
+        compiler-flagged test call sites (sessionStats.test.ts, statsStorage.test.ts,
+        StatsProvider.test.tsx) by adding grid/lineWins fixtures without weakening any assertion.
+        Added the two hook-level tests to useSlotMachine.test.tsx, driving the real hook inside a
+        StatsProvider wrapper (renderHook returning {slot, stats}) — proven to depend on the
+        call-site change by construction. Full gate green (typecheck, test x953, build, validate,
+        cost-audit); eslint on src/**/*.{ts,tsx} exits 0; src/engine/** and src/ui/audio/** diffs
+        empty.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -218,18 +233,45 @@ rather than inventing new.
 
 ## Build Completion
 
-- **Branch:**
-- **PR (if applicable):**
-- **All acceptance criteria met?**
-- **New decisions emitted:**
-- **Deviations from spec:**
-- **Follow-up work identified:**
+- **Branch:** `feat/spec-074-record-seam`
+- **PR (if applicable):** none yet — not opened per instructions.
+- **All acceptance criteria met?** Yes, all 7 boxes:
+  - `useSlotMachine`'s `recordSpin` call passes `grid`/`lineWins` from `outcome` — done.
+  - `grid`/`lineWins` required on `SpinRecordInput` — done; omitting either is now a
+    compile error (confirmed via the compiler flagging every prior call site missing
+    them).
+  - Trophy condition simplified to `input.totalWin > 0`, compat guard and `?? []`
+    removed — done.
+  - New hook test drives the real `useSlotMachine` inside a `StatsProvider` and asserts
+    `topWins[0].grid`/`lineWins` deep-equal the revealed grid/lineWins — done
+    (`"a winning spin records a trophy carrying the outcome's grid and lineWins"`).
+  - Losing-spin hook test asserts `topWins` stays empty while `spins` increments — done.
+  - All existing tests still pass, no assertion weakened — done (953/953 green; the ~17
+    compiler-flagged call sites got real `grid`/`lineWins` fixtures, mostly reusing the
+    existing `G`/`LW` const in each file, one new fixture added to
+    `StatsProvider.test.tsx` which previously had none).
+  - `src/engine/**` and `src/ui/audio/**` diffs empty — confirmed.
+- **New decisions emitted:** none — this spec discharges debt DEC-024/DEC-020 already
+  described; no new architectural choice was made.
+- **Deviations from spec:** none of substance. The Notes-for-the-Implementer code block
+  was used close to verbatim; the only judgment call was the shape of the new hook test
+  (a single `renderHook` returning `{ slot: useSlotMachine(...), stats: useStats() }`
+  under a `StatsProvider` wrapper) since the spec left the exact wiring to the
+  implementer and the existing file had no precedent for combining both hooks.
+- **Follow-up work identified:** none beyond the already-planned STAGE-015 specs
+  (SPEC-075+) for rendering `topWins` in the UI.
 
 ### Build-phase reflection (3 questions, short answers)
 
-1. **What was unclear in the spec that slowed you down?** —
-2. **Was there a constraint or decision that should have been listed but wasn't?** —
-3. **If you did this task again, what would you do differently?** —
+1. **What was unclear in the spec that slowed you down?** — Nothing really; the Notes
+   for the Implementer gave the exact diff. The only open decision was how to structure
+   the new hook test's `renderHook` call, since no prior test in the file combined
+   `useSlotMachine` with `useStats()` under a shared wrapper.
+2. **Was there a constraint or decision that should have been listed but wasn't?** — No.
+   `engine-no-dom` and the "don't touch STAGE-015 UI" scope note were sufficient guardrails.
+3. **If you did this task again, what would you do differently?** — Nothing meaningfully
+   different; the spec was tightly scoped and the drop-in code matched the actual
+   codebase shape exactly, so there was no rework.
 
 ---
 

@@ -41,14 +41,14 @@ describe('sessionStats', () => {
   });
 
   it('recordSpin accumulates counters and appends the cumulative-net series point', () => {
-    const s1 = recordSpin(emptyStats(), { totalWin: 0, bet: 10, tier: 'none' }, 'ocean');
+    const s1 = recordSpin(emptyStats(), { totalWin: 0, bet: 10, tier: 'none', grid: G, lineWins: [] }, 'ocean');
     expect(s1.spins).toBe(1);
     expect(s1.winningSpins).toBe(0);
     expect(s1.totalWagered).toBe(10);
     expect(s1.totalWon).toBe(0);
     expect(s1.series).toEqual([-10]);
 
-    const s2 = recordSpin(s1, { totalWin: 50, bet: 10, tier: 'big' }, 'ocean');
+    const s2 = recordSpin(s1, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
     expect(s2.spins).toBe(2);
     expect(s2.winningSpins).toBe(1);
     expect(s2.totalWagered).toBe(20);
@@ -58,23 +58,23 @@ describe('sessionStats', () => {
 
   it('recordSpin is immutable (does not mutate its input)', () => {
     const before = emptyStats();
-    const after = recordSpin(before, { totalWin: 50, bet: 10, tier: 'big' }, 'ocean');
+    const after = recordSpin(before, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
     expect(before).toEqual(emptyStats());
     expect(after).not.toBe(before);
   });
 
   it('recordSpin updates biggestWin only on a strictly larger win, with machineId + tier', () => {
     let s = emptyStats();
-    s = recordSpin(s, { totalWin: 50, bet: 10, tier: 'big' }, 'ocean');
+    s = recordSpin(s, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
     expect(s.biggestWin).toEqual({ amount: 50, machineId: 'ocean', tier: 'big' });
 
-    s = recordSpin(s, { totalWin: 500, bet: 10, tier: 'jackpot' }, 'arctic');
+    s = recordSpin(s, { totalWin: 500, bet: 10, tier: 'jackpot', grid: G, lineWins: LW }, 'arctic');
     expect(s.biggestWin).toEqual({ amount: 500, machineId: 'arctic', tier: 'jackpot' });
 
-    s = recordSpin(s, { totalWin: 500, bet: 10, tier: 'jackpot' }, 'desert');
+    s = recordSpin(s, { totalWin: 500, bet: 10, tier: 'jackpot', grid: G, lineWins: LW }, 'desert');
     expect(s.biggestWin).toEqual({ amount: 500, machineId: 'arctic', tier: 'jackpot' });
 
-    s = recordSpin(s, { totalWin: 0, bet: 10, tier: 'none' }, 'desert');
+    s = recordSpin(s, { totalWin: 0, bet: 10, tier: 'none', grid: G, lineWins: [] }, 'desert');
     expect(s.biggestWin).toEqual({ amount: 500, machineId: 'arctic', tier: 'jackpot' });
   });
 
@@ -86,7 +86,7 @@ describe('sessionStats', () => {
     let s = emptyStats();
     const totalSpins = SERIES_CAP + 5;
     for (let i = 0; i < totalSpins; i++) {
-      s = recordSpin(s, { totalWin: 0, bet: 10, tier: 'none' }, 'ocean');
+      s = recordSpin(s, { totalWin: 0, bet: 10, tier: 'none', grid: G, lineWins: [] }, 'ocean');
     }
     expect(s.series.length).toBe(SERIES_CAP);
     expect(s.series[SERIES_CAP - 1]).toBe(-10 * totalSpins);
@@ -103,8 +103,8 @@ describe('sessionStats', () => {
     });
 
     let s = emptyStats();
-    s = recordSpin(s, { totalWin: 0, bet: 10, tier: 'none' }, 'ocean');
-    s = recordSpin(s, { totalWin: 50, bet: 10, tier: 'big' }, 'ocean');
+    s = recordSpin(s, { totalWin: 0, bet: 10, tier: 'none', grid: G, lineWins: [] }, 'ocean');
+    s = recordSpin(s, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
     expect(s.spins).toBe(2);
     expect(s.winningSpins).toBe(1);
     expect(s.totalWon).toBe(50);
@@ -117,7 +117,7 @@ describe('sessionStats', () => {
 
   it('recordCashIn increments only cashIns and is immutable', () => {
     let before = emptyStats();
-    before = recordSpin(before, { totalWin: 50, bet: 10, tier: 'big' }, 'ocean');
+    before = recordSpin(before, { totalWin: 50, bet: 10, tier: 'big', grid: G, lineWins: LW }, 'ocean');
     const snapshot = { ...before };
 
     const after = recordCashIn(before);
