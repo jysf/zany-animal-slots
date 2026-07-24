@@ -84,4 +84,19 @@ describe('TrophyGrid', () => {
     const summary = screen.getByRole('img', { name: /Unknown machine/ });
     expect(summary.getAttribute('aria-label')).toContain('no-such-machine');
   });
+
+  // SPEC-078: TrophyGrid gains a spinning/trailKey passthrough to ReelGrid so replay can
+  // drive the animation without TrophyGrid knowing anything about replay itself.
+  it('forwards spinning to ReelGrid', () => {
+    const { container } = render(<TrophyGrid trophy={makeTrophy()} spinning />);
+    expect(container.querySelector('.reel-grid--spinning')).not.toBeNull();
+    expect(container.querySelectorAll('.reel--spinning').length).toBeGreaterThan(0);
+  });
+
+  it('suppresses the winning-cell highlight while spinning', () => {
+    // Pins ReelGrid's existing spinning-suppresses-highlight behavior through the
+    // trophy wrapper — a stale win must not flash mid-replay.
+    const { container } = render(<TrophyGrid trophy={makeTrophy()} spinning />);
+    expect(container.querySelectorAll('.reel__cell--win')).toHaveLength(0);
+  });
 });

@@ -10,9 +10,20 @@ export interface TrophyGridProps {
   trophy: TopWin;
   /** Presentational size — 'card' (default, hero card) or 'thumb' (compact row). SPEC-076 composes these. */
   size?: 'card' | 'thumb';
+  /** Forwarded to ReelGrid (SPEC-078 replay). When true, plays the spin animation and
+   *  suppresses the winning-cell highlight, exactly as the live reels do while spinning. */
+  spinning?: boolean;
+  /** Forwarded to ReelGrid (SPEC-078 replay). A new value remounts the paw overlays so the
+   *  pop-in animation replays (SPEC-023 idiom). */
+  trailKey?: number | null;
 }
 
-export default function TrophyGrid({ trophy, size = 'card' }: TrophyGridProps) {
+export default function TrophyGrid({
+  trophy,
+  size = 'card',
+  spinning = false,
+  trailKey = null,
+}: TrophyGridProps) {
   // getMachine() falls back to the default machine for an unknown id, which would
   // silently misattribute a saved win's creatures (DEC-021). Detect the miss and say so
   // rather than lying about provenance.
@@ -33,6 +44,8 @@ export default function TrophyGrid({ trophy, size = 'card' }: TrophyGridProps) {
         paylines={machine.math.paylines}
         symbolDisplay={machine.presentation.symbolDisplay}
         size={size}
+        spinning={spinning}
+        trailKey={trailKey}
       />
     </div>
   );

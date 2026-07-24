@@ -63,9 +63,13 @@ currently-selected machine's.
 
 - Opening the record sheet shows trophies **above** the numbers, with #1 as a full card
   and the existing "Biggest win" tile gone (subsumed, not duplicated).
-- Tapping a trophy replays it: the reels re-spin into that saved grid with lines
-  lighting; under `prefers-reduced-motion` the grid appears instantly. A replay does not
-  start while a live spin or auto-spin is running (and vice versa).
+- Tapping a trophy replays it: the grid re-spins into that saved grid with lines lighting;
+  under `prefers-reduced-motion` it appears instantly. **Amended at SPEC-078 design:** the
+  replay animates in the TROPHY CARD, not on the main reels — the record sheet is
+  `position: fixed` and covers the viewport at 375px, so a main-reel replay would be invisible
+  exactly when triggered. The original "must not collide with a live spin or auto-spin"
+  criterion is therefore satisfied BY CONSTRUCTION (a card-local replay never reaches the live
+  reels, the hook, or auto-spin) rather than by a runtime guard.
 - The sheet is renamed from "Session stats" to an honest name across title, trigger,
   clear button, and note; the `zany:stats` storage key is unchanged.
 - With the case full, the bar-to-beat is shown; each card shows its bet multiplier; the
@@ -130,12 +134,13 @@ currently-selected machine's.
       celebration ("NEW BEST!" at rank 1, "TROPHY #n" for 2–10), driven by a pure `trophyRank`
       predicate that asks the REAL `insertTopWin` (identity probe) so the badge can never claim a
       trophy that wasn't stored. Silent — no audio. 0 defects.
-- [ ] SPEC-078 (frame) — Trophy replay: tapping a trophy re-spins the reels into that
-      saved grid, reusing `ReelGrid`'s existing `spinning` + `trailKey` animation;
-      instant reveal under `prefers-reduced-motion`; must not interfere with a live spin
-      or auto-spin.
+- [x] SPEC-078 (shipped on 2026-07-24) — Trophy replay: tapping a trophy re-runs its reveal
+      **inside its own card** (spin → settle → lit lines → paw pop), reusing `ReelGrid`'s
+      existing animation props; instant under `prefers-reduced-motion`. Card-local state makes
+      sibling isolation and live-spin non-interference true by construction. 1 defect (the
+      re-activation test could not detect a stacked timer), fixed at verify.
 
-**Count:** 4 shipped / 0 active / 1 pending
+**Count:** 5 shipped / 0 active / 0 pending — **backlog complete**
 
 ## Design Notes
 
