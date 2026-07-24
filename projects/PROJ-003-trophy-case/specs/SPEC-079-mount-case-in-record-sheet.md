@@ -4,7 +4,7 @@
 task:
   id: SPEC-079
   type: story                      # epic | story | task | bug | chore
-  cycle: build                     # frame | design | build | verify | ship
+  cycle: ship  # frame | design | build | verify | ship
   blocked: false
   priority: medium
   complexity: S                    # S | M | L  (L means split it)
@@ -54,17 +54,46 @@ cost:
     - cycle: build
       interface: claude-code
       model: claude-sonnet-4-6
-      tokens_total: null
+      tokens_total: 117470    # from Agent result subagent_tokens
+      estimated_usd: 0.78     # 117470 tok x $6.6/M (Sonnet list, no cache discount) - order-of-magnitude
+      duration_minutes: 6.9   # 411150 ms
       recorded_at: 2026-07-23
       note: >-
         Mounted TrophyCase above the tile grid, removed the biggest-win tile, added the
         drought counter (max spinIndex, not topWins[0]), applied the five renamed strings,
         added the labelled divider. Full gate green; live-app check at 375x812 confirmed
         scroll (not clip) with the case at the top.
+    - cycle: verify
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-23
+      note: >-
+        Verified INLINE on the main Opus loop (un-metered) at the user's request to cut wall-clock,
+        not as a separate Sonnet subagent — less independent (same author verifies), a tradeoff the
+        user chose. Ran the 4 guard-mutations from Notes: drought using topWins[0] instead of max
+        spinIndex breaks the "43" drought test (confirms the most-recent-vs-biggest fixture has
+        teeth); DOM-order test uses compareDocumentPosition and opens the dialog by the RENAMED
+        accessible name; storage key confirmed still 'zany:stats'; rename grep shows "Session stats"
+        gone from src/. Also did a REAL browser render at 375x812 (dev server, no audio, no spin):
+        the case renders trophies in their ORIGINATING machines' creatures (Arctic + Ocean shown
+        while W&W active — DEC-021 confirmed visually), full cards + compact rows both legible, lit
+        winning cells read even at thumb size, drought shows 12, sheet scrolls. 0 defects.
+    - cycle: ship
+      agent: claude-opus-4-8
+      interface: claude-code
+      tokens_total: null
+      estimated_usd: null
+      recorded_at: 2026-07-23
+      note: >-
+        main-loop, not separately metered (AGENTS 4); ship cycle. Full gate, PR + CI-poll to 7/7 +
+        squash-merge, archive, brag. This is the spec that makes the trophy case VISIBLE; shipped it
+        so the user can review a working surface. SPEC-077 (earned badge) + SPEC-078 (replay) remain.
   totals:
-    tokens_total: 0
-    estimated_usd: 0
-    session_count: 0
+    tokens_total: 117470   # build 117470 (verify inline on main loop, un-metered)
+    estimated_usd: 0.78    # build 0.78
+    session_count: 4       # design, build, verify (inline), ship
 ---
 
 # SPEC-079: Mount the trophy case in the record sheet
@@ -278,6 +307,23 @@ using existing type tokens.
 
 ## Reflection (Ship)
 
-1. **What would I do differently next time?** —
-2. **Does any template, constraint, or decision need updating?** —
-3. **Is there a follow-up spec I should write now before I forget?** —
+1. **What would I do differently next time?** — Split SPEC-076/079 earlier and more confidently.
+   The original single spec was clearly L, and pretending otherwise would have produced a sprawling
+   diff mixing a new component with a sheet reorg and a rename. Splitting kept each half reviewable.
+   The only thing I'd change: this integration spec is where the whole stage finally became
+   *visible*, and I front-loaded four specs of invisible plumbing before anyone could see anything —
+   defensible for correctness, but it means the first lookable artifact came late. A thin
+   vertical slice earlier (one trophy, ugly, on screen) would have de-risked the visual direction sooner.
+
+2. **Does any template, constraint, or decision need updating?** — No. Worth recording that the
+   rename deliberately did NOT touch the `zany:stats` key, the `stats__*` class prefix, or the
+   component name — the user-facing copy changed, the persisted identity did not. Renaming the key
+   would have orphaned the exact history this whole project was built to protect; the honest name
+   and the stable key are not in tension, and conflating them would have been the mistake.
+
+3. **Is there a follow-up spec I should write now before I forget?** — No new spec. SPEC-077 (the
+   earned-in-the-moment badge) and SPEC-078 (replay) remain in the STAGE-015 backlog and are the
+   two things that turn the case from a place you visit into something you feel yourself filling.
+   One carry-forward for whoever ships them: the `thumb` grid legibility looked good in a 375px
+   Chromium render, but the project's own rule is that a real iPhone is the only evidence that
+   counts — the final confirmation is still owed on hardware.
