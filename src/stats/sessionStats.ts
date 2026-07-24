@@ -50,8 +50,8 @@ export interface SessionStats {
 
 /** The subset of a resolved spin the model records (DEC-001: read-only view of SpinResult). */
 export type SpinRecordInput = Pick<SpinResult, 'totalWin' | 'bet' | 'tier'> & {
-  grid?: Grid;
-  lineWins?: LineWin[];
+  grid: Grid;
+  lineWins: LineWin[];
 };
 
 /** Derived, display-ready metrics — computed, never stored. */
@@ -109,14 +109,14 @@ export function recordSpin(
   const series = [...stats.series, totalWon - totalWagered].slice(-SERIES_CAP);
   const spins = stats.spins + 1;
   const topWins =
-    input.totalWin > 0 && input.grid
+    input.totalWin > 0
       ? insertTopWin(stats.topWins, {
           amount: input.totalWin,
           machineId,
           tier: input.tier,
           bet: input.bet,
           grid: input.grid,
-          lineWins: input.lineWins ?? [],
+          lineWins: input.lineWins,
           spinIndex: spins,
         })
       : stats.topWins;

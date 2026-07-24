@@ -219,7 +219,10 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
       timerRef.current = null;
 
       // SPEC-055: record the resolved spin into session stats (no-op without a StatsProvider).
-      recordSpin({ totalWin: outcome.totalWin, bet, tier: outcome.tier }, machine.id);
+      recordSpin(
+        { totalWin: outcome.totalWin, bet, tier: outcome.tier, grid: outcome.grid, lineWins: outcome.lineWins },
+        machine.id,
+      );
       track({
         type: 'spin',
         machineId: machine.id,

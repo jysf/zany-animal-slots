@@ -5,6 +5,18 @@ import { renderHook, act } from '@testing-library/react';
 import { StatsProvider, useStats } from './StatsProvider';
 import { emptyStats, recordSpin } from '../../stats/sessionStats';
 import { readStats, writeStats } from '../../stats/statsStorage';
+import type { Grid, LineWin } from '../../engine';
+
+// A minimal, valid-shaped 5x3 grid + line win, used only as opaque payload data for
+// recordSpin calls in this file (SPEC-074: grid/lineWins are now required).
+const G: Grid = [
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+  ['DEER', 'FOX', 'SQUIRREL'],
+];
+const LW: LineWin[] = [{ line: 'L1', symbol: 'DEER', count: 5, multiplier: 10, amount: 50 }];
 
 describe('StatsProvider / useStats', () => {
   beforeEach(() => {
@@ -15,7 +27,7 @@ describe('StatsProvider / useStats', () => {
     const { result } = renderHook(() => useStats());
     expect(result.current.stats).toEqual(emptyStats());
     act(() => {
-      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small' }, 'wild-and-whimsical');
+      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'wild-and-whimsical');
       result.current.recordCashIn();
       result.current.resetStats();
     });
@@ -24,7 +36,7 @@ describe('StatsProvider / useStats', () => {
   });
 
   it('provider hydrates stats from localStorage', () => {
-    const seeded = recordSpin(emptyStats(), { totalWin: 40, bet: 10, tier: 'small' }, 'wild-and-whimsical');
+    const seeded = recordSpin(emptyStats(), { totalWin: 40, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'wild-and-whimsical');
     writeStats(seeded);
     const { result } = renderHook(() => useStats(), { wrapper: StatsProvider });
     expect(result.current.stats).toEqual(seeded);
@@ -33,7 +45,7 @@ describe('StatsProvider / useStats', () => {
   it('recordSpin updates the reactive stats and persists', () => {
     const { result } = renderHook(() => useStats(), { wrapper: StatsProvider });
     act(() => {
-      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small' }, 'wild-and-whimsical');
+      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'wild-and-whimsical');
     });
     expect(result.current.stats).toMatchObject({
       spins: 1,
@@ -49,7 +61,7 @@ describe('StatsProvider / useStats', () => {
   it('recordCashIn increments only cashIns and persists', () => {
     const { result } = renderHook(() => useStats(), { wrapper: StatsProvider });
     act(() => {
-      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small' }, 'wild-and-whimsical');
+      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'wild-and-whimsical');
     });
     act(() => {
       result.current.recordCashIn();
@@ -63,7 +75,7 @@ describe('StatsProvider / useStats', () => {
   it('resetStats zeroes the record and persists emptyStats', () => {
     const { result } = renderHook(() => useStats(), { wrapper: StatsProvider });
     act(() => {
-      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small' }, 'wild-and-whimsical');
+      result.current.recordSpin({ totalWin: 40, bet: 10, tier: 'small', grid: G, lineWins: LW }, 'wild-and-whimsical');
     });
     act(() => {
       result.current.resetStats();

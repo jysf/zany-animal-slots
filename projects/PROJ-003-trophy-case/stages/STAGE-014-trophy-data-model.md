@@ -100,11 +100,12 @@ manual testing, rather than an empty one.
       schema: `TopWin`, `topWins` (cap 10, strictly-greater insert), widened
       `SpinRecordInput`, and a `readStats()`/`isValid()` that tolerates and normalizes a
       missing `topWins` without a version bump. Emitted **DEC-024**. 0 defects.
-- [ ] SPEC-074 (frame) — Record-seam widening: pass `grid` + `lineWins` from the
-      resolved outcome through `recordSpin` at the `useSlotMachine` call site; assert
-      trophies actually accumulate through the provider.
+- [x] SPEC-074 (shipped on 2026-07-23) — Record-seam widening: passes `grid` + `lineWins`
+      from the resolved outcome through `recordSpin` at the `useSlotMachine` call site, and
+      tightens them to REQUIRED so a future call site that forgets them is a compile error.
+      Hook-level test proven to fail when the seam is disconnected. 0 defects.
 
-**Count:** 1 shipped / 0 active / 1 pending
+**Count:** 2 shipped / 0 active / 0 pending — **backlog complete**
 
 ## Design Notes
 
