@@ -66,8 +66,8 @@ cost:
     - cycle: verify
       agent: claude-opus-4-8
       interface: claude-code
-      tokens_total: null
-      estimated_usd: null
+      tokens_total: 60000     # NOMINAL — inline main-loop verify, not separately metered (see note); ~order-of-magnitude
+      estimated_usd: 1.20     # NOMINAL, 60000 tok x $20/M (Opus list) — inline verify ran on the Opus main loop, not Sonnet
       recorded_at: 2026-07-23
       note: >-
         Verified INLINE on the main Opus loop (un-metered) at the user's request to cut wall-clock,
@@ -91,8 +91,8 @@ cost:
         squash-merge, archive, brag. This is the spec that makes the trophy case VISIBLE; shipped it
         so the user can review a working surface. SPEC-077 (earned badge) + SPEC-078 (replay) remain.
   totals:
-    tokens_total: 117470   # build 117470 (verify inline on main loop, un-metered)
-    estimated_usd: 0.78    # build 0.78
+    tokens_total: 177470   # build 117470 + verify 60000 (NOMINAL, inline Opus main-loop)
+    estimated_usd: 1.98    # build 0.78 + verify 1.20 (nominal)
     session_count: 4       # design, build, verify (inline), ship
 ---
 
