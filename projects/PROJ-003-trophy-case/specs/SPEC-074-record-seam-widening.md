@@ -63,6 +63,25 @@ cost:
         call-site change by construction. Full gate green (typecheck, test x953, build, validate,
         cost-audit); eslint on src/**/*.{ts,tsx} exits 0; src/engine/** and src/ui/audio/** diffs
         empty.
+    - cycle: verify
+      interface: claude-code
+      model: claude-sonnet-5
+      tokens_total: null
+      recorded_at: 2026-07-23
+      note: >-
+        Cold review + guard-mutations, all confirmed as specified: (1) reverting the call
+        site to the pre-spec `{ totalWin, bet, tier }` shape (with grid/lineWins made
+        optional + cast to compile) made the new winning-spin hook test FAIL
+        (topWins[0].grid undefined) — the test has teeth, not decorative; reverted clean,
+        diff matches original exactly, green again. (2) call site `lineWins: []` broke the
+        hook test's lineWins assertion as expected. (3) `input.totalWin > 0` → `>= 0` broke
+        "a losing spin records no trophy" as expected. All 3 mutations reverted cleanly.
+        Diffed all ~17 updated test call sites: additions only, no weakened/deleted
+        assertions. Scope confirmed: src/engine/** and src/ui/audio/** diffs empty, no
+        STAGE-015 UI. No .only/.skip/xit/.todo in changed test files. Full gate green
+        (typecheck, test 953/953, build, validate, cost-audit); eslint on src/**/*.{ts,tsx}
+        exits 0 (just lint's 1458 errors are entirely .claude/worktrees/** dist output +
+        audio-spike.html, confirmed none from src/**). 0 defects found. Verdict: APPROVED.
   totals:
     tokens_total: 0
     estimated_usd: 0
@@ -113,19 +132,19 @@ a future call site that forgets them a compile error rather than a silent trophy
 
 ## Acceptance Criteria
 
-- [ ] `useSlotMachine`'s `recordSpin` call passes `grid` and `lineWins` from `outcome`.
-- [ ] `grid` and `lineWins` are **required** on `SpinRecordInput`; omitting either is a
+- [x] `useSlotMachine`'s `recordSpin` call passes `grid` and `lineWins` from `outcome`.
+- [x] `grid` and `lineWins` are **required** on `SpinRecordInput`; omitting either is a
       TypeScript error.
-- [ ] `recordSpin`'s trophy condition is `input.totalWin > 0` (the `&& input.grid` compat
+- [x] `recordSpin`'s trophy condition is `input.totalWin > 0` (the `&& input.grid` compat
       guard is removed, since the type now guarantees it).
-- [ ] A winning spin driven through the real hook + `StatsProvider` produces a `topWins`
+- [x] A winning spin driven through the real hook + `StatsProvider` produces a `topWins`
       entry whose `grid` deep-equals the outcome's grid and whose `lineWins` deep-equal the
       outcome's lineWins. **This is the test that proves the seam is actually connected** —
       it must drive the hook, not call the reducer directly.
-- [ ] A losing spin driven the same way produces no trophy.
-- [ ] All existing tests still pass (call sites updated, no behavior change to counters,
+- [x] A losing spin driven the same way produces no trophy.
+- [x] All existing tests still pass (call sites updated, no behavior change to counters,
       `biggestWin`, or `series`).
-- [ ] `src/engine/**` diff is empty; `src/ui/audio/**` untouched; no new dependency.
+- [x] `src/engine/**` diff is empty; `src/ui/audio/**` untouched; no new dependency.
 
 ## Failing Tests
 
