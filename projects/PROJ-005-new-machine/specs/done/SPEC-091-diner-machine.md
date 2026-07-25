@@ -134,3 +134,32 @@ wide, because high variance genuinely is noisy. Do **not** copy that width here.
 low-variance and measures quietly (0.42-point spread across six 200k seeds), so its band is
 `0.92–0.99` and catches real drift. Band width follows measured variance; verify it with a mutation
 rather than asserting it.
+
+## Reflection (Ship)
+
+1. **What would I do differently next time?** — Start the tuning from the *constraint*, not from a
+   guess. The first iteration measured **RTP 295%** because I picked steep weights and a rich
+   paytable independently, when the two are not independent at all: at a high hit-frequency the low
+   tier alone nearly exhausts the RTP budget, so the paytable's ceiling is *set by* the weights.
+   Nine iterations were spent rediscovering that. The faster path for a hit-rate-led machine is to
+   fix the low 3-of-a-kind at its floor (1×), measure what hit-frequency that floor can afford, and
+   only then tune the 4-of-a-kind rung. Worth noting the roster now has two independent
+   confirmations that **4-of-a-kind is the dominant RTP lever** (DEC-026 on Farm, DEC-027 here) —
+   that is a reusable starting point, not a per-machine discovery.
+
+2. **Does any template, constraint, or decision need updating?** — No template or constraint change.
+   The reusable lesson is recorded in DEC-027 and is about *test bands*, not tuning: **a band's
+   width should follow the machine's measured variance, not be inherited from the previous
+   machine.** Farm needed 17 points because high variance is genuinely noisy; copying that width to
+   a low-variance machine would have produced a guard that catches nothing. The way to know the
+   difference is to run a mutation against the band rather than to reason about it — mutation #2
+   (low 4ok `2 → 3`) is what proved this band has teeth.
+
+3. **Is there a follow-up spec I should write now before I forget?** — Not immediately. The
+   Space/Cosmic machine remains roadmapped in the PROJ-005 brief, but it is a *look*, not a math
+   personality — the roster's math spectrum (swingy 23% → generous 45% hits) is now genuinely
+   covered, so there is no gap forcing the next machine. Two smaller things stay on the books and
+   neither is mine to invent a spec for: the **real-iPhone Safari check** of trophy thumbnails +
+   Farm/Diner at 375px (Chromium is not proof), and the **stale worktrees** polluting local `just
+   lint`. One honest limitation of this spec, recorded in DEC-027: the integer paytable puts a hard
+   floor under RTP, so ~45% is near the friendliest a machine can get without RTP crossing 100%.
