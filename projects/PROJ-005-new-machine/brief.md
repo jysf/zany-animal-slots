@@ -40,19 +40,26 @@ and it dogfaces the config-driven model a fifth time.
 ## Stage Plan
 
 - [x] STAGE-018 (shipped) — **Farm machine**: high-variance barnyard machine (SPEC-090). DEC-026.
+- [x] STAGE-019 (shipped) — **Diner machine**: generous, high-hit-rate food-and-drink machine
+  (SPEC-091). DEC-027.
 
-**Count:** 1 shipped / 0 active / 0 pending
+**Count:** 2 shipped / 0 active / 0 pending
 
 ## Roadmap / more machines (deferred)
 
 Themes the owner wants as future machines (each ~1 spec + a DEC; reskin or tuned):
 
-- **Food & Drink** — the parked PROJ-002 fast-follow (🍕🍔🌮🍩🍺… jackpot 🎂?). Warm palette.
+- ~~**Food & Drink**~~ — **shipped as Diner** (STAGE-019 / SPEC-091, DEC-027): 🍕🍔🌮🍩🍜🥤🍣 +
+  🎂 jackpot, warm amber palette, generous math.
 - **Space / Cosmic** — 🚀🛸🪐⭐🌙☄️👽 + 🌟 jackpot. Deep indigo/violet, high contrast; the boldest
   visual departure.
 
-Pick a math personality per machine (the roster now has steady Ocean, moderate W&W/Arctic/Desert,
-and swingy Farm — a generous/high-hit-rate machine is the remaining obvious gap).
+Pick a math personality per machine. The roster's math spectrum is now genuinely covered — swingy
+Farm (23% hits), moderate W&W/Arctic/Desert, steady Ocean (38%), generous Diner (45%) — so there is
+no remaining gap forcing the next machine. Space/Cosmic would be a *look*, not a new personality;
+worth doing for variety, but it no longer has math to justify it. Note the ceiling recorded in
+DEC-027: an integer paytable means ~45% hit-frequency is near the friendliest reachable without RTP
+crossing 100%.
 
 ## Dependencies
 
