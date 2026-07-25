@@ -41,6 +41,7 @@ import { activeAds } from './ads/adConfig';
 import AdBanner from './ads/AdBanner';
 import AdInterstitial from './ads/AdInterstitial';
 import AdPopup from './ads/AdPopup';
+import ChangelogSheet from './changelog/ChangelogSheet';
 
 export default function App() {
   const { muted, toggleMute, unlocked } = useAudio();
@@ -105,6 +106,9 @@ export default function App() {
           onToggleAuto={toggleAutoSpin}
         />
         <JackpotMoment celebration={celebration} />
+        <footer className="cabinet__footer">
+          <ChangelogSheet />
+        </footer>
       </div>
       {/* PROJ-004 ads — driven by the ad config (committed default = off). */}
       {showAds && adConfig.placements.interstitial && <AdInterstitial ads={ads} index={0} />}
