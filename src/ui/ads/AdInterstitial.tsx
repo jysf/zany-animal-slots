@@ -1,14 +1,12 @@
-// AdInterstitial.tsx — the on-load full-screen-ish ad (PROJ-004 probe). Shows once when the
-// app loads (while the probe is enabled), dismissible. Mirrors the sheet/backdrop idiom.
-// Fake parody creative; first-party, offline, no tracking. Reduced-motion: no slide animation.
+// AdInterstitial.tsx — the on-load ad modal (PROJ-004). Shows once on load, dismissible. Renders
+// one of the active ads (config-driven); nothing if none are active. Fake, parody, offline.
 import { useState, useEffect, useRef } from 'react';
-import { adAt } from './fakeAds';
+import type { FakeAd } from './fakeAds';
 import './ads.css';
 
-export default function AdInterstitial({ index = 4 }: { index?: number }) {
+export default function AdInterstitial({ ads, index = 0 }: { ads: FakeAd[]; index?: number }) {
   const [open, setOpen] = useState(true);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const ad = adAt(index);
 
   useEffect(() => {
     if (open) closeRef.current?.focus();
@@ -23,7 +21,8 @@ export default function AdInterstitial({ index = 4 }: { index?: number }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
-  if (!open) return null;
+  if (!open || ads.length === 0) return null;
+  const ad = ads[((index % ads.length) + ads.length) % ads.length];
 
   return (
     <>

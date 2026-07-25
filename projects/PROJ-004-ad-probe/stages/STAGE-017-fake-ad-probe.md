@@ -29,9 +29,11 @@ The whole probe: three gated placements with fake, parody creatives. One spec.
 - No network, no tracking, no real money; each ad `aria-label`ed "Advertisement".
 
 ## Spec Backlog
-- [ ] SPEC-083 (design) — Fake-ad placements + creatives (gated).
+- [x] SPEC-083 (built) — Fake-ad placements + parody creatives (three spots).
+- [x] SPEC-084 (built) — Ad config model: committed default (OFF) + per-browser override, config-driven rendering.
+- [x] SPEC-085 (built) — Ad control panel (⚙️ via ?ads=1): toggle placements/ads, set frequency, Copy-as-default.
 
-**Count:** 0 shipped / 1 active / 0 pending
+**Count:** 0 shipped / 3 active (on the PROJ-004 branch, draft) / 0 pending
 
 ## Stage-Level Reflection
 *Filled in if/when the probe concludes.*

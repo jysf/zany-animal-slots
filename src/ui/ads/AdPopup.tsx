@@ -1,28 +1,32 @@
-// AdPopup.tsx — a popup ad that appears after a few spins (PROJ-004 probe). A smaller
-// corner card that slides in, dismissible, re-armed after another burst of spins.
-// Fake parody creative; first-party, offline, no tracking. Reduced-motion: no slide.
+// AdPopup.tsx — a popup ad fired every `everyNSpins` spins (PROJ-004). Rotates through the active
+// ads (config-driven); nothing if none are active. Fake, parody, offline. Reduced-motion: no slide.
 import { useState, useEffect, useRef } from 'react';
-import { adAt } from './fakeAds';
+import type { FakeAd } from './fakeAds';
 import './ads.css';
 
-/** Show the popup every SPINS_PER_POPUP spins (probe pacing). */
-const SPINS_PER_POPUP = 5;
-
-export default function AdPopup({ spins }: { spins: number }) {
+export default function AdPopup({
+  ads,
+  spins,
+  everyNSpins,
+}: {
+  ads: FakeAd[];
+  spins: number;
+  everyNSpins: number;
+}) {
   const [showing, setShowing] = useState(false);
-  const [adIndex, setAdIndex] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const lastFiredAt = useRef(0);
 
   useEffect(() => {
-    if (spins > 0 && spins % SPINS_PER_POPUP === 0 && spins !== lastFiredAt.current) {
+    if (everyNSpins > 0 && spins > 0 && spins % everyNSpins === 0 && spins !== lastFiredAt.current) {
       lastFiredAt.current = spins;
-      setAdIndex((i) => i + 1);
+      setRotation((r) => r + 1);
       setShowing(true);
     }
-  }, [spins]);
+  }, [spins, everyNSpins]);
 
-  if (!showing) return null;
-  const ad = adAt(adIndex);
+  if (!showing || ads.length === 0) return null;
+  const ad = ads[rotation % ads.length];
 
   return (
     <div className={`ad ad--popup ad--${ad.accent}`} role="dialog" aria-label="Advertisement">

@@ -1,13 +1,13 @@
-// AdBanner.tsx — an on-machine banner ad (PROJ-004 probe). Sits in the cabinet, persistent
-// until dismissed. Fake, parody creative (fakeAds.ts); first-party, offline, no tracking.
+// AdBanner.tsx — an on-machine banner ad (PROJ-004). Persistent until dismissed. Renders one of
+// the active ads (config-driven); nothing if none are active. Fake, parody, first-party/offline.
 import { useState } from 'react';
-import { adAt } from './fakeAds';
+import type { FakeAd } from './fakeAds';
 import './ads.css';
 
-export default function AdBanner({ index = 0 }: { index?: number }) {
+export default function AdBanner({ ads, index = 0 }: { ads: FakeAd[]; index?: number }) {
   const [dismissed, setDismissed] = useState(false);
-  const ad = adAt(index);
-  if (dismissed) return null;
+  if (dismissed || ads.length === 0) return null;
+  const ad = ads[((index % ads.length) + ads.length) % ads.length];
 
   return (
     <aside className={`ad ad--banner ad--${ad.accent}`} role="complementary" aria-label="Advertisement">

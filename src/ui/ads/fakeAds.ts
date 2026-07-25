@@ -73,8 +73,3 @@ export const FAKE_ADS: FakeAd[] = [
     accent: 'small',
   },
 ];
-
-/** Pick an ad by index with wraparound — deterministic, no RNG (keeps it test-safe). */
-export function adAt(index: number): FakeAd {
-  return FAKE_ADS[((index % FAKE_ADS.length) + FAKE_ADS.length) % FAKE_ADS.length];
-}

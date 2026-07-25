@@ -35,14 +35,19 @@ import { useDynamicMixing } from './audio/useDynamicMixing';
 import { useMachineTheme } from './theme/useMachineTheme';
 import { useMachineAudio } from './audio/useMachineAudio';
 import { useStats } from './stats/StatsProvider';
-import { useAdProbe } from './ads/useAdProbe';
+import { useAdConfig } from './ads/AdConfigProvider';
+import { useAdAdmin } from './ads/useAdAdmin';
+import { activeAds } from './ads/adConfig';
 import AdBanner from './ads/AdBanner';
 import AdInterstitial from './ads/AdInterstitial';
 import AdPopup from './ads/AdPopup';
 
 export default function App() {
   const { muted, toggleMute, unlocked } = useAudio();
-  const adsEnabled = useAdProbe(); // PROJ-004 probe — OFF unless ?ads=1
+  const { config: adConfig } = useAdConfig(); // PROJ-004 — ads render per the committed/overridden config
+  const adAdmin = useAdAdmin(); // ?ads=1 reveals the owner's settings gear
+  const ads = activeAds(adConfig);
+  const showAds = adConfig.enabled && ads.length > 0;
   const { stats } = useStats();
   const {
     machine,
@@ -75,7 +80,7 @@ export default function App() {
   return (
     <div className="device-stage" data-testid="device-stage" ref={stageRef}>
       <div className="cabinet">
-        <Header muted={muted} onToggleMute={toggleMute} />
+        <Header muted={muted} onToggleMute={toggleMute} adAdmin={adAdmin} />
         <div className="cabinet__winbanner">
           <WinBadge amount={lastWin} show={!isSpinning} tier={celebration?.tier} />
           {/* SPEC-077: sits alongside WinBadge in the in-flow winbanner band — never
@@ -83,7 +88,7 @@ export default function App() {
           <TrophyEarnedBadge trophyRank={!isSpinning ? (celebration?.trophyRank ?? null) : null} />
         </div>
         <Game grid={grid} spinning={isSpinning} lineWins={lineWins} celebration={celebration} />
-        {adsEnabled && <AdBanner index={3} />}
+        {showAds && adConfig.placements.banner && <AdBanner ads={ads} index={0} />}
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
         <Action
           onSpin={spin}
@@ -99,9 +104,11 @@ export default function App() {
         />
         <JackpotMoment celebration={celebration} />
       </div>
-      {/* PROJ-004 fake-ad probe — gated behind ?ads=1, OFF by default. */}
-      {adsEnabled && <AdInterstitial index={4} />}
-      {adsEnabled && <AdPopup spins={stats.spins} />}
+      {/* PROJ-004 ads — driven by the ad config (committed default = off). */}
+      {showAds && adConfig.placements.interstitial && <AdInterstitial ads={ads} index={0} />}
+      {showAds && adConfig.placements.popup && (
+        <AdPopup ads={ads} spins={stats.spins} everyNSpins={adConfig.popupEveryNSpins} />
+      )}
     </div>
   );
 }
