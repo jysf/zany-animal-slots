@@ -1,7 +1,7 @@
 ---
 project:
   id: PROJ-004
-  status: active                    # proposed | active | shipped | cancelled
+  status: shipped                    # proposed | active | shipped | cancelled
   priority: low
   target_ship: null                 # a PROBE — explicitly not slated for main soon
 
@@ -9,7 +9,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-24
-shipped_at: null
+shipped_at: 2026-07-24
 
 value:
   thesis: >-
@@ -73,9 +73,9 @@ the idea is worth anything.
 
 ## Stage Plan
 
-- [ ] STAGE-017 (active) — **Fake-ad probe**: the three gated placements + fake creatives. 1 spec (SPEC-083).
+- [x] STAGE-017 (shipped 2026-07-24) — **Fake-ad probe**: the three gated placements + fake creatives. 1 spec (SPEC-083).
 
-**Count:** 0 shipped / 1 active / 0 pending
+**Count:** 1 shipped / 0 active — 7 specs (SPEC-083–089); merged default-OFF (PR #96)
 
 ## Dependencies
 
@@ -102,4 +102,13 @@ first-party/offline/no-real-money boundary.
 
 ## Project-Level Reflection
 
-*Filled in if/when the probe concludes.*
+*Shipped 2026-07-24, merged to main with ads default OFF (PR #96).*
+
+- **Did we answer "what could ads look like"?** Yes — and then some. It started as a look and became
+  a small, owner-controllable ad system: three placements, a config-driven panel, a rewarded
+  play-money mechanic, plus (off-theme, by request) an in-app changelog. All first-party/offline; no
+  ad network, no tracking, no real money; DEC-005 intact.
+- **Boundary held?** Yes. The one place it could have slipped — "control what everyone sees" on a
+  static no-backend site — was resolved with the committed-default + redeploy model, not a backend.
+- **Deferred:** frequency taming, behavior tests, small polish (see Roadmap). A real ad network
+  remains a posture reversal needing its own DEC + go — not covered here.
