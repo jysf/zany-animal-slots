@@ -9,6 +9,7 @@ import { MachineProvider } from './ui/machine/MachineProvider';
 import { StatsProvider } from './ui/stats/StatsProvider';
 import { HelpSeenProvider } from './ui/help/HelpSeenProvider';
 import { AnalyticsProvider } from './ui/analytics/AnalyticsProvider';
+import { AdConfigProvider } from './ui/ads/AdConfigProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -22,7 +23,9 @@ createRoot(rootElement).render(
         <StatsProvider>
           <HelpSeenProvider>
             <AnalyticsProvider>
-              <App />
+              <AdConfigProvider>
+                <App />
+              </AdConfigProvider>
             </AnalyticsProvider>
           </HelpSeenProvider>
         </StatsProvider>

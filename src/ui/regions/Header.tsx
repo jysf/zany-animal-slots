@@ -6,13 +6,16 @@ import { StatsSheet } from '../stats/StatsSheet';
 import { HelpSheet } from '../help/HelpSheet';
 import MuteToggle from '../audio/MuteToggle';
 import MachineSelector from '../machine/MachineSelector';
+import AdSettingsSheet from '../ads/AdSettingsSheet';
 
 interface HeaderProps {
   muted: boolean;
   onToggleMute: () => void;
+  /** PROJ-004: show the owner's ad-settings gear (only when ?ads=1). */
+  adAdmin?: boolean;
 }
 
-export default function Header({ muted, onToggleMute }: HeaderProps) {
+export default function Header({ muted, onToggleMute, adAdmin = false }: HeaderProps) {
   return (
     <header className="cabinet__header">
       <h1 className="cabinet__title">
@@ -28,6 +31,7 @@ export default function Header({ muted, onToggleMute }: HeaderProps) {
         <PaytableSheet />
         <StatsSheet />
         <HelpSheet />
+        {adAdmin && <AdSettingsSheet />}
       </div>
     </header>
   );

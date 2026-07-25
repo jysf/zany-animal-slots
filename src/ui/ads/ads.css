@@ -1,0 +1,270 @@
+/* ads.css — PROJ-004 fake-ad probe styling. Tokens only, no raw hex (DEC-010).
+ * All three placements share the .ad base; modifiers position each one. Deliberately
+ * "ad-like" (a Sponsored/Ad chip, a loud CTA) so the probe reads as advertising. */
+
+.ad {
+  --ad-accent: var(--color-win-small);
+  background-color: var(--color-surface);
+  border: 2px solid var(--ad-accent);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+}
+.ad--small { --ad-accent: var(--color-win-small); }
+.ad--big { --ad-accent: var(--color-win-big); }
+.ad--jackpot { --ad-accent: var(--color-jackpot); }
+
+/* The "Sponsored / Ad" chip that marks it as advertising. */
+.ad__sponsored {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-bg);
+  background-color: var(--ad-accent);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.ad__brand { font-weight: var(--font-weight-black); color: var(--ad-accent); }
+.ad__tagline { color: var(--color-text-muted); }
+.ad__emoji { font-size: var(--font-size-2xl); line-height: 1; }
+.ad__emoji--hero { font-size: var(--font-size-3xl); }
+.ad__brand--hero { font-family: var(--font-family-display); font-size: var(--font-size-xl); margin: var(--space-2) 0 0; }
+.ad__tagline--hero { font-size: var(--font-size-base); margin: var(--space-1) 0 0; }
+
+.ad__disclaimer {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
+  opacity: 0.8;
+}
+
+/* Loud CTA button. */
+.ad__cta {
+  min-height: var(--space-7);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--ad-accent);
+  color: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+.ad__cta--compact { min-height: var(--space-6); padding: var(--space-1) var(--space-3); font-size: var(--font-size-sm); }
+
+/* Dismiss controls — ≥44px hit area (touch-targets-44). */
+.ad__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--space-7);
+  min-height: var(--space-7);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+.ad__close--corner { position: absolute; top: var(--space-1); right: var(--space-1); }
+.ad__skip {
+  display: block;
+  margin: var(--space-3) auto 0;
+  min-height: var(--space-7);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ─── On-machine banner ─────────────────────────────────────────────────────── */
+.ad--banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 400px;
+  margin: var(--space-2) auto 0;
+  padding: var(--space-2) var(--space-3);
+}
+.ad--banner .ad__banner-copy { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.ad--banner .ad__brand { font-size: var(--font-size-sm); }
+.ad--banner .ad__tagline { font-size: var(--font-size-xs); }
+
+/* ─── On-load interstitial ──────────────────────────────────────────────────── */
+.ad__backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg);
+  opacity: 0.75;
+  z-index: 20;
+}
+.ad--interstitial {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 21;
+  width: min(340px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  text-align: center;
+  animation: ad-pop-in 0.25s ease-out both;
+}
+
+/* ─── Popup (over the reels) ────────────────────────────────────────────────── */
+/* Centred over the reel grid (SPEC-086). The on-machine banner hides while this is up
+ * (App gates it on the popup's reported visibility) so only one ad shows at a time. */
+.ad--popup {
+  position: fixed;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 19;
+  width: min(320px, calc(100vw - 2 * var(--space-3)));
+  padding: var(--space-3);
+  animation: ad-pop-in 0.25s ease-out both;
+}
+.ad--popup .ad__popup-body { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-1) 0; }
+.ad--popup .ad__popup-copy { display: flex; flex-direction: column; }
+.ad--popup .ad__brand { font-size: var(--font-size-base); }
+.ad--popup .ad__tagline { font-size: var(--font-size-xs); }
+
+@keyframes ad-pop-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.92); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ad--interstitial, .ad--popup { animation: none; }
+}
+
+/* ─── Ad settings control panel (PROJ-004, owner-only via ?ads=1) ────────────── */
+.ad-settings__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--space-7);
+  min-width: var(--space-7);
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.ad-settings__trigger:hover,
+.ad-settings__trigger:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-text);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.ad-settings__backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg);
+  opacity: 0.7;
+  z-index: 22;
+}
+.ad-settings__sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  max-width: 430px;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
+  z-index: 23;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-5) var(--space-4) var(--space-6);
+}
+.ad-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+.ad-settings__title { font-family: var(--font-family-display); font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
+.ad-settings__close {
+  min-width: var(--space-7);
+  min-height: var(--space-7);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+.ad-settings__group {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin: var(--space-4) 0 var(--space-1);
+}
+.ad-settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--space-7);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.ad-settings__row input[type="checkbox"] { width: var(--space-5); height: var(--space-5); cursor: pointer; }
+.ad-settings__freq { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--color-text-muted); }
+.ad-settings__freq input {
+  width: var(--space-8);
+  min-height: var(--space-6);
+  padding: var(--space-1);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+.ad-settings__ads { list-style: none; margin: 0; padding: 0; }
+.ad-settings__actions { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+.ad-settings__action {
+  flex: 1 1 auto;
+  min-height: var(--space-7);
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+.ad-settings__action--muted { background: transparent; color: var(--color-text-muted); border: 1px solid var(--color-text-muted); }
+.ad-settings__note { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: var(--space-3); }
+.ad-settings__note code { font-family: var(--font-family-body); background-color: var(--color-bg); padding: 0 var(--space-1); border-radius: var(--radius-sm); }
+
+/* ─── Rewarded ad (PROJ-004) ────────────────────────────────────────────────── */
+.reward__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--space-6);
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-coin);
+  border-radius: var(--radius-md);
+  color: var(--color-coin);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+.reward__trigger:hover,
+.reward__trigger:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-text);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.reward__countdown { margin: var(--space-2) 0 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
