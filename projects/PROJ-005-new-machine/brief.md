@@ -39,9 +39,9 @@ and it dogfaces the config-driven model a fifth time.
 
 ## Stage Plan
 
-- [ ] STAGE-018 (active) — **Farm machine**: high-variance barnyard machine (SPEC-090). DEC-026.
+- [x] STAGE-018 (shipped) — **Farm machine**: high-variance barnyard machine (SPEC-090). DEC-026.
 
-**Count:** 0 shipped / 1 active / 0 pending
+**Count:** 1 shipped / 0 active / 0 pending
 
 ## Roadmap / more machines (deferred)
 
