@@ -37,11 +37,15 @@ export default function AdSettingsSheet() {
 
   function copyAsDefault() {
     // The exact literal to paste into DEFAULT_AD_CONFIG in src/ui/ads/adConfig.ts, then redeploy.
-    const snippet = `export const DEFAULT_AD_CONFIG: AdConfig = ${JSON.stringify(
-      { enabled: config.enabled, placements: config.placements, popupEveryNSpins: config.popupEveryNSpins, activeAdIds: config.activeAdIds },
-      null,
-      2,
-    )};`;
+    // `version` references AD_CONFIG_VERSION; bump that constant too to override testers who
+    // already saved an override (see the note below).
+    const snippet = `export const DEFAULT_AD_CONFIG: AdConfig = {
+  version: AD_CONFIG_VERSION,
+  enabled: ${config.enabled},
+  placements: ${JSON.stringify(config.placements)},
+  popupEveryNSpins: ${config.popupEveryNSpins},
+  activeAdIds: ${JSON.stringify(config.activeAdIds)},
+};`;
     try {
       void navigator.clipboard?.writeText(snippet);
       setCopied(true);
@@ -131,6 +135,7 @@ export default function AdSettingsSheet() {
             <p className="ad-settings__note">
               Changes preview in <em>this browser</em> only. To change what everyone sees, use
               <strong> Copy as default</strong>, paste it into <code>adConfig.ts</code>, and redeploy.
+              To also override testers who already opened this panel, bump <code>AD_CONFIG_VERSION</code>.
             </p>
           </div>
         </>

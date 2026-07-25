@@ -3,6 +3,7 @@
 // A stored override is normalized against the current shape so an old blob can't break rendering.
 import {
   DEFAULT_AD_CONFIG,
+  AD_CONFIG_VERSION,
   POPUP_MIN,
   POPUP_MAX,
   type AdConfig,
@@ -26,6 +27,7 @@ function normalize(v: unknown): AdConfig {
     ? o.activeAdIds.filter((id): id is string => typeof id === 'string' && VALID_IDS.has(id))
     : DEFAULT_AD_CONFIG.activeAdIds;
   return {
+    version: AD_CONFIG_VERSION,
     enabled: typeof o.enabled === 'boolean' ? o.enabled : DEFAULT_AD_CONFIG.enabled,
     placements: {
       interstitial: typeof p.interstitial === 'boolean' ? p.interstitial : DEFAULT_AD_CONFIG.placements.interstitial,
@@ -37,12 +39,21 @@ function normalize(v: unknown): AdConfig {
   };
 }
 
-/** The per-browser override, or DEFAULT_AD_CONFIG when absent/corrupt. Never throws. */
+/**
+ * The per-browser override, or DEFAULT_AD_CONFIG when absent/corrupt/stale. Never throws.
+ * A stored override whose `version` doesn't match AD_CONFIG_VERSION is discarded so a redeployed
+ * default wins again (SPEC-087) — bump the version to override testers who touched the panel.
+ */
 export function readAdConfig(): AdConfig {
   try {
     const raw = localStorage.getItem(AD_CONFIG_KEY);
     if (raw === null) return DEFAULT_AD_CONFIG;
-    return normalize(JSON.parse(raw) as unknown);
+    const parsed = JSON.parse(raw) as { version?: unknown };
+    if (typeof parsed?.version !== 'number' || parsed.version !== AD_CONFIG_VERSION) {
+      clearAdConfig(); // stale/unversioned override — drop it so the committed default takes over
+      return DEFAULT_AD_CONFIG;
+    }
+    return normalize(parsed);
   } catch {
     return DEFAULT_AD_CONFIG;
   }

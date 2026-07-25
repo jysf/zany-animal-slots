@@ -85,6 +85,21 @@ the idea is worth anything.
 ### Enables
 - A go/no-go conversation on whether ads (even fake, even as a bit) belong in this game at all.
 
+## Roadmap / potential ideas (deferred, not built)
+
+Surfaced reviewing the probe (2026-07-24); parked for later at the owner's call. None affect the
+first-party/offline/no-real-money boundary.
+
+- **Tame the frequency** — the on-load interstitial shows on *every* reload (a `sessionStorage`
+  "seen" flag would make it once-per-session); the popup re-fires at every Nth spin with no cap (a
+  per-session cap or a cooldown would keep it from nagging).
+- **Behavior tests** — the config→render wiring (enabled gate, per-placement toggles, and the
+  "banner hides while popup is up" coordination) has no automated coverage yet; only the config
+  *storage* is tested. Worth locking if the feature sticks.
+- **Small polish** — dim the reels behind the popup; rotate the banner through active ads (it
+  always shows the first); warn in the panel when all six ads are unticked; optional popup
+  auto-dismiss timer. The fake CTAs are deliberate no-ops.
+
 ## Project-Level Reflection
 
 *Filled in if/when the probe concludes.*

@@ -1,6 +1,6 @@
 // adConfigStorage tests (PROJ-004). jsdom provides localStorage.
 import { AD_CONFIG_KEY, readAdConfig, writeAdConfig, clearAdConfig } from './adConfigStorage';
-import { DEFAULT_AD_CONFIG, POPUP_MIN, POPUP_MAX, type AdConfig } from './adConfig';
+import { DEFAULT_AD_CONFIG, AD_CONFIG_VERSION, POPUP_MIN, POPUP_MAX, type AdConfig } from './adConfig';
 
 describe('adConfigStorage', () => {
   beforeEach(() => localStorage.clear());
@@ -16,6 +16,7 @@ describe('adConfigStorage', () => {
 
   it('round-trips a written override', () => {
     const cfg: AdConfig = {
+      version: AD_CONFIG_VERSION,
       enabled: true,
       placements: { interstitial: false, popup: true, banner: false },
       popupEveryNSpins: 7,
@@ -23,6 +24,23 @@ describe('adConfigStorage', () => {
     };
     writeAdConfig(cfg);
     expect(readAdConfig()).toEqual(cfg);
+  });
+
+  it('discards a stale-version override so a redeployed default wins (SPEC-087)', () => {
+    // A tester who opened the panel on an older build has version: 0 saved. After a redeploy that
+    // bumped AD_CONFIG_VERSION, their override must be ignored — not pin them to old settings.
+    localStorage.setItem(
+      AD_CONFIG_KEY,
+      JSON.stringify({ version: AD_CONFIG_VERSION - 1, enabled: true, placements: DEFAULT_AD_CONFIG.placements, popupEveryNSpins: 10, activeAdIds: [] }),
+    );
+    expect(readAdConfig()).toEqual(DEFAULT_AD_CONFIG);
+    // and it clears the stale blob so it stops interfering
+    expect(localStorage.getItem(AD_CONFIG_KEY)).toBeNull();
+  });
+
+  it('discards an unversioned (pre-SPEC-087) override', () => {
+    localStorage.setItem(AD_CONFIG_KEY, JSON.stringify({ enabled: true, popupEveryNSpins: 5 }));
+    expect(readAdConfig()).toEqual(DEFAULT_AD_CONFIG);
   });
 
   it('clamps an out-of-range popup frequency', () => {
@@ -40,8 +58,8 @@ describe('adConfigStorage', () => {
     expect(readAdConfig().activeAdIds).toEqual(['wolf-mobile', 'owl-accounting']);
   });
 
-  it('fills missing fields from the default (partial/old blob)', () => {
-    localStorage.setItem(AD_CONFIG_KEY, JSON.stringify({ enabled: true }));
+  it('fills missing fields from the default (current-version but partial blob)', () => {
+    localStorage.setItem(AD_CONFIG_KEY, JSON.stringify({ version: AD_CONFIG_VERSION, enabled: true }));
     const cfg = readAdConfig();
     expect(cfg.enabled).toBe(true);
     expect(cfg.placements).toEqual(DEFAULT_AD_CONFIG.placements);

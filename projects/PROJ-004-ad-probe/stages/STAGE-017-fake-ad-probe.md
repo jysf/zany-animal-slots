@@ -33,8 +33,9 @@ The whole probe: three gated placements with fake, parody creatives. One spec.
 - [x] SPEC-084 (built) — Ad config model: committed default (OFF) + per-browser override, config-driven rendering.
 - [x] SPEC-085 (built) — Ad control panel (⚙️ via ?ads=1): toggle placements/ads, set frequency, Copy-as-default.
 - [x] SPEC-086 (built) — Popup plays over the reels; the banner hides while it's up and returns after.
+- [x] SPEC-087 (built) — Config version guard: a redeployed default overrides testers' stale saved configs.
 
-**Count:** 0 shipped / 4 active (on the PROJ-004 branch, draft) / 0 pending
+**Count:** 0 shipped / 5 active (on the PROJ-004 branch, draft) / 0 pending
 
 ## Stage-Level Reflection
 *Filled in if/when the probe concludes.*

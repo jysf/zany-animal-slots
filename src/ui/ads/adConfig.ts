@@ -6,7 +6,17 @@
 // here + redeploy, which is how a change reaches everyone.
 import { FAKE_ADS, type FakeAd } from './fakeAds';
 
+/**
+ * Bumped when a redeploy wants to OVERRIDE testers' saved configs. A per-browser override with a
+ * different version is ignored on read, so the committed default wins again (SPEC-087). Without
+ * this, anyone who once opened the panel would be pinned to their localStorage forever and never
+ * see a redeployed default — which would silently defeat the "committed default + redeploy" model.
+ */
+export const AD_CONFIG_VERSION = 1;
+
 export interface AdConfig {
+  /** Config-shape/override version — see AD_CONFIG_VERSION. */
+  version: number;
   /** Master switch. When false, no ads render for anyone. */
   enabled: boolean;
   /** Which placements are active. */
@@ -31,6 +41,7 @@ export const POPUP_MAX = 50;
  * "smaller numbers": a banner + an occasional popup, no on-load interstitial.
  */
 export const DEFAULT_AD_CONFIG: AdConfig = {
+  version: AD_CONFIG_VERSION,
   enabled: false,
   placements: { interstitial: false, popup: true, banner: true },
   popupEveryNSpins: 10,
