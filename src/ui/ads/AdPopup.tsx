@@ -8,10 +8,14 @@ export default function AdPopup({
   ads,
   spins,
   everyNSpins,
+  onVisibilityChange,
 }: {
   ads: FakeAd[];
   spins: number;
   everyNSpins: number;
+  /** Reports whether the popup is currently on screen, so the parent can hide the banner
+   *  under the reels while the popup is up and bring it back when it closes (PROJ-004). */
+  onVisibilityChange?: (visible: boolean) => void;
 }) {
   const [showing, setShowing] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -25,7 +29,15 @@ export default function AdPopup({
     }
   }, [spins, everyNSpins]);
 
-  if (!showing || ads.length === 0) return null;
+  const visible = showing && ads.length > 0;
+
+  // Report visibility up (and reset to false on unmount so the banner isn't left hidden).
+  useEffect(() => {
+    onVisibilityChange?.(visible);
+    return () => onVisibilityChange?.(false);
+  }, [visible, onVisibilityChange]);
+
+  if (!visible) return null;
   const ad = ads[rotation % ads.length];
 
   return (

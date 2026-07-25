@@ -17,7 +17,7 @@
 // SPEC-030: calls useDynamicMixing for bus-level bed automation (swell/duck).
 // SPEC-048: refs the stage root and applies the active machine's theme + audio
 // params (default machine == today's values, so this is a no-op today).
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
@@ -48,6 +48,8 @@ export default function App() {
   const adAdmin = useAdAdmin(); // ?ads=1 reveals the owner's settings gear
   const ads = activeAds(adConfig);
   const showAds = adConfig.enabled && ads.length > 0;
+  // PROJ-004: while the popup is over the reels, hide the on-machine banner; restore it after.
+  const [popupActive, setPopupActive] = useState(false);
   const { stats } = useStats();
   const {
     machine,
@@ -88,7 +90,7 @@ export default function App() {
           <TrophyEarnedBadge trophyRank={!isSpinning ? (celebration?.trophyRank ?? null) : null} />
         </div>
         <Game grid={grid} spinning={isSpinning} lineWins={lineWins} celebration={celebration} />
-        {showAds && adConfig.placements.banner && <AdBanner ads={ads} index={0} />}
+        {showAds && adConfig.placements.banner && !popupActive && <AdBanner ads={ads} index={0} />}
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
         <Action
           onSpin={spin}
@@ -107,7 +109,12 @@ export default function App() {
       {/* PROJ-004 ads — driven by the ad config (committed default = off). */}
       {showAds && adConfig.placements.interstitial && <AdInterstitial ads={ads} index={0} />}
       {showAds && adConfig.placements.popup && (
-        <AdPopup ads={ads} spins={stats.spins} everyNSpins={adConfig.popupEveryNSpins} />
+        <AdPopup
+          ads={ads}
+          spins={stats.spins}
+          everyNSpins={adConfig.popupEveryNSpins}
+          onVisibilityChange={setPopupActive}
+        />
       )}
     </div>
   );

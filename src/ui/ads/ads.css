@@ -113,16 +113,18 @@
   animation: ad-pop-in 0.25s ease-out both;
 }
 
-/* ─── Popup (corner) ────────────────────────────────────────────────────────── */
+/* ─── Popup (over the reels) ────────────────────────────────────────────────── */
+/* Centred over the reel grid (SPEC-086). The on-machine banner hides while this is up
+ * (App gates it on the popup's reported visibility) so only one ad shows at a time. */
 .ad--popup {
   position: fixed;
-  bottom: var(--space-4);
+  top: 46%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   z-index: 19;
   width: min(320px, calc(100vw - 2 * var(--space-3)));
   padding: var(--space-3);
-  animation: ad-slide-up 0.25s ease-out both;
+  animation: ad-pop-in 0.25s ease-out both;
 }
 .ad--popup .ad__popup-body { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-1) 0; }
 .ad--popup .ad__popup-copy { display: flex; flex-direction: column; }
@@ -130,7 +132,6 @@
 .ad--popup .ad__tagline { font-size: var(--font-size-xs); }
 
 @keyframes ad-pop-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.92); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-@keyframes ad-slide-up { from { opacity: 0; transform: translate(-50%, var(--space-5)); } to { opacity: 1; transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
   .ad--interstitial, .ad--popup { animation: none; }
