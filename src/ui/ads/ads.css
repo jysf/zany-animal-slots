@@ -1,0 +1,137 @@
+/* ads.css — PROJ-004 fake-ad probe styling. Tokens only, no raw hex (DEC-010).
+ * All three placements share the .ad base; modifiers position each one. Deliberately
+ * "ad-like" (a Sponsored/Ad chip, a loud CTA) so the probe reads as advertising. */
+
+.ad {
+  --ad-accent: var(--color-win-small);
+  background-color: var(--color-surface);
+  border: 2px solid var(--ad-accent);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+}
+.ad--small { --ad-accent: var(--color-win-small); }
+.ad--big { --ad-accent: var(--color-win-big); }
+.ad--jackpot { --ad-accent: var(--color-jackpot); }
+
+/* The "Sponsored / Ad" chip that marks it as advertising. */
+.ad__sponsored {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-bg);
+  background-color: var(--ad-accent);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.ad__brand { font-weight: var(--font-weight-black); color: var(--ad-accent); }
+.ad__tagline { color: var(--color-text-muted); }
+.ad__emoji { font-size: var(--font-size-2xl); line-height: 1; }
+.ad__emoji--hero { font-size: var(--font-size-3xl); }
+.ad__brand--hero { font-family: var(--font-family-display); font-size: var(--font-size-xl); margin: var(--space-2) 0 0; }
+.ad__tagline--hero { font-size: var(--font-size-base); margin: var(--space-1) 0 0; }
+
+.ad__disclaimer {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
+  opacity: 0.8;
+}
+
+/* Loud CTA button. */
+.ad__cta {
+  min-height: var(--space-7);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--ad-accent);
+  color: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+.ad__cta--compact { min-height: var(--space-6); padding: var(--space-1) var(--space-3); font-size: var(--font-size-sm); }
+
+/* Dismiss controls — ≥44px hit area (touch-targets-44). */
+.ad__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--space-7);
+  min-height: var(--space-7);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+.ad__close--corner { position: absolute; top: var(--space-1); right: var(--space-1); }
+.ad__skip {
+  display: block;
+  margin: var(--space-3) auto 0;
+  min-height: var(--space-7);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ─── On-machine banner ─────────────────────────────────────────────────────── */
+.ad--banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 400px;
+  margin: var(--space-2) auto 0;
+  padding: var(--space-2) var(--space-3);
+}
+.ad--banner .ad__banner-copy { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.ad--banner .ad__brand { font-size: var(--font-size-sm); }
+.ad--banner .ad__tagline { font-size: var(--font-size-xs); }
+
+/* ─── On-load interstitial ──────────────────────────────────────────────────── */
+.ad__backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg);
+  opacity: 0.75;
+  z-index: 20;
+}
+.ad--interstitial {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 21;
+  width: min(340px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  text-align: center;
+  animation: ad-pop-in 0.25s ease-out both;
+}
+
+/* ─── Popup (corner) ────────────────────────────────────────────────────────── */
+.ad--popup {
+  position: fixed;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 19;
+  width: min(320px, calc(100vw - 2 * var(--space-3)));
+  padding: var(--space-3);
+  animation: ad-slide-up 0.25s ease-out both;
+}
+.ad--popup .ad__popup-body { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-1) 0; }
+.ad--popup .ad__popup-copy { display: flex; flex-direction: column; }
+.ad--popup .ad__brand { font-size: var(--font-size-base); }
+.ad--popup .ad__tagline { font-size: var(--font-size-xs); }
+
+@keyframes ad-pop-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.92); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes ad-slide-up { from { opacity: 0; transform: translate(-50%, var(--space-5)); } to { opacity: 1; transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ad--interstitial, .ad--popup { animation: none; }
+}

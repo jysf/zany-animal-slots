@@ -34,9 +34,16 @@ import { useGameSfx } from './audio/useGameSfx';
 import { useDynamicMixing } from './audio/useDynamicMixing';
 import { useMachineTheme } from './theme/useMachineTheme';
 import { useMachineAudio } from './audio/useMachineAudio';
+import { useStats } from './stats/StatsProvider';
+import { useAdProbe } from './ads/useAdProbe';
+import AdBanner from './ads/AdBanner';
+import AdInterstitial from './ads/AdInterstitial';
+import AdPopup from './ads/AdPopup';
 
 export default function App() {
   const { muted, toggleMute, unlocked } = useAudio();
+  const adsEnabled = useAdProbe(); // PROJ-004 probe — OFF unless ?ads=1
+  const { stats } = useStats();
   const {
     machine,
     grid,
@@ -76,6 +83,7 @@ export default function App() {
           <TrophyEarnedBadge trophyRank={!isSpinning ? (celebration?.trophyRank ?? null) : null} />
         </div>
         <Game grid={grid} spinning={isSpinning} lineWins={lineWins} celebration={celebration} />
+        {adsEnabled && <AdBanner index={3} />}
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
         <Action
           onSpin={spin}
@@ -91,6 +99,9 @@ export default function App() {
         />
         <JackpotMoment celebration={celebration} />
       </div>
+      {/* PROJ-004 fake-ad probe — gated behind ?ads=1, OFF by default. */}
+      {adsEnabled && <AdInterstitial index={4} />}
+      {adsEnabled && <AdPopup spins={stats.spins} />}
     </div>
   );
 }
