@@ -86,3 +86,29 @@ math (~94% RTP, ~23% hit-frequency). Pure config; no engine change.
       jackpot ~1-in-200k. Pinned via `just simulate farm`.
 - [x] Passes symbol-uniqueness + machine-parity contracts; default machine unchanged; engine diff empty.
 - [x] Theme contrast ≥ WCAG AA (measured 16.13:1). Tokens only, no raw hex in CSS (theme is data).
+
+## Reflection (Ship)
+
+1. **What would I do differently next time?** — Two things. (a) **Ship the spec, not just the
+   code.** SPEC-090's code merged in PR #97, but the ship bookkeeping (this reflection, the brag,
+   `archive-spec`, closing STAGE-018) never ran — the PROJ-004 close-out landed on top of it and
+   masked the gap. `just status` had been showing the tell the whole time: `ship (1)` alongside
+   `Shipped (archived): 0`. A spec sitting in the `ship` cycle un-archived is unfinished work, not
+   finished work. (b) **The metrics-sanity RTP band is close to a no-op.** The test asserts
+   `0.85 ≤ rtp ≤ 1.02` — a 17-point window around a measured ~94%. DEC-026 accepts the width
+   deliberately (high variance is noisy), and the *hit-frequency* band (0.20–0.28) is the assertion
+   with real teeth, but the RTP line reads like a guard while catching almost nothing. If a band
+   has to be that wide to be stable, either raise the test's spin count (it simulates 20k; tuning
+   used 200k) or say plainly in the test that hit-frequency is the guard and RTP is a smoke check.
+
+2. **Does any template, constraint, or decision need updating?** — No template or constraint
+   change. One decision-shaped note: DEC-026's "Alternatives Considered" explicitly rejected a
+   **generous / high-hit-rate** math personality in favour of high-variance. That rejection is
+   still the roster's most legible gap, and it is now the direct next spec rather than a someday
+   idea. DEC-026 itself needs no amendment — it recorded the trade-off correctly.
+
+3. **Is there a follow-up spec I should write now before I forget?** — Yes: **SPEC-091, the
+   generous / high-hit-rate machine** (Food & Drink theme, per the PROJ-005 roadmap) under a new
+   STAGE-019. It closes the personality gap DEC-026 named, and the measure-then-pin loop plus the
+   symbol-uniqueness / machine-parity contracts are now well-worn enough that a sixth machine is
+   mostly tuning. Written in this same session.
