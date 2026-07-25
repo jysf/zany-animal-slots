@@ -92,6 +92,9 @@ export interface UseSlotMachineResult {
   increaseBet: () => void;
   decreaseBet: () => void;
   reset: () => void;
+  /** Add play-money coins to the wallet (e.g. a rewarded-ad credit, PROJ-004). Persisted like any
+   *  balance change; NOT a win, so it never moves session net/win-rate. Non-positive amounts no-op. */
+  addCredit: (amount: number) => void;
   autoSpinning: boolean;
   autoRemaining: number;
   toggleAutoSpin: () => void;
@@ -176,6 +179,13 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     recordCashIn(); // SPEC-055: a wallet Reset is a cash-in (DEC-020) — counted, not a stats clear.
     track({ type: 'cash_in', machineId: machine.id }); // SPEC-062: anonymous cash-in beacon (default off)
   }, [machine, recordCashIn]);
+
+  // PROJ-004: credit play-money coins to the wallet (rewarded-ad reward). Not a win — leaves
+  // stats' net/win-rate untouched; just tops up the balance (persisted by the effect above).
+  const addCredit = useCallback((amount: number) => {
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    setBalance((b) => b + Math.floor(amount));
+  }, []);
 
   // canSpin: false while spinning (status guard) or when balance can't cover the bet.
   const isSpinable = status !== 'spinning' && canAfford(balance, bet);
@@ -323,6 +333,7 @@ export function useSlotMachine(opts?: UseSlotMachineOpts): UseSlotMachineResult 
     increaseBet,
     decreaseBet,
     reset,
+    addCredit,
     autoSpinning,
     autoRemaining,
     toggleAutoSpin,

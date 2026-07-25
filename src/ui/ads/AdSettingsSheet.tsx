@@ -5,7 +5,7 @@
 // DEC-010: tokens only, prefixed classes. Toggle-the-6-built-ins-on/off (no copy editing).
 import { useState, useEffect, useRef } from 'react';
 import { useAdConfig } from './AdConfigProvider';
-import { POPUP_MIN, POPUP_MAX } from './adConfig';
+import { POPUP_MIN, POPUP_MAX, REWARD_MIN, REWARD_MAX } from './adConfig';
 import { FAKE_ADS } from './fakeAds';
 import './ads.css';
 
@@ -44,6 +44,7 @@ export default function AdSettingsSheet() {
   enabled: ${config.enabled},
   placements: ${JSON.stringify(config.placements)},
   popupEveryNSpins: ${config.popupEveryNSpins},
+  rewardCoins: ${config.rewardCoins},
   activeAdIds: ${JSON.stringify(config.activeAdIds)},
 };`;
     try {
@@ -95,6 +96,26 @@ export default function AdSettingsSheet() {
             <label className="ad-settings__row">
               <span>On-machine banner</span>
               <input type="checkbox" checked={config.placements.banner} onChange={(e) => update({ placements: { ...config.placements, banner: e.target.checked } })} aria-label="Enable banner ad" />
+            </label>
+            <label className="ad-settings__row">
+              <span>Rewarded ad (free coins)</span>
+              <input type="checkbox" checked={config.placements.rewarded} onChange={(e) => update({ placements: { ...config.placements, rewarded: e.target.checked } })} aria-label="Enable rewarded ad" />
+            </label>
+
+            <label className="ad-settings__row">
+              <span>Reward</span>
+              <span className="ad-settings__freq">
+                <input
+                  type="number"
+                  min={REWARD_MIN}
+                  max={REWARD_MAX}
+                  step={50}
+                  value={config.rewardCoins}
+                  onChange={(e) => update({ rewardCoins: Math.min(REWARD_MAX, Math.max(REWARD_MIN, Number(e.target.value) || REWARD_MIN)) })}
+                  aria-label="Rewarded-ad coins"
+                />{' '}
+                coins
+              </span>
             </label>
 
             <label className="ad-settings__row">

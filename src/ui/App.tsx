@@ -41,6 +41,7 @@ import { activeAds } from './ads/adConfig';
 import AdBanner from './ads/AdBanner';
 import AdInterstitial from './ads/AdInterstitial';
 import AdPopup from './ads/AdPopup';
+import RewardedAd from './ads/RewardedAd';
 import ChangelogSheet from './changelog/ChangelogSheet';
 
 export default function App() {
@@ -68,6 +69,7 @@ export default function App() {
     canIncreaseBet,
     canDecreaseBet,
     reset,
+    addCredit,
     autoSpinning,
     toggleAutoSpin,
   } = useSlotMachine();
@@ -107,6 +109,9 @@ export default function App() {
         />
         <JackpotMoment celebration={celebration} />
         <footer className="cabinet__footer">
+          {showAds && adConfig.placements.rewarded && (
+            <RewardedAd rewardCoins={adConfig.rewardCoins} onReward={addCredit} adIndex={3} />
+          )}
           <ChangelogSheet />
         </footer>
       </div>

@@ -35,8 +35,9 @@ The whole probe: three gated placements with fake, parody creatives. One spec.
 - [x] SPEC-086 (built) — Popup plays over the reels; the banner hides while it's up and returns after.
 - [x] SPEC-087 (built) — Config version guard: a redeployed default overrides testers' stale saved configs.
 - [x] SPEC-088 (built) — In-app changelog ("What's new" footer link + sheet from releases.json). NOT an ad feature; bundled here at the owner's request.
+- [x] SPEC-089 (built) — Rewarded ad: "📺 Free coins" → fake ad → credits play-money coins (no real money).
 
-**Count:** 0 shipped / 6 active (on the PROJ-004 branch, draft) / 0 pending
+**Count:** 0 shipped / 7 active (on the PROJ-004 branch, draft) / 0 pending
 
 ## Stage-Level Reflection
 *Filled in if/when the probe concludes.*

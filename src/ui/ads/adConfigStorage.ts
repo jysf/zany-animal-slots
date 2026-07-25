@@ -6,6 +6,8 @@ import {
   AD_CONFIG_VERSION,
   POPUP_MIN,
   POPUP_MAX,
+  REWARD_MIN,
+  REWARD_MAX,
   type AdConfig,
 } from './adConfig';
 import { FAKE_ADS } from './fakeAds';
@@ -17,6 +19,11 @@ const VALID_IDS = new Set(FAKE_ADS.map((a) => a.id));
 function clampFreq(n: unknown): number {
   const v = typeof n === 'number' && Number.isFinite(n) ? Math.round(n) : DEFAULT_AD_CONFIG.popupEveryNSpins;
   return Math.min(POPUP_MAX, Math.max(POPUP_MIN, v));
+}
+
+function clampReward(n: unknown): number {
+  const v = typeof n === 'number' && Number.isFinite(n) ? Math.round(n) : DEFAULT_AD_CONFIG.rewardCoins;
+  return Math.min(REWARD_MAX, Math.max(REWARD_MIN, v));
 }
 
 /** Coerce an unknown parse result into a well-formed AdConfig, filling gaps from the default. */
@@ -33,8 +40,10 @@ function normalize(v: unknown): AdConfig {
       interstitial: typeof p.interstitial === 'boolean' ? p.interstitial : DEFAULT_AD_CONFIG.placements.interstitial,
       popup: typeof p.popup === 'boolean' ? p.popup : DEFAULT_AD_CONFIG.placements.popup,
       banner: typeof p.banner === 'boolean' ? p.banner : DEFAULT_AD_CONFIG.placements.banner,
+      rewarded: typeof p.rewarded === 'boolean' ? p.rewarded : DEFAULT_AD_CONFIG.placements.rewarded,
     },
     popupEveryNSpins: clampFreq(o.popupEveryNSpins),
+    rewardCoins: clampReward(o.rewardCoins),
     activeAdIds: ids,
   };
 }

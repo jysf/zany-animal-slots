@@ -1,6 +1,6 @@
 // adConfigStorage tests (PROJ-004). jsdom provides localStorage.
 import { AD_CONFIG_KEY, readAdConfig, writeAdConfig, clearAdConfig } from './adConfigStorage';
-import { DEFAULT_AD_CONFIG, AD_CONFIG_VERSION, POPUP_MIN, POPUP_MAX, type AdConfig } from './adConfig';
+import { DEFAULT_AD_CONFIG, AD_CONFIG_VERSION, POPUP_MIN, POPUP_MAX, REWARD_MIN, REWARD_MAX, type AdConfig } from './adConfig';
 
 describe('adConfigStorage', () => {
   beforeEach(() => localStorage.clear());
@@ -18,8 +18,9 @@ describe('adConfigStorage', () => {
     const cfg: AdConfig = {
       version: AD_CONFIG_VERSION,
       enabled: true,
-      placements: { interstitial: false, popup: true, banner: false },
+      placements: { interstitial: false, popup: true, banner: false, rewarded: true },
       popupEveryNSpins: 7,
+      rewardCoins: 250,
       activeAdIds: ['wolf-mobile', 'owl-accounting'],
     };
     writeAdConfig(cfg);
@@ -48,6 +49,13 @@ describe('adConfigStorage', () => {
     expect(readAdConfig().popupEveryNSpins).toBe(POPUP_MAX);
     writeAdConfig({ ...DEFAULT_AD_CONFIG, popupEveryNSpins: 0 });
     expect(readAdConfig().popupEveryNSpins).toBe(POPUP_MIN);
+  });
+
+  it('clamps an out-of-range reward payout', () => {
+    writeAdConfig({ ...DEFAULT_AD_CONFIG, rewardCoins: 999999 });
+    expect(readAdConfig().rewardCoins).toBe(REWARD_MAX);
+    writeAdConfig({ ...DEFAULT_AD_CONFIG, rewardCoins: 1 });
+    expect(readAdConfig().rewardCoins).toBe(REWARD_MIN);
   });
 
   it('drops unknown ad ids and keeps known ones', () => {

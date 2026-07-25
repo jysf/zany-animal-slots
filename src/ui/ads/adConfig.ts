@@ -12,7 +12,7 @@ import { FAKE_ADS, type FakeAd } from './fakeAds';
  * this, anyone who once opened the panel would be pinned to their localStorage forever and never
  * see a redeployed default — which would silently defeat the "committed default + redeploy" model.
  */
-export const AD_CONFIG_VERSION = 1;
+export const AD_CONFIG_VERSION = 2;
 
 export interface AdConfig {
   /** Config-shape/override version — see AD_CONFIG_VERSION. */
@@ -24,9 +24,12 @@ export interface AdConfig {
     interstitial: boolean; // on-load modal
     popup: boolean; // fires every popupEveryNSpins
     banner: boolean; // persistent, on-machine
+    rewarded: boolean; // a "watch for coins" button that credits play-money (PROJ-004)
   };
   /** Popup cadence in spins (clamped to a sane range on read). */
   popupEveryNSpins: number;
+  /** Play-money coins granted by the rewarded ad (clamped on read). */
+  rewardCoins: number;
   /** Which built-in ads (by id) are in rotation. */
   activeAdIds: string[];
 }
@@ -34,6 +37,9 @@ export interface AdConfig {
 /** Frequency guard rails (a config from an old/corrupt blob is clamped to these). */
 export const POPUP_MIN = 3;
 export const POPUP_MAX = 50;
+/** Rewarded-ad payout guard rails. */
+export const REWARD_MIN = 50;
+export const REWARD_MAX = 5000;
 
 /**
  * The committed default — what every visitor gets. Deliberately OFF and calm so merging this
@@ -43,8 +49,9 @@ export const POPUP_MAX = 50;
 export const DEFAULT_AD_CONFIG: AdConfig = {
   version: AD_CONFIG_VERSION,
   enabled: false,
-  placements: { interstitial: false, popup: true, banner: true },
+  placements: { interstitial: false, popup: true, banner: true, rewarded: true },
   popupEveryNSpins: 10,
+  rewardCoins: 500,
   activeAdIds: FAKE_ADS.map((a) => a.id),
 };
 
