@@ -26,33 +26,48 @@
  */
 .device-stage {
   display: flex;
-  align-items: center;
+  /* SPEC-099: centre when the cabinet fits, SCROLL when it doesn't. `align-items: center` on its
+   * own centres AND clips the overflow on a short window — the top and bottom of the cabinet
+   * become unreachable. flex-start + auto block margins gives centring while the box stays
+   * scrollable, which is the standard fix. */
+  align-items: flex-start;
   justify-content: center;
+  overflow-y: auto;
   min-height: 100vh;  /* fallback first, then dvh overrides */
   min-height: 100dvh;
   padding: var(--space-2);
   background-color: var(--color-bg);
 }
 
+.device-stage > .cabinet {
+  margin-block: auto;   /* vertical centring that yields to scrolling (SPEC-099) */
+}
+
 /* ─── Desktop: ambient backdrop + framed cabinet ────────────────────────────── */
 
 @media (min-width: 640px) {
   .device-stage {
-    /* Full viewport, flex-centered both axes. */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100dvh;
-    min-height: 100vh; /* fallback first, then dvh overrides */
-
+    /* NOTE: deliberately does NOT re-set align-items. The base rule's flex-start + auto block
+     * margins is what keeps the cabinet centred AND scrollable; `align-items: center` here used
+     * to override it and was half of the clipping bug (SPEC-099). */
     /* Ambient backdrop — use existing dark token. */
     background-color: var(--color-jackpot-sky);
+
+    /* SPEC-099: the desktop frame's 40px corner radius curves away from content pushed to the
+     * band edges, so the outermost controls read as colliding with the rounding. A wider shared
+     * inset pulls every band in together, preserving SPEC-097's single-edge invariant. */
+    --band-inset: var(--space-5);
   }
 
   .cabinet {
-    /* SPEC-092: bounded, not fixed. The cabinet is content-sized now, so forcing a height here
-     * would reintroduce on desktop exactly the dead space this spec removed on phone. */
-    max-height: min(92dvh, 880px);
+    /* SPEC-099 REMOVED the max-height cap that used to live here.
+     *
+     * It was a clipping bug, not a style: .cabinet is content-sized (SPEC-092) and carries
+     * `overflow: hidden` for its rounded corners, so a max-height shorter than the content
+     * silently CUT OFF the bottom of the machine. On a 1280x700 window that clipped 67px and
+     * took the Spin button with it — the game's primary control, unreachable, with no scrollbar
+     * to reveal it. The stage now scrolls instead (above), so a short window shows a scrollable
+     * cabinet rather than a truncated one. */
     min-height: 0;
 
     /* Device frame treatment — a softer, phone-shaped radius than the shell's default, plus the

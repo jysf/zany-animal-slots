@@ -116,6 +116,15 @@
   --shadow-deck: 0 -2px 10px rgba(0, 0, 0, 0.35);
 }
 
+/* ─── Band inset (SPEC-097 / SPEC-099) ──────────────────────────────────────── */
+:root {
+  /* THE single horizontal inset every cabinet band shares — header, face, readout, switcher,
+   * control deck. Defined once so "all bands agree on one left/right edge" (SPEC-097) is a fact
+   * of the token rather than five rules that have to be kept in sync by hand. Overridden wider
+   * on desktop, where the frame's larger corner radius needs more clearance (SPEC-099). */
+  --band-inset: var(--space-3);
+}
+
 /* ─── Bezel tokens (SPEC-092) ───────────────────────────────────────────────── */
 :root {
   /* The cabinet's bezel weight. One value so the reel window, readout, and deck edge stay a
