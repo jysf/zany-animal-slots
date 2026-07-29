@@ -11,9 +11,11 @@
   justify-content: center;
   gap: var(--space-2);
 
-  /* The switcher IS the header's headline row, so it spans the full width and the controls
-   * cluster wraps beneath it (regions.css). */
-  flex-basis: 100%;
+  /* SPEC-096: its own band between the readout and the control deck. Tinted as cabinet FACE so it
+   * reads as part of the machine rather than a floating strip, and given a top edge only — the
+   * deck below already carries its own. */
+  background-color: var(--color-surface);
+  padding: var(--space-2) var(--space-4);
   min-width: 0;
 }
 
@@ -44,18 +46,21 @@
 /* The name shrinks (and truncates) but does NOT grow: the arrows stay tucked against the name as
  * one nameplate rather than being flung to opposite edges of the cabinet, which read as three
  * unrelated controls. min-width:0 is what lets the ellipsis engage instead of forcing an overflow. */
-.machine-switcher .cabinet__title {
+.machine-switcher__name {
   flex: 0 1 auto;
   min-width: 0;
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-black);
+  line-height: var(--line-height-tight);
+  color: var(--color-accent);
+  text-align: center;
   /* SPEC-095 restored this to xl. SPEC-093 had to step it down to lg because the longest name
    * ("Wild & Whimsical", 16 chars) truncated at 375px; renaming that machine to "Whimsy" cut the
    * roster's longest name to 9 chars ("Menagerie"-class), so the marquee gets its full size back.
    * The ellipsis below remains the safety net: a future machine with a long name will truncate,
    * and should prompt a re-check here rather than a silent clip. */
   font-size: var(--font-size-xl);
-}
 
-.machine-switcher .cabinet__title-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

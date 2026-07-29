@@ -1,6 +1,10 @@
-// MachineSwitcher — prev/next machine stepper with the machine name as the cabinet marquee
-// (SPEC-093, replaces SPEC-050's <select>). The name is the header's prominent element, so the
-// machine you're on is readable at a glance instead of truncated inside a control.
+// MachineSwitcher — prev/next machine stepper with the machine's name between the arrows
+// (SPEC-093, replaces SPEC-050's <select>; relocated by SPEC-096).
+//
+// SPEC-096 moved this out of the header to sit between the readout and the spin controls, and the
+// name stopped being the page's <h1> — the app title reclaimed that. The name is now a plain
+// labelled element: still the largest text in its band, but no longer competing with the app's
+// own heading for document structure (two <h1>s on one page is the bug that would have caused).
 //
 // A11y note: a native <select> gave keyboard switching and screen-reader announcement for free.
 // Both are restored deliberately here — ArrowLeft/ArrowRight on the group step machines, and the
@@ -48,16 +52,12 @@ export default function MachineSwitcher() {
       >
         ◀
       </button>
-      {/* The marquee: the machine name IS the cabinet's headline (SPEC-093).
-          The old title's flanking 🎰 emoji are deliberately NOT carried over — they cost ~70px,
-          which at 375px truncated the longest name ("Wild & Whimsical") to "Wild & …". That is
-          worse than the <select> this replaced, and it defeats the whole point of promoting the
-          name. Decoration loses to legibility. */}
-      <h1 className="cabinet__title">
-        <span className="cabinet__title-text" aria-live="polite">
-          {machines[current]?.name}
-        </span>
-      </h1>
+      {/* The machine name. aria-live keeps the screen-reader announcement the old <select> gave
+          for free; it is NOT a heading any more (SPEC-096) — the header's app title is the page's
+          <h1>, and a second one here would be a document-structure bug. */}
+      <span className="machine-switcher__name" aria-live="polite">
+        {machines[current]?.name}
+      </span>
       <button
         type="button"
         className="machine-switcher__arrow"

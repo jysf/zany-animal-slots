@@ -21,6 +21,7 @@ import { useRef, useState } from 'react';
 import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
+import MachineSwitcher from './machine/MachineSwitcher';
 import Game from './regions/Game';
 import Status from './regions/Status';
 import Action from './regions/Action';
@@ -95,6 +96,8 @@ export default function App() {
         <Game grid={grid} spinning={isSpinning} lineWins={lineWins} celebration={celebration} />
         {showAds && adConfig.placements.banner && !popupActive && <AdBanner ads={ads} index={0} />}
         <Status balance={balance} bet={bet} lastWin={lastWin} celebration={celebration} />
+        {/* SPEC-096: the machine switcher sits between the readout and the spin controls. */}
+        <MachineSwitcher />
         <Action
           onSpin={spin}
           canSpin={canSpin}
