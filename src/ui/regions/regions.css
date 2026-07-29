@@ -141,7 +141,15 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  /* Positioning context is not needed — the badges are in-flow (centred here). */
+  /* SPEC-100: positioning context for the symbol watermark, which now fills this band too — the
+   * reserved-but-usually-empty strip is exactly where a watermark earns its keep. */
+  position: relative;
+}
+
+/* Badges sit above the watermark. */
+.cabinet__winbanner > *:not(.machine-pattern) {
+  position: relative;
+  z-index: 1;
 }
 
 /* ─── Game region ───────────────────────────────────────────────────────────── */
@@ -216,6 +224,14 @@
    * which bunched Spin/Auto/Reset against each other and left one stray 8px gap at the start. */
   justify-content: space-between;
   gap: var(--space-2);
+  /* SPEC-100: positioning context for the deck's watermark. */
+  position: relative;
+}
+
+/* Controls sit above the deck watermark — never let decoration intercept a Spin tap. */
+.cabinet__action > *:not(.machine-pattern) {
+  position: relative;
+  z-index: 1;
 }
 
 /* ─── Footer (What's new link, PROJ-004 branch) ─────────────────────────────── */

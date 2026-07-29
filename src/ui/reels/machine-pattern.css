@@ -34,6 +34,27 @@
  * enough to read. Because it is a per-machine token, every machine's pattern contrasts against
  * its own background automatically.
  */
+/* Slim bands (the win band, the control deck) get a single tighter row rather than a wrapped
+ * block — they are ~40–70px tall, so the face's rows-pushed-to-the-edges layout is wrong there. */
+.machine-pattern--band {
+  align-content: center;
+  gap: var(--space-3);
+}
+
+.machine-pattern--band .machine-pattern__glyph {
+  font-size: var(--font-size-lg);
+}
+
+/*
+ * SPEC-100: on the control deck the background IS --color-frame, so the default silhouette colour
+ * would be invisible against it. Painting in --color-bg instead gives dark-on-light glyphs — the
+ * same watermark idea, inverted, because the deck is the one band that isn't cabinet-face coloured.
+ */
+.machine-pattern--on-frame .machine-pattern__glyph {
+  text-shadow: 0 0 0 var(--color-bg);
+  opacity: 0.22;
+}
+
 .machine-pattern__glyph {
   font-size: var(--font-size-xl);
   line-height: 1;
