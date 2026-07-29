@@ -84,13 +84,22 @@ Six machines now exist and each has its own palette; this is the wave that lets 
 
 ## Stage Plan
 
-- [ ] STAGE-020 (active) — **Cabinet chrome + switcher**: SPEC-092 (framing + proportions),
-  SPEC-093 (switcher arrows + marquee). DEC-028.
+- [x] STAGE-020 (shipped 2026-07-29) — **Cabinet chrome + switcher**: SPEC-092 (framing +
+  proportions), SPEC-093 (switcher arrows + marquee). DEC-028.
 
-**Count:** 0 shipped / 1 active / 0 pending
+**Count:** 1 shipped / 0 active / 0 pending
+
+The project stays **active**: the roadmap below holds real, owner-originated work (the picker
+sheet, and a possible chrome revisit). It is between stages, not finished.
 
 ## Roadmap (deferred)
 
+- **A heavier chrome pass.** The owner's verdict on SPEC-092's framing was *"could be nicer, but I
+  think this is ok"* — a pass, not a win. They chose restraint over the "full arcade cabinet"
+  option (thick dual-tone bevels, pronounced emboss, a marquee header treatment) when offered it.
+  The token layer added in DEC-028 supports going heavier **without restructuring** — it is a
+  CSS-only revisit whenever they want it. Worth asking what specifically reads flat before
+  spending: a named complaint is a far cheaper pass than guessing.
 - **Machine picker sheet** (SPEC-094, planned not built) — tap the machine name to open a sheet
   listing all six with their palettes and reel symbols, like the existing Paytable/Stats sheets.
   The owner explicitly asked to *plan* for this while shipping the arrows first. It becomes the
