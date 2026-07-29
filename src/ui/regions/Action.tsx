@@ -9,6 +9,10 @@
 //           during both spinning and auto-spin.
 // Button is ≥44px (constraint: touch-targets-44) and disabled when canSpin is false
 // (DEC-005: unaffordable spin is a no-op; the button reflects that at the UI level).
+// SPEC-100: carries the machine's symbol watermark behind the controls. Reads the active machine
+// itself (same seam Game.tsx uses) rather than threading a prop purely for decoration.
+import { useActiveMachine } from '../machine/MachineProvider';
+import MachinePattern from '../reels/MachinePattern';
 import './controls.css';
 
 interface Props {
@@ -39,9 +43,17 @@ export default function Action({
   // Controls are locked while a spin is in progress OR while auto-spin is running
   // (the Auto button is the only escape hatch during auto-spin).
   const locked = isSpinning || autoSpinning;
+  const machine = useActiveMachine().machine;
 
   return (
     <section className="cabinet__action" aria-label="Controls">
+      {machine.presentation.pattern && (
+        <MachinePattern
+          symbolDisplay={machine.presentation.symbolDisplay}
+          count={10}
+          variant="on-frame"
+        />
+      )}
       <div className="bet-stepper">
         <button
           type="button"

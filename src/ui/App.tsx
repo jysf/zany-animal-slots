@@ -22,6 +22,7 @@ import './regions/regions.css';
 import './device-frame.css';
 import Header from './regions/Header';
 import MachineSwitcher from './machine/MachineSwitcher';
+import MachinePattern from './reels/MachinePattern';
 import Game from './regions/Game';
 import Status from './regions/Status';
 import Action from './regions/Action';
@@ -88,6 +89,11 @@ export default function App() {
       <div className="cabinet">
         <Header muted={muted} onToggleMute={toggleMute} adAdmin={adAdmin} />
         <div className="cabinet__winbanner">
+          {/* SPEC-100: the reserved win band carries the watermark too — it is empty most of the
+              time, so decoration is exactly what it should hold. */}
+          {machine.presentation.pattern && (
+            <MachinePattern symbolDisplay={machine.presentation.symbolDisplay} count={12} variant="band" />
+          )}
           <WinBadge amount={lastWin} show={!isSpinning} tier={celebration?.tier} />
           {/* SPEC-077: sits alongside WinBadge in the in-flow winbanner band — never
               overlays the reel grid, so the lit winning cells stay visible on a win. */}
