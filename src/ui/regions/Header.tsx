@@ -1,14 +1,13 @@
 // Header region — branding bar at the top of the cabinet.
-// SPEC-093: the MachineSwitcher IS the headline row — the machine name replaced the static
-// "Zany Animal Slots" title as the header's prominent element, and the controls cluster below
-// dropped from five items to four icons. The app name still lives in the document title, the
-// Paytable "About" block, and the Help sheet.
-// Also renders PaytableSheet trigger (SPEC-020), MuteToggle (SPEC-026), StatsSheet (SPEC-056).
+// SPEC-096: the app title is BACK as the header's headline. SPEC-093 had promoted the machine
+// name into this slot, which cost the app its identity in its own header; the switcher moved down
+// to sit between the readout and the spin controls (App.tsx) — nearer the thumb, and next to the
+// other things you actually press.
+// Renders PaytableSheet trigger (SPEC-020), MuteToggle (SPEC-026), StatsSheet (SPEC-056).
 import { PaytableSheet } from '../PaytableSheet';
 import { StatsSheet } from '../stats/StatsSheet';
 import { HelpSheet } from '../help/HelpSheet';
 import MuteToggle from '../audio/MuteToggle';
-import MachineSwitcher from '../machine/MachineSwitcher';
 import AdSettingsSheet from '../ads/AdSettingsSheet';
 
 interface HeaderProps {
@@ -21,7 +20,13 @@ interface HeaderProps {
 export default function Header({ muted, onToggleMute, adAdmin = false }: HeaderProps) {
   return (
     <header className="cabinet__header">
-      <MachineSwitcher />
+      <h1 className="cabinet__title">
+        {/* Decorative flanking slot emoji — aria-hidden so the accessible name stays
+            "Zany Animal Slots", not "slot machine Zany Animal Slots slot machine". */}
+        <span className="cabinet__title-emoji" aria-hidden="true">🎰</span>
+        <span className="cabinet__title-text">Zany Animal Slots</span>
+        <span className="cabinet__title-emoji" aria-hidden="true">🎰</span>
+      </h1>
       <div className="cabinet__header-controls">
         <MuteToggle muted={muted} onToggle={onToggleMute} />
         <PaytableSheet />

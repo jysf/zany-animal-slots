@@ -37,9 +37,15 @@ beforeEach(() => {
 });
 
 describe('MachineSwitcher', () => {
-  it('shows the active machine name as the marquee heading', () => {
+  it('shows the active machine name', () => {
     setup('arctic');
-    expect(screen.getByRole('heading', { name: 'Arctic' })).toBeInTheDocument();
+    expect(screen.getByText('Arctic')).toBeInTheDocument();
+  });
+
+  // SPEC-096: the name is NOT a heading — the app title owns the page's <h1>.
+  it('does not render the name as a heading', () => {
+    setup('arctic');
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
 
   it('exposes labelled prev/next controls in a Machine group', () => {
@@ -94,7 +100,7 @@ describe('MachineSwitcher', () => {
 
   it('falls back to the first machine when the active id is unknown', () => {
     const spy = setup('does-not-exist');
-    expect(screen.getByRole('heading', { name: 'Whimsy' })).toBeInTheDocument();
+    expect(screen.getByText('Whimsy')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /next machine/i }));
     expect(spy).toHaveBeenCalledWith('arctic');
   });

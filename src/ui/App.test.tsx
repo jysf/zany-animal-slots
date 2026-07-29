@@ -14,15 +14,21 @@ describe('App', () => {
     expect(screen.getByRole('region', { name: /controls/i })).toBeInTheDocument();
   });
 
-  // SPEC-093: the header's heading is the ACTIVE MACHINE's name, not the app title — the
-  // machine you're on is the thing worth reading at a glance. The app name still lives in the
-  // document title, the Paytable "About" block, and the Help sheet.
-  it("shows the active machine's name as the header heading", () => {
+  // SPEC-096: the app title is the header's heading again (SPEC-093 had briefly given that slot
+  // to the machine name). The machine name moved down to the switcher band above the controls.
+  it('shows the Animal Slots title in the header', () => {
     render(<App />);
     const banner = screen.getByRole('banner');
     expect(banner).toContainElement(
-      screen.getByRole('heading', { name: /whimsy/i }),
+      screen.getByRole('heading', { name: /animal slots/i }),
     );
+  });
+
+  // SPEC-096: exactly one <h1>. Two would be a document-structure bug, and is the specific thing
+  // that could regress if someone later re-promotes the machine name.
+  it('has a single top-level heading', () => {
+    const { container } = render(<App />);
+    expect(container.querySelectorAll('h1')).toHaveLength(1);
   });
 
   // SPEC-004: the device-stage wrapper hosts the cabinet (frame is a desktop-only
