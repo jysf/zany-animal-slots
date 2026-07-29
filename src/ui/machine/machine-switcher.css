@@ -15,7 +15,7 @@
    * reads as part of the machine rather than a floating strip, and given a top edge only — the
    * deck below already carries its own. */
   background-color: var(--color-surface);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--band-inset);
   min-width: 0;
   /* SPEC-097: arrows sit ON the shared content edges, name centred between them, so the band
    * spans the same width as the reel window and readout above it. As a centred cluster it was

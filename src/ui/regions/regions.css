@@ -60,7 +60,7 @@
   /* SPEC-097: --space-3 inline matches the game face's padding, so the header's content shares
    * one left/right edge with the reel window, readout, switcher, and control deck. Before, four
    * bands used three different insets and nothing lined up vertically. */
-  padding: var(--space-3);
+  padding: var(--space-3) var(--band-inset);
   /* Flex row: title centred, controls cluster on the right (SPEC-026).
    * SPEC-050: wrap so the controls cluster (now incl. the machine selector) drops
    * to its own row on a narrow phone instead of overflowing the cabinet, while
@@ -167,7 +167,7 @@
   /* SPEC-098 widened the block padding from --space-5: the visible band of face above and below
    * the reel window is where the symbol watermark actually reads, and at 24px it was too thin to
    * show a glyph. */
-  padding: var(--space-6) var(--space-3);
+  padding: var(--space-6) var(--band-inset);
   /* Positioning context for WinBadge absolute overlay (SPEC-019). */
   position: relative;
 }
@@ -184,7 +184,7 @@
   border: var(--bezel-width) solid var(--color-frame);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-well);
-  margin: var(--space-2) var(--space-3);
+  margin: var(--space-2) var(--band-inset);
   padding: var(--space-2) var(--space-4);
   text-align: center;
   font-size: var(--font-size-sm);
@@ -202,7 +202,7 @@
   background-color: var(--color-frame);
   border-top: var(--bezel-width-thin) solid var(--color-text-muted);
   box-shadow: var(--shadow-deck);
-  padding: var(--space-3);
+  padding: var(--space-3) var(--band-inset);
 
   /*
    * Reserve minimum 44px hit area for future controls (constraint: touch-targets-44).
