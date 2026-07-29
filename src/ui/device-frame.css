@@ -16,7 +16,23 @@
  * desktop-only chrome, gated behind min-width so it cannot affect phone.
  */
 
-/* ─── Phone default (no styles — cabinet owns its own layout) ───────────────── */
+/* ─── Phone default ─────────────────────────────────────────────────────────── */
+
+/*
+ * SPEC-092: the stage now provides full-height centring on PHONE too. Previously the cabinet was
+ * itself 100dvh and the stage was transparent; the cabinet is now a content-sized framed shell
+ * (regions.css), so something has to centre it and fill the leftover viewport. That is this.
+ * The desktop block below already did exactly this — phone just joins it.
+ */
+.device-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;  /* fallback first, then dvh overrides */
+  min-height: 100dvh;
+  padding: var(--space-2);
+  background-color: var(--color-bg);
+}
 
 /* ─── Desktop: ambient backdrop + framed cabinet ────────────────────────────── */
 
@@ -34,15 +50,14 @@
   }
 
   .cabinet {
-    /* Phone-shaped height: bounded so it reads as a held device, not full-height. */
-    height: min(92dvh, 880px);
+    /* SPEC-092: bounded, not fixed. The cabinet is content-sized now, so forcing a height here
+     * would reintroduce on desktop exactly the dead space this spec removed on phone. */
+    max-height: min(92dvh, 880px);
     min-height: 0;
 
-    /* Device frame treatment. */
+    /* Device frame treatment — a softer, phone-shaped radius than the shell's default, plus the
+     * ambient drop shadow. The shell's border (regions.css) carries through. */
     border-radius: var(--radius-frame);
     box-shadow: var(--shadow-frame);
-
-    /* Clip children (rounded corners must clip the cabinet's content edges). */
-    overflow: hidden;
   }
 }

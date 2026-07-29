@@ -104,4 +104,22 @@
 :root {
   /* Complete box-shadow value — rgba lives here so frame CSS has no color literals. */
   --shadow-frame: 0 8px 40px rgba(0, 0, 0, 0.6), 0 2px 12px rgba(0, 0, 0, 0.4);
+
+  /* Cabinet framing (SPEC-092, DEC-028). Same precedent as --shadow-frame: the complete
+   * box-shadow value (rgba included) lives here, so consuming CSS carries no color literal.
+   *
+   * --shadow-well  the reel window + readout are RECESSED into the cabinet face: a dark inner
+   *                shadow at the top edge reads as depth, with a faint light line at the bottom.
+   * --shadow-deck  the control deck sits PROUD of the face — an upward cast shadow separates it
+   *                from the readout above without needing a heavy divider. */
+  --shadow-well: inset 0 2px 6px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-deck: 0 -2px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* ─── Bezel tokens (SPEC-092) ───────────────────────────────────────────────── */
+:root {
+  /* The cabinet's bezel weight. One value so the reel window, readout, and deck edge stay a
+   * single family — the bezel COLOR is per-machine (--color-frame), the weight is not. */
+  --bezel-width: 3px;
+  --bezel-width-thin: 1px;   /* the deck's top edge — a seam, not a frame */
 }
