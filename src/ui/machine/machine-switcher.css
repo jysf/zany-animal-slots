@@ -15,8 +15,12 @@
    * reads as part of the machine rather than a floating strip, and given a top edge only — the
    * deck below already carries its own. */
   background-color: var(--color-surface);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   min-width: 0;
+  /* SPEC-097: arrows sit ON the shared content edges, name centred between them, so the band
+   * spans the same width as the reel window and readout above it. As a centred cluster it was
+   * ~185px of a 337px band, floating with no relationship to anything else. */
+  justify-content: space-between;
 }
 
 .machine-switcher__arrow {
@@ -47,7 +51,7 @@
  * one nameplate rather than being flung to opposite edges of the cabinet, which read as three
  * unrelated controls. min-width:0 is what lets the ellipsis engage instead of forcing an overflow. */
 .machine-switcher__name {
-  flex: 0 1 auto;
+  flex: 1 1 auto;              /* fill between the edge-pinned arrows (SPEC-097) */
   min-width: 0;
   font-family: var(--font-family-display);
   font-weight: var(--font-weight-black);

@@ -57,7 +57,10 @@
 
 .cabinet__header {
   background-color: var(--color-surface);
-  padding: var(--space-3) var(--space-4);
+  /* SPEC-097: --space-3 inline matches the game face's padding, so the header's content shares
+   * one left/right edge with the reel window, readout, switcher, and control deck. Before, four
+   * bands used three different insets and nothing lined up vertically. */
+  padding: var(--space-3);
   /* Flex row: title centred, controls cluster on the right (SPEC-026).
    * SPEC-050: wrap so the controls cluster (now incl. the machine selector) drops
    * to its own row on a narrow phone instead of overflowing the cabinet, while
@@ -93,12 +96,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  /* SPEC-093: now FOUR icon triggers (mute + paytable + stats + help). The machine selector left
-   * this row when it became the marquee stepper above, which is what un-crowded it — the row no
-   * longer has to fit a wide, truncating text control among the icons. Centred rather than
-   * right-aligned, since it is now a row of equals under a centred marquee. */
+  /* SPEC-093: FOUR icon triggers (mute + paytable + stats + help) — the machine selector left this
+   * row when it became the stepper, which is what un-crowded it.
+   * SPEC-097: spread across the shared content width like every other band, rather than clustering
+   * mid-row. With the readout, switcher, and deck all spanning 31→344, a centred icon cluster was
+   * the last thing not participating in the horizontal rhythm. */
   flex-wrap: nowrap;
-  justify-content: center;
+  justify-content: space-between;
   min-width: 0;
   flex-basis: 100%;
 }
@@ -195,7 +199,7 @@
   background-color: var(--color-frame);
   border-top: var(--bezel-width-thin) solid var(--color-text-muted);
   box-shadow: var(--shadow-deck);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3);
 
   /*
    * Reserve minimum 44px hit area for future controls (constraint: touch-targets-44).
@@ -205,7 +209,10 @@
 
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* SPEC-097: spread the controls across the shared content width. They were centred with no gaps,
+   * which bunched Spin/Auto/Reset against each other and left one stray 8px gap at the start. */
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
 /* ─── Footer (What's new link, PROJ-004 branch) ─────────────────────────────── */
