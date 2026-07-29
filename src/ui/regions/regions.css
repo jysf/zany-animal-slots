@@ -17,18 +17,32 @@
 
 /* ─── Cabinet wrapper ───────────────────────────────────────────────────────── */
 
+/*
+ * SPEC-092 (DEC-028): the cabinet is the machine's SHELL — a content-sized, framed unit centred
+ * in the viewport, not a stack stretched to fill it.
+ *
+ * Stretching is what produced the dead space: .cabinet__game was `flex: 1` and centred a
+ * fixed-size reel grid inside it, so on a 375×812 phone the reels floated in ~350px of nothing
+ * above and ~250px below. Square cells at 5 columns cannot physically fill that height, so the
+ * height has to GO rather than be filled. The .device-stage parent now provides the full-height
+ * centring (device-frame.css) and any leftover viewport sits OUTSIDE the machine as ambient
+ * background — which is what the desktop device frame has always done. This just brings phone
+ * in line with it.
+ */
 .cabinet {
-  /* Full viewport height: dvh with vh fallback for older browsers. */
-  min-height: 100vh;
-  min-height: 100dvh;
-
   /* Positioning context for the paytable sheet overlay (SPEC-020). */
   position: relative;
 
   display: flex;
   flex-direction: column;
 
-  /* Token-driven background so the whole viewport is themed. */
+  /* The shell frame. Per-machine bezel colour, so all six themes get their own chrome free. */
+  border: var(--bezel-width) solid var(--color-frame);
+  border-radius: var(--radius-lg);
+  /* Rounded corners must clip the flush region edges (header fill, control deck fill). */
+  overflow: hidden;
+
+  /* Token-driven background so the whole cabinet is themed. */
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-family-body);
@@ -121,7 +135,11 @@
  * win — `gap` keeps the two badges from touching when both render at once.
  */
 .cabinet__winbanner {
-  background-color: var(--color-bg);
+  /* SPEC-092: tinted as cabinet FACE (was --color-bg). The band is empty most of the time, and
+   * as a dark strip between the header and the face it read as a seam splitting the machine in
+   * two. On the face colour it is simply the top of the face, and the reserved height stops
+   * being visible when unused. */
+  background-color: var(--color-surface);
   min-height: var(--space-7);       /* reserved height (~48px) — no layout shift */
   padding-inline: var(--space-4);
   display: flex;
@@ -133,21 +151,42 @@
 
 /* ─── Game region ───────────────────────────────────────────────────────────── */
 
+/*
+ * SPEC-092 (DEC-028): the game region is the cabinet's FACE, not empty background.
+ *
+ * Before, this was `background: var(--color-bg)` with the reel grid centred in it — so on a
+ * 375×812 phone the reels floated in ~350px of void above and ~250px below. The fix is not to
+ * stretch the reels (which would distort their aspect); it is to make the leftover height
+ * visibly part of the machine. The face is the LIT surface; the reel window (reels.css) is a
+ * dark well recessed into it — the inverse of the old relationship, and how real cabinets read.
+ */
 .cabinet__game {
-  flex: 1;                          /* Take all remaining vertical space. */
-  background-color: var(--color-bg);
+  flex: 0 0 auto;                   /* Content-sized: hug the reel window, don't stretch (SPEC-092). */
+  background-color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-2);
+  /* Generous padding is the point: this is the cabinet FACE, and the band of face visible around
+   * the reel window is what reads as a bezel. Deliberately NOT bordered — the shell frames the
+   * outside and the reel window frames the inside; a third border here produced a doubled ring. */
+  padding: var(--space-5) var(--space-3);
   /* Positioning context for WinBadge absolute overlay (SPEC-019). */
   position: relative;
 }
 
 /* ─── Status region ─────────────────────────────────────────────────────────── */
 
+/*
+ * SPEC-092: the balance/bet/win readout is a RECESSED DISPLAY PANEL, not floating text.
+ * Same well treatment as the reel window (--shadow-well) so the two read as the same family of
+ * cut-outs in the cabinet face; the darker --color-bg fill is what makes it look like a screen.
+ */
 .cabinet__status {
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
+  border: var(--bezel-width) solid var(--color-frame);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-well);
+  margin: var(--space-2) var(--space-3);
   padding: var(--space-2) var(--space-4);
   text-align: center;
   font-size: var(--font-size-sm);
@@ -156,8 +195,15 @@
 
 /* ─── Action region ─────────────────────────────────────────────────────────── */
 
+/*
+ * SPEC-092: the control deck sits PROUD of the face — the one element that isn't recessed,
+ * because it's the part you touch. A lighter top edge + an upward cast shadow (--shadow-deck)
+ * separate it from the readout without a heavy divider rule.
+ */
 .cabinet__action {
   background-color: var(--color-frame);
+  border-top: var(--bezel-width-thin) solid var(--color-text-muted);
+  box-shadow: var(--shadow-deck);
   padding: var(--space-3) var(--space-4);
 
   /*

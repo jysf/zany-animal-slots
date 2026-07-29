@@ -11,6 +11,14 @@
 
 /* ─── Grid wrapper ───────────────────────────────────────────────────────────── */
 
+/*
+ * SPEC-092 (DEC-028): the reel window is a WELL recessed into the cabinet face.
+ *
+ * The depth relationship is deliberately the inverse of the original: the well is the DARK
+ * element (--color-bg) cut into the lit face (--color-surface, set in regions.css), bezelled in
+ * the machine's own --color-frame. Previously the grid was the lighter element, which made the
+ * reels read as a card floating on a page rather than a window in a machine.
+ */
 .reel-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -20,8 +28,10 @@
   width: 100%;
   max-width: 400px;
 
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
+  border: var(--bezel-width) solid var(--color-frame);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-well);
   padding: var(--space-2);
 }
 
@@ -45,7 +55,9 @@
   font-size: var(--font-size-2xl);
   line-height: 1;
 
-  background-color: var(--color-bg);
+  /* SPEC-092: cells are the LIT tiles sitting in the dark well — inverted along with .reel-grid
+   * so the symbols stay clearly separated from the window they sit in. */
+  background-color: var(--color-surface);
   border-radius: var(--radius-sm);
 }
 
