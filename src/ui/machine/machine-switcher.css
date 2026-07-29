@@ -1,0 +1,61 @@
+/*
+ * Machine switcher — prev/next stepper flanking the marquee name (SPEC-093, replaces
+ * SPEC-050's <select> and machine-selector.css).
+ * DEC-010: token-only, prefixed class, no raw hex — re-themes with the active machine.
+ * constraint touch-targets-44: each arrow is ≥44px (min-height + min-width).
+ */
+
+.machine-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  /* The switcher IS the header's headline row, so it spans the full width and the controls
+   * cluster wraps beneath it (regions.css). */
+  flex-basis: 100%;
+  min-width: 0;
+}
+
+.machine-switcher__arrow {
+  /* ≥44px hit area (constraint: touch-targets-44). */
+  min-height: var(--space-7);   /* 3rem = 48px */
+  min-width: var(--space-7);
+
+  background: transparent;
+  border: var(--bezel-width-thin) solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-body);
+  /* Match the icon triggers' glyph size (SPEC-071) so the header row reads as one family. */
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+
+  flex: 0 0 auto;
+}
+
+.machine-switcher__arrow:hover,
+.machine-switcher__arrow:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+/* The name shrinks (and truncates) but does NOT grow: the arrows stay tucked against the name as
+ * one nameplate rather than being flung to opposite edges of the cabinet, which read as three
+ * unrelated controls. min-width:0 is what lets the ellipsis engage instead of forcing an overflow. */
+.machine-switcher .cabinet__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  /* Steps down from the old title's --font-size-xl. At xl the longest name on the roster
+   * ("Wild & Whimsical", 16 chars) still truncated at 375px even after dropping the flanking
+   * emoji — and a truncated name is exactly the failure this spec exists to fix. lg keeps the
+   * marquee the largest text in the header while fitting the whole roster. */
+  font-size: var(--font-size-lg);
+}
+
+.machine-switcher .cabinet__title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -14,11 +14,14 @@ describe('App', () => {
     expect(screen.getByRole('region', { name: /controls/i })).toBeInTheDocument();
   });
 
-  it('shows the Animal Slots title in the header', () => {
+  // SPEC-093: the header's heading is the ACTIVE MACHINE's name, not the app title — the
+  // machine you're on is the thing worth reading at a glance. The app name still lives in the
+  // document title, the Paytable "About" block, and the Help sheet.
+  it("shows the active machine's name as the header heading", () => {
     render(<App />);
     const banner = screen.getByRole('banner');
     expect(banner).toContainElement(
-      screen.getByRole('heading', { name: /animal slots/i }),
+      screen.getByRole('heading', { name: /wild & whimsical/i }),
     );
   });
 
