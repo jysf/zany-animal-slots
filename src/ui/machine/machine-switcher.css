@@ -47,11 +47,12 @@
 .machine-switcher .cabinet__title {
   flex: 0 1 auto;
   min-width: 0;
-  /* Steps down from the old title's --font-size-xl. At xl the longest name on the roster
-   * ("Wild & Whimsical", 16 chars) still truncated at 375px even after dropping the flanking
-   * emoji — and a truncated name is exactly the failure this spec exists to fix. lg keeps the
-   * marquee the largest text in the header while fitting the whole roster. */
-  font-size: var(--font-size-lg);
+  /* SPEC-095 restored this to xl. SPEC-093 had to step it down to lg because the longest name
+   * ("Wild & Whimsical", 16 chars) truncated at 375px; renaming that machine to "Whimsy" cut the
+   * roster's longest name to 9 chars ("Menagerie"-class), so the marquee gets its full size back.
+   * The ellipsis below remains the safety net: a future machine with a long name will truncate,
+   * and should prompt a re-check here rather than a silent clip. */
+  font-size: var(--font-size-xl);
 }
 
 .machine-switcher .cabinet__title-text {
