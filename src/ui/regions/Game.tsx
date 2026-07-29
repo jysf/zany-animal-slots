@@ -20,6 +20,8 @@ import type { Celebration } from '../useSlotMachine';
 import { useActiveMachine } from '../machine/MachineProvider';
 import ReelGrid from '../reels/ReelGrid';
 import ParticleBurst from '../reels/ParticleBurst';
+import MachinePattern from '../reels/MachinePattern';
+import '../reels/machine-pattern.css';
 
 interface Props {
   grid: Grid;
@@ -34,6 +36,11 @@ export default function Game({ grid, spinning = false, lineWins = [], celebratio
 
   return (
     <main className="cabinet__game">
+      {/* SPEC-098: decorative watermark of this machine's own symbols, behind the reel window.
+          Opt-in per machine (presentation.pattern) so it can be trialled on one first. */}
+      {machine.presentation.pattern && (
+        <MachinePattern symbolDisplay={machine.presentation.symbolDisplay} />
+      )}
       <ReelGrid
         grid={grid}
         spinning={spinning}

@@ -38,6 +38,12 @@ export interface MachinePresentation {
   symbolDisplay: SymbolDisplay;
   theme: ThemeTokens;
   audio: MachineAudio;
+  /**
+   * SPEC-098: opt in to the monochrome symbol watermark on the cabinet face. Optional and
+   * default-off so it can be trialled on one machine before rolling out — omitting it leaves a
+   * machine exactly as it was. Config-as-data (DEC-015): no per-machine code.
+   */
+  pattern?: boolean;
 }
 
 export interface Machine {
