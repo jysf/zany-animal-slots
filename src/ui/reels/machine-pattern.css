@@ -1,0 +1,50 @@
+/*
+ * Machine background pattern (SPEC-098) — a monochrome watermark of the machine's own symbols.
+ * DEC-010: token-only, no raw hex. Decorative: never affects layout, never captures pointers.
+ */
+
+.machine-pattern {
+  /* Fills the cabinet face, behind the reel window. */
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  display: flex;
+  flex-wrap: wrap;
+  /* Push glyph rows to the top and bottom of the face — the strips of face actually VISIBLE
+   * around the reel window. Centred (the first attempt) put every glyph directly behind the
+   * reels, where the pattern rendered perfectly and could not be seen at all. */
+  align-content: space-between;
+  justify-content: space-around;
+  gap: var(--space-2);
+
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/*
+ * The monochrome trick: an emoji glyph paints its own colours and ignores `color`. Making the
+ * text transparent and painting a ZERO-BLUR text-shadow renders the glyph's silhouette in the
+ * shadow colour instead — a flat, single-colour shape from the same emoji the machine already
+ * defines, with no new assets and no image files.
+ *
+ * --color-frame is the machine's structural/bezel colour: close enough to the face
+ * (--color-surface) to stay a watermark rather than competing with the reels, but distinct
+ * enough to read. Because it is a per-machine token, every machine's pattern contrasts against
+ * its own background automatically.
+ */
+.machine-pattern__glyph {
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  color: transparent;
+  text-shadow: 0 0 0 var(--color-frame);
+  opacity: 0.4;
+  transform: rotate(-12deg);
+}
+
+/* The reel window sits above the watermark (z-index 0 above). */
+.reel-grid {
+  position: relative;
+  z-index: 1;
+}

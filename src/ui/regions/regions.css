@@ -164,7 +164,10 @@
   /* Generous padding is the point: this is the cabinet FACE, and the band of face visible around
    * the reel window is what reads as a bezel. Deliberately NOT bordered — the shell frames the
    * outside and the reel window frames the inside; a third border here produced a doubled ring. */
-  padding: var(--space-5) var(--space-3);
+  /* SPEC-098 widened the block padding from --space-5: the visible band of face above and below
+   * the reel window is where the symbol watermark actually reads, and at 24px it was too thin to
+   * show a glyph. */
+  padding: var(--space-6) var(--space-3);
   /* Positioning context for WinBadge absolute overlay (SPEC-019). */
   position: relative;
 }

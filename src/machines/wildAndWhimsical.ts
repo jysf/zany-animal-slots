@@ -19,6 +19,9 @@ export const WILD_AND_WHIMSICAL: Machine = {
   name: 'Whimsy',
   math: WILD_AND_WHIMSICAL_MATH,
   presentation: {
+    // SPEC-098 trial: Whimsy is the only machine with the symbol watermark for now, so it can be
+    // compared against the other five by stepping the switcher.
+    pattern: true,
     symbolDisplay: SYMBOL_DISPLAY,
     // SPEC-068 facelift: Wild & Whimsical was on the dull default campfire palette (theme: {}).
     // Give it its own bright, whimsical identity — a magical plum night with bubblegum-pink accents
