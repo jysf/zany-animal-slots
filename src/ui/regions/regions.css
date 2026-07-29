@@ -93,23 +93,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  /* SPEC-068: the five controls (selector + mute + paytable + stats + help) now sit on ONE clean
-   * row (SPEC-063's wrap looked ragged). The action triggers are icon-only + fixed-width; the wide
-   * machine selector flexes and shrinks to fill what's left. min-width:0 lets the selector shrink
-   * below its content width instead of forcing an overflow. On a narrow phone the whole cluster
-   * still drops below the title (the parent .cabinet__header wraps), giving a tidy title-row +
-   * single-controls-row header. */
+  /* SPEC-093: now FOUR icon triggers (mute + paytable + stats + help). The machine selector left
+   * this row when it became the marquee stepper above, which is what un-crowded it — the row no
+   * longer has to fit a wide, truncating text control among the icons. Centred rather than
+   * right-aligned, since it is now a row of equals under a centred marquee. */
   flex-wrap: nowrap;
-  justify-content: flex-end;
+  justify-content: center;
   min-width: 0;
-  flex: 1 1 auto;
-}
-
-/* The machine selector is the one flexible control — it absorbs the leftover width and truncates
-   its label gracefully rather than pushing the icon triggers off-screen (SPEC-068). */
-.cabinet__header-controls .machine-selector {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex-basis: 100%;
 }
 
 /* The icon-only action triggers keep their ≥44px square footprint and never shrink (SPEC-068), and
