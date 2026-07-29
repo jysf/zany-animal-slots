@@ -21,7 +21,7 @@ describe('App', () => {
     render(<App />);
     const banner = screen.getByRole('banner');
     expect(banner).toContainElement(
-      screen.getByRole('heading', { name: /wild & whimsical/i }),
+      screen.getByRole('heading', { name: /whimsy/i }),
     );
   });
 

@@ -18,8 +18,11 @@ const { math, presentation } = WILD_AND_WHIMSICAL;
 
 describe('SPEC-038 default machine parity — extracted data == current constants', () => {
   it('identity', () => {
+    // SPEC-095: the id is a SAVED-DATA KEY, not a label. Trophies, biggestWin, and the persisted
+    // active machine all store it, so it must survive any display rename — renaming it would
+    // orphan every existing trophy. The display name is free to change; this id is not.
     expect(WILD_AND_WHIMSICAL.id).toBe('wild-and-whimsical');
-    expect(WILD_AND_WHIMSICAL.name).toBe('Wild & Whimsical');
+    expect(WILD_AND_WHIMSICAL.name).toBe('Whimsy');
   });
 
   it('symbols + tiers + weights', () => {

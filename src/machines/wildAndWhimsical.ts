@@ -11,9 +11,12 @@ import { MIX } from '../ui/audio/mixer';
 import { DEFAULT_BED_MUSIC } from '../ui/audio/ambientBed';
 import type { Machine } from './types';
 
+// SPEC-095: the DISPLAY NAME is 'Whimsy'; the id stays 'wild-and-whimsical' forever. Saved data
+// (trophies, biggestWin, the persisted active machine) keys off the id, so renaming the id would
+// orphan every existing trophy. The const + filename keep the old spelling to match the id.
 export const WILD_AND_WHIMSICAL: Machine = {
   id: 'wild-and-whimsical',
-  name: 'Wild & Whimsical',
+  name: 'Whimsy',
   math: WILD_AND_WHIMSICAL_MATH,
   presentation: {
     symbolDisplay: SYMBOL_DISPLAY,

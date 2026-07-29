@@ -14,7 +14,7 @@ const mockedList = vi.mocked(listMachines);
 const mockedUse = vi.mocked(useActiveMachine);
 
 const ROSTER = [
-  { id: 'wild-and-whimsical', name: 'Wild & Whimsical' },
+  { id: 'wild-and-whimsical', name: 'Whimsy' },
   { id: 'arctic', name: 'Arctic' },
   { id: 'diner', name: 'Diner' },
 ] as unknown as Machine[];
@@ -94,7 +94,7 @@ describe('MachineSwitcher', () => {
 
   it('falls back to the first machine when the active id is unknown', () => {
     const spy = setup('does-not-exist');
-    expect(screen.getByRole('heading', { name: 'Wild & Whimsical' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Whimsy' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /next machine/i }));
     expect(spy).toHaveBeenCalledWith('arctic');
   });
