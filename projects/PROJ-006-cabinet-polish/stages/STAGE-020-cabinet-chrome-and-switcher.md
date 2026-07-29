@@ -36,12 +36,12 @@ The whole of PROJ-006's first wave: framing + proportions (SPEC-092), then the s
   unaffected; no raw hex (DEC-010).
 
 ## Spec Backlog
-- [ ] SPEC-092 (design) — Cabinet framing + proportions. DEC-028.
+- [x] SPEC-092 (shipped on 2026-07-29) — Cabinet framing + proportions. DEC-028. PR #103.
 - [ ] SPEC-093 (design) — Machine switcher: prev/next arrows + marquee name.
 - [ ] SPEC-094 (planned, NOT built) — Machine picker sheet. Deferred by owner decision: ship the
   arrows first, plan for the sheet. See the PROJ-006 brief roadmap for the trigger conditions.
 
-**Count:** 0 shipped / 2 active / 1 pending (deferred)
+**Count:** 1 shipped / 1 active / 1 pending (deferred)
 
 ## Design Notes
 
