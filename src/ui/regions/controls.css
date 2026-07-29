@@ -142,14 +142,18 @@
 
 .status-readout {
   display: flex;
-  gap: var(--space-5);
-  justify-content: center;
+  /* SPEC-097: three equal columns spanning the panel. They used to be a centred cluster with a
+   * fixed gap, occupying ~147px of a 313px panel — a lot of dead space either side, and the
+   * three values didn't align with anything above or below. */
+  gap: var(--space-2);
+  justify-content: space-between;
   font-size: var(--font-size-base);
   color: var(--color-text);
 }
 
 .status-readout__item {
   display: flex;
+  flex: 1 1 0;                 /* equal thirds (SPEC-097) */
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
