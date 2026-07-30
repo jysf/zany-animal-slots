@@ -50,7 +50,6 @@ export default function Action({
       {machine.presentation.pattern && (
         <MachinePattern
           symbolDisplay={machine.presentation.symbolDisplay}
-          count={10}
           variant="on-frame"
         />
       )}

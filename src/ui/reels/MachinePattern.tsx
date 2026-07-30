@@ -13,10 +13,16 @@
 // Purely decorative: aria-hidden, pointer-events:none, and it never affects layout.
 import type { SymbolDisplay } from '../../machines/types';
 
+/**
+ * Glyphs PER ROW. Chosen to fit the NARROWEST supported cabinet (320px) without overflowing, so
+ * the row never clips at any width in the portrait-first range — see SPEC-101. More glyphs would
+ * look denser at 430px but would spill at 320px, and a half-sliced emoji is the exact defect this
+ * count exists to prevent.
+ */
+const GLYPHS_PER_ROW = 8;
+
 interface Props {
   symbolDisplay: SymbolDisplay;
-  /** How many glyphs to tile. Kept modest — this is a texture, not a mural. */
-  count?: number;
   /**
    * SPEC-100 placement variant:
    *  'face'     the cabinet face — rows pushed to the visible strips around the reel window.
@@ -27,23 +33,43 @@ interface Props {
   variant?: 'face' | 'band' | 'on-frame';
 }
 
-export default function MachinePattern({ symbolDisplay, count = 36, variant = 'face' }: Props) {
+export default function MachinePattern({ symbolDisplay, variant = 'face' }: Props) {
   const glyphs = Object.values(symbolDisplay).map((s) => s.emoji);
   if (glyphs.length === 0) return null;
 
+  /*
+   * SPEC-101: EXPLICIT rows, not flex-wrap.
+   *
+   * The original tiled a fixed 36 glyphs and let them wrap. That made the row count a function of
+   * the container's width, and in a box with room for ~2 rows a third row landed straddling the
+   * boundary — measured, 12 of 36 glyphs were half-sliced by `overflow: hidden` at 320px, 375px
+   * AND 430px. Rendering a fixed number of non-wrapping rows makes the layout deterministic:
+   * the face gets two (one per visible strip around the reel window), slim bands get one.
+   */
+  const rowCount = variant === 'face' ? 2 : 1;
+
   // Deterministic, not random: a fixed stride through the symbol list keeps the tiling stable
   // across re-renders (a random pattern would reshuffle on every spin, which reads as flicker).
-  const tiles = Array.from({ length: count }, (_, i) => glyphs[(i * 3) % glyphs.length]);
+  const rows = Array.from({ length: rowCount }, (_, row) =>
+    Array.from(
+      { length: GLYPHS_PER_ROW },
+      (_, i) => glyphs[(row * GLYPHS_PER_ROW + i * 3) % glyphs.length],
+    ),
+  );
 
   const variantClass =
     variant === 'face' ? '' : ` machine-pattern--band${variant === 'on-frame' ? ' machine-pattern--on-frame' : ''}`;
 
   return (
     <div className={`machine-pattern${variantClass}`} aria-hidden="true">
-      {tiles.map((emoji, i) => (
-        <span className="machine-pattern__glyph" key={i}>
-          {emoji}
-        </span>
+      {rows.map((row, r) => (
+        <div className="machine-pattern__row" key={r}>
+          {row.map((emoji, i) => (
+            <span className="machine-pattern__glyph" key={i}>
+              {emoji}
+            </span>
+          ))}
+        </div>
       ))}
     </div>
   );

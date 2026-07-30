@@ -92,7 +92,7 @@ export default function App() {
           {/* SPEC-100: the reserved win band carries the watermark too — it is empty most of the
               time, so decoration is exactly what it should hold. */}
           {machine.presentation.pattern && (
-            <MachinePattern symbolDisplay={machine.presentation.symbolDisplay} count={12} variant="band" />
+            <MachinePattern symbolDisplay={machine.presentation.symbolDisplay} variant="band" />
           )}
           <WinBadge amount={lastWin} show={!isSpinning} tier={celebration?.tier} />
           {/* SPEC-077: sits alongside WinBadge in the in-flow winbanner band — never
