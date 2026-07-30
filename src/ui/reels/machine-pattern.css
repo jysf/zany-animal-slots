@@ -9,14 +9,19 @@
   inset: 0;
   z-index: 0;
 
+  /* SPEC-101: a COLUMN of explicit non-wrapping rows. flex-wrap made the row count depend on
+   * container width, which sliced a third of the glyphs in half against `overflow: hidden`. */
   display: flex;
-  flex-wrap: wrap;
-  /* Push glyph rows to the top and bottom of the face — the strips of face actually VISIBLE
-   * around the reel window. Centred (the first attempt) put every glyph directly behind the
-   * reels, where the pattern rendered perfectly and could not be seen at all. */
-  align-content: space-between;
-  justify-content: space-around;
-  gap: var(--space-2);
+  flex-direction: column;
+  /* Rows sit at the top and bottom of the face — the strips actually VISIBLE around the reel
+   * window. Centred (the first attempt) put every glyph behind the reels, where the pattern
+   * rendered perfectly and could not be seen at all. */
+  justify-content: space-between;
+
+  /* SPEC-101: emoji ink boxes render taller than their line box (measured ~24-30px of ink for a
+   * 20-25px font), so rows flush against the clip edge lose 2-3px off the top and bottom glyphs.
+   * A little block padding keeps the ink inside `overflow: hidden`. */
+  padding-block: var(--space-1);
 
   overflow: hidden;
   pointer-events: none;
@@ -34,11 +39,17 @@
  * enough to read. Because it is a per-machine token, every machine's pattern contrasts against
  * its own background automatically.
  */
-/* Slim bands (the win band, the control deck) get a single tighter row rather than a wrapped
- * block — they are ~40–70px tall, so the face's rows-pushed-to-the-edges layout is wrong there. */
+/* One row, vertically centred in the slim band. */
 .machine-pattern--band {
-  align-content: center;
-  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* A row never wraps, so it can never produce a part-clipped row (SPEC-101). */
+.machine-pattern__row {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .machine-pattern--band .machine-pattern__glyph {
@@ -57,7 +68,8 @@
 
 .machine-pattern__glyph {
   font-size: var(--font-size-xl);
-  line-height: 1;
+  /* >1 so the line box encloses the emoji's ink box rather than being shaved by it (SPEC-101). */
+  line-height: 1.4;
   color: transparent;
   text-shadow: 0 0 0 var(--color-frame);
   opacity: 0.4;
