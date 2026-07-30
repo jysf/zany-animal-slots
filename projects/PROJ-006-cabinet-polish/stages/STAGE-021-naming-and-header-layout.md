@@ -1,7 +1,7 @@
 ---
 stage:
   id: STAGE-021
-  status: active
+  status: shipped
   priority: medium
   target_complete: null
 project:
@@ -9,7 +9,7 @@ project:
 repo:
   id: animal-slots
 created_at: 2026-07-29
-shipped_at: null
+shipped_at: 2026-07-29
 value_contribution:
   advances: "Second pass on STAGE-020's switcher, driven by the owner living with it: shorter machine name, app title restored, control moved to the deck."
   delivers:
@@ -45,10 +45,21 @@ Directly owner-driven, both from using the shipped result:
 - No machine math/symbol/theme change; no `src/engine/**` diff; `src/ui/audio/**` untouched.
 
 ## Spec Backlog
-- [ ] SPEC-095 (design) — Rename the default machine to Whimsy (display name only) + changelog v1.3.
-- [ ] SPEC-096 (design) — Restore the app title; relocate the switcher below the readout.
 
-**Count:** 0 shipped / 2 active / 0 pending
+Planned as two specs; shipped as **eight**. Every addition after SPEC-096 came from the owner using
+the previous one — see the reflection.
+
+- [x] SPEC-095 (shipped 2026-07-29) — Rename the default machine to Whimsy + changelog v1.3. PR #107.
+- [x] SPEC-096 (shipped 2026-07-29) — Restore the app title; relocate the switcher. PR #108.
+- [x] SPEC-097 (shipped 2026-07-29) — One horizontal rhythm across the cabinet bands. PR #109.
+- [x] SPEC-098 (shipped 2026-07-29) — Theme background pattern (monochrome watermark), one-machine
+  trial. PR #110.
+- [x] SPEC-099 (shipped 2026-07-29) — **bug:** desktop cabinet clipped its own controls. PR #111.
+- [x] SPEC-100 (shipped 2026-07-29) — Watermark in the win band and control deck. PR #112.
+- [x] SPEC-101 (shipped 2026-07-29) — **bug:** watermark glyphs sliced in half. PR #113.
+- [x] SPEC-102 (shipped 2026-07-29) — Adaptive cabinet height. PR #114.
+
+**Count:** 8 shipped / 0 active / 0 pending
 
 ## Design Notes
 
@@ -70,4 +81,35 @@ number rather than taking the reservation.
 - SPEC-094 (picker sheet), unchanged in scope.
 
 ## Stage-Level Reflection
-*Filled in when status moves to shipped.*
+
+*Shipped 2026-07-29. Eight specs against a planned two; two of them bugs I introduced.*
+
+- **Did we deliver the outcome?** Yes, and then well past it. Planned: rename the default machine,
+  restore the title, move the switcher. Delivered: those, plus a shared horizontal rhythm, a
+  monochrome symbol watermark across three bands, adaptive height, and fixes for two defects the
+  work itself created.
+- **How many specs did it take?** **Eight, against a planned two.** Not scope creep in the bad
+  sense — every addition after SPEC-096 came from the owner *using* the previous result and
+  reporting back, on real devices we had never tested (iPhone Safari, Chrome iOS, DuckDuckGo/macOS).
+  That is the loop working. But a stage scoped for two specs should have been closed and re-opened
+  around SPEC-098 rather than absorbing six more.
+- **The two bugs are the real lesson.** Both were mine, both invisible to a 1038-test suite, and
+  both found only because the owner used the app somewhere we hadn't looked:
+  - **SPEC-099** — `overflow: hidden` (added for rounded corners) plus a stale `max-height` from
+    when the cabinet was viewport-sized silently truncated the machine. **The Spin button was
+    unreachable on any desktop window under ~795px tall.** When a spec changes *how an element is
+    sized*, every existing rule constraining that element has to be re-read; I saw the `height`
+    rule, changed it to `max-height`, and preserved the bug in a quieter form.
+  - **SPEC-101** — `flex-wrap` made a decorative row count depend on container width, slicing
+    12-of-36 glyphs at *every* width. I had tuned the glyph count by eye at one width.
+- **What this stage proves about verification.** The stage before it concluded "the render is the
+  test". This one sharpens it twice over: **the render finds visual bugs, the DOM measures them**
+  (SPEC-097's four conflicting band edges were invisible until `getBoundingClientRect` produced a
+  table), and **rendering at 375/430px is not coverage** — both bugs lived outside that range.
+  `portrait-first` makes phone primary; it does not make phone the only thing worth checking.
+- **One thing I overstated.** SPEC-102's option preview promised "no scrolling at any height". The
+  real behaviour is no scrolling to ~530px, then a readability floor. An option's preview is a
+  commitment; that one overstated by omission and is corrected in the spec.
+- **Carried forward, none started:** the winning paw-print change (requested early in the stage and
+  genuinely not done), the watermark rollout decision for the other five machines, no sound on
+  iPhone (parked `src/ui/audio/**`, needs an explicit go), and header button polish → STAGE-022.

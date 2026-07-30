@@ -86,8 +86,13 @@ Six machines now exist and each has its own palette; this is the wave that lets 
 
 - [x] STAGE-020 (shipped 2026-07-29) — **Cabinet chrome + switcher**: SPEC-092 (framing +
   proportions), SPEC-093 (switcher arrows + marquee). DEC-028.
+- [x] STAGE-021 (shipped 2026-07-29) — **Naming + header layout**: SPEC-095…102. Planned as two
+  specs, shipped as eight (incl. two bug fixes for defects the work introduced) — every addition
+  came from the owner using the previous result on a device we had not tested.
+- [ ] STAGE-022 (active) — **Header controls polish**: SPEC-103. The four icon triggers are the last
+  unstyled part of the cabinet.
 
-**Count:** 1 shipped / 0 active / 0 pending
+**Count:** 2 shipped / 1 active / 0 pending
 
 The project stays **active**: the roadmap below holds real, owner-originated work (the picker
 sheet, and a possible chrome revisit). It is between stages, not finished.
