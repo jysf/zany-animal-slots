@@ -109,7 +109,19 @@
 
 /* The icon-only action triggers keep their ≥44px square footprint and never shrink (SPEC-068), and
  * render their emoji at a clear, consistent size (SPEC-071 — they were left at the small text-label
- * font-size after SPEC-068 iconified them, so the glyphs, esp. the detailed 💰, were barely visible). */
+ * font-size after SPEC-068 iconified them, so the glyphs, esp. the detailed 💰, were barely visible).
+ *
+ * SPEC-103: they are also restyled HERE rather than in their four own stylesheets. Each trigger
+ * carries a near-identical rule (transparent background, 1px --color-text-muted border) duplicated
+ * across audio.css / paytable.css / stats.css / help.css, which is why they read as four generic
+ * outlined boxes under an otherwise-styled cabinet. Styling from the header side:
+ *   - keeps `src/ui/audio/audio.css` untouched (the audio directory is parked), and
+ *   - puts the header's treatment in ONE place instead of four,
+ * while leaving each component's standalone appearance alone for any other context.
+ *
+ * The treatment joins DEC-028's existing depth language rather than inventing a fifth one: these
+ * become recessed KEYS set into the cabinet face — dark well fill, the machine's own bezel colour,
+ * and the same --shadow-well as the reel window and readout. */
 .cabinet__header-controls .mute-toggle,
 .cabinet__header-controls .paytable__trigger,
 .cabinet__header-controls .stats__trigger,
@@ -117,6 +129,32 @@
   flex: 0 0 auto;
   font-size: var(--font-size-lg);
   line-height: 1;
+
+  background-color: var(--color-bg);
+  border: var(--bezel-width-thin) solid var(--color-frame);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-well);
+}
+
+/* Hover / keyboard focus: the key lights up at its edge. Colour only — no transform, so nothing
+ * moves and `respect-reduced-motion` stays satisfied by construction. */
+.cabinet__header-controls .mute-toggle:hover,
+.cabinet__header-controls .paytable__trigger:hover,
+.cabinet__header-controls .stats__trigger:hover,
+.cabinet__header-controls .help__trigger:hover,
+.cabinet__header-controls .mute-toggle:focus-visible,
+.cabinet__header-controls .paytable__trigger:focus-visible,
+.cabinet__header-controls .stats__trigger:focus-visible,
+.cabinet__header-controls .help__trigger:focus-visible {
+  border-color: var(--color-accent);
+}
+
+/* Pressed: the well deepens. Again colour/shadow only. */
+.cabinet__header-controls .mute-toggle:active,
+.cabinet__header-controls .paytable__trigger:active,
+.cabinet__header-controls .stats__trigger:active,
+.cabinet__header-controls .help__trigger:active {
+  background-color: var(--color-jackpot-sky);
 }
 
 /* ─── Win banner band (SPEC-019, repositioned) ──────────────────────────────── */
