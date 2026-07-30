@@ -89,10 +89,12 @@ Six machines now exist and each has its own palette; this is the wave that lets 
 - [x] STAGE-021 (shipped 2026-07-29) — **Naming + header layout**: SPEC-095…102. Planned as two
   specs, shipped as eight (incl. two bug fixes for defects the work introduced) — every addition
   came from the owner using the previous result on a device we had not tested.
-- [ ] STAGE-022 (active) — **Header controls polish**: SPEC-103. The four icon triggers are the last
-  unstyled part of the cabinet.
+- [x] STAGE-022 (shipped 2026-07-29) — **Header controls polish**: SPEC-103. One spec, as scoped.
 
-**Count:** 2 shipped / 1 active / 0 pending
+**Count:** 3 shipped / 0 active / 0 pending
+
+The project stays **active**: the roadmap below still holds owner-originated work. It is between
+stages, not finished.
 
 The project stays **active**: the roadmap below holds real, owner-originated work (the picker
 sheet, and a possible chrome revisit). It is between stages, not finished.
@@ -105,6 +107,15 @@ sheet, and a possible chrome revisit). It is between stages, not finished.
   The token layer added in DEC-028 supports going heavier **without restructuring** — it is a
   CSS-only revisit whenever they want it. Worth asking what specifically reads flat before
   spending: a named complaint is a far cheaper pass than guessing.
+- **The winning paw-print** — move it off-centre and give it a colour that contrasts the cell.
+  Requested during STAGE-021 and **still not started**; it is the oldest open request in this
+  project. The monochrome technique proved in SPEC-098 is exactly what it needs, since the paw is
+  also an emoji (`🐾`) and so ignores `color`.
+- **Watermark rollout** — SPEC-098's watermark is enabled on Whimsy only, pending the owner's
+  verdict after living with it. Each additional machine is a one-line `pattern: true`.
+- **No sound on iPhone** — owner-reported. The game is muted by default (DEC-025) and iOS routes
+  Web Audio through the ringer switch, so it may not be a defect at all. Any real fix lands in
+  **parked `src/ui/audio/**`** and needs an explicit go.
 - **Machine picker sheet** (SPEC-094, planned not built) — tap the machine name to open a sheet
   listing all six with their palettes and reel symbols, like the existing Paytable/Stats sheets.
   The owner explicitly asked to *plan* for this while shipping the arrows first. It becomes the

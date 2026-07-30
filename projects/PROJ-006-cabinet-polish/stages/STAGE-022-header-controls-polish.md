@@ -1,7 +1,7 @@
 ---
 stage:
   id: STAGE-022
-  status: active
+  status: shipped
   priority: medium
   target_complete: null
 project:
@@ -9,7 +9,7 @@ project:
 repo:
   id: animal-slots
 created_at: 2026-07-29
-shipped_at: null
+shipped_at: 2026-07-29
 value_contribution:
   advances: "The header's icon row is the last part of the cabinet that still looks unstyled."
   delivers:
@@ -42,9 +42,9 @@ owner reaction fed the next spec. Rather than let that continue, this starts cle
   desktop window (the gap STAGE-021's two bugs both hid in).
 
 ## Spec Backlog
-- [ ] SPEC-103 (design) — Header control row visual treatment.
+- [x] SPEC-103 (shipped 2026-07-29) — Header control row visual treatment. PR #116.
 
-**Count:** 0 shipped / 1 active / 0 pending
+**Count:** 1 shipped / 0 active / 0 pending
 
 ## Design Notes
 
@@ -62,4 +62,30 @@ renders. Check a short desktop window and at least Whimsy + Diner + Arctic.
 - STAGE-020, STAGE-021 (both shipped) — the framing language and layout this must match.
 
 ## Stage-Level Reflection
-*Filled in when status moves to shipped.*
+
+*Shipped 2026-07-29. One spec, as scoped — which was the entire point.*
+
+- **Did we deliver the outcome?** Yes. The four header triggers now read as recessed keys in the
+  cabinet's existing depth language, with each machine's own bezel colour and no per-machine code.
+- **How many specs did it take?** **One, against a planned one.** Deliberately noted: the previous
+  stage was scoped for two and absorbed eight. Opening a fresh stage for a single concern, shipping
+  it, and closing it the same session is the corrective, and it worked.
+- **The useful diagnosis.** "These look unstyled" meant "these are styled four times, identically,
+  by default" — the same rule copy-pasted across four component stylesheets. The duplication was
+  the cause, not a side detail. When sibling controls look generic, check for a copied rule before
+  reaching for a new visual idea.
+- **A constraint that improved the design.** `src/ui/audio/**` is parked, and the mute toggle's
+  styling lives there. Being unable to touch it forced styling from the *parent* (the grouped
+  selector in `regions.css`) — which is also the better answer: one place instead of four, and each
+  component keeps its standalone appearance. The restriction produced a cleaner result than free
+  rein would have.
+- **Verification habit stuck.** Both of STAGE-021's bugs hid outside the 375/430px renders, so this
+  stage checked a short desktop window as routine rather than as a special case. Clipping 0, Spin
+  above the fold, keys measured 48×48.
+- **Not fixed, only bypassed.** The four components still each carry the old transparent style for
+  use outside the header. A fifth trigger would arrive with the same copied rule and look wrong
+  until added to the grouped selector; a shared `.icon-trigger` class is the real fix and would
+  have to touch the parked `audio.css`.
+- **Carried forward, none started:** the winning paw-print change (now the oldest open request), the
+  watermark rollout decision for the other five machines, and no sound on iPhone (parked audio,
+  needs an explicit go).
