@@ -26,7 +26,21 @@
 
   /* Fill the cabinet__game region; centered by the parent flex container. */
   width: 100%;
-  max-width: 400px;
+  /*
+   * SPEC-102: the reel window is sized by AVAILABLE HEIGHT as well as width.
+   *
+   * Cells are `aspect-ratio: 1` in five 1fr columns, so the grid's height is a function of its
+   * width — which means capping the width is the only way to cap the height. The cabinet is
+   * content-sized (SPEC-092), so without this nothing in it responds to viewport height and a
+   * short window just scrolls (owner: "if I shrink the screen it doesn't adjust and I need to
+   * scroll").
+   *
+   * The formula: 5/3 converts an available height back into the width that produces it (5 columns
+   * over 3 rows). `--reel-chrome` is everything else in the cabinet — header, bands, readout,
+   * deck, footer — measured after the trims below. The max() is a floor so a very short window
+   * degrades to a small-but-usable grid rather than an absurd one.
+   */
+  max-width: min(400px, max(200px, calc((100dvh - var(--reel-chrome)) * 5 / 3)));
 
   background-color: var(--color-bg);
   border: var(--bezel-width) solid var(--color-frame);

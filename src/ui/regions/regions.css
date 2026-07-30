@@ -243,3 +243,13 @@
   padding: var(--space-1) var(--space-3);
   background-color: var(--color-surface);
 }
+
+/* SPEC-102: short-viewport trims — see tokens.css for why the win band's floor is 40px. */
+@media (max-height: 760px) {
+  .cabinet__header { padding-block: var(--space-2); }
+  .cabinet__winbanner { min-height: var(--space-6); }
+  .cabinet__game { padding-block: var(--space-4); }
+  .cabinet__status { margin-block: var(--space-1); }
+  .cabinet__action { padding-block: var(--space-2); }
+  .cabinet__footer { padding-block: var(--space-0); }
+}
