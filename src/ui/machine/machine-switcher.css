@@ -32,9 +32,13 @@
   min-height: var(--space-7);   /* 3rem = 48px */
   min-width: var(--space-7);
 
-  background: transparent;
-  border: var(--bezel-width-thin) solid var(--color-text-muted);
+  /* SPEC-103: same recessed-key treatment as the header triggers, for the same reason — these are
+   * the cabinet's other pair of outlined icon buttons, and leaving them on the old
+   * transparent/muted style would have replaced one inconsistency with another. */
+  background-color: var(--color-bg);
+  border: var(--bezel-width-thin) solid var(--color-frame);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-well);
   color: var(--color-text-muted);
   font-family: var(--font-family-body);
   /* Match the icon triggers' glyph size (SPEC-071) so the header row reads as one family. */
@@ -48,7 +52,11 @@
 .machine-switcher__arrow:hover,
 .machine-switcher__arrow:focus-visible {
   color: var(--color-text);
-  border-color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.machine-switcher__arrow:active {
+  background-color: var(--color-jackpot-sky);
 }
 
 /* The name shrinks (and truncates) but does NOT grow: the arrows stay tucked against the name as
