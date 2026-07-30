@@ -123,6 +123,25 @@
    * of the token rather than five rules that have to be kept in sync by hand. Overridden wider
    * on desktop, where the frame's larger corner radius needs more clearance (SPEC-099). */
   --band-inset: var(--space-3);
+
+  /* SPEC-102: the cabinet's non-reel height (header + bands + readout + switcher + deck + footer).
+   * Used to derive how much height the reel window may take. Measured, not guessed — and it
+   * shrinks with the short-viewport trims below, so it is overridden there rather than hard-coded
+   * in one place. */
+  --reel-chrome: 465px;
+}
+
+/*
+ * SPEC-102: short-viewport trims. Recovers ~80px of cabinet chrome so the machine fits shorter
+ * windows before the reels have to shrink at all. The win band's floor is the win badge's MEASURED
+ * intrinsic height (39px) — below that a win would shift the reels, which SPEC-019 exists to
+ * prevent, so --space-6 (40px) is as tight as it can safely go.
+ */
+@media (max-height: 760px) {
+  :root {
+    --band-inset: var(--space-2);
+    --reel-chrome: 385px;
+  }
 }
 
 /* ─── Bezel tokens (SPEC-092) ───────────────────────────────────────────────── */

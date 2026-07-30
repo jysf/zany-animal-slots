@@ -23,6 +23,10 @@
   justify-content: space-between;
 }
 
+@media (max-height: 760px) {
+  .machine-switcher { padding-block: var(--space-1); }   /* SPEC-102 */
+}
+
 .machine-switcher__arrow {
   /* ≥44px hit area (constraint: touch-targets-44). */
   min-height: var(--space-7);   /* 3rem = 48px */
