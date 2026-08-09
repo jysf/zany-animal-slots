@@ -80,15 +80,32 @@
 /* Containing block for the absolutely-positioned paw overlay. */
 .reel__cell { position: relative; }
 
-/* Paw overlay: centered over the cell, decorative (pointer-events/aria-hidden). */
+/*
+ * Paw overlay — the winning-cell marker. Decorative (pointer-events/aria-hidden).
+ *
+ * SPEC-105: was centred at `inset: 0` and full-colour, which sat the 🐾 directly ON TOP of the
+ * symbol you just won with — obscuring the thing the celebration is about. Now tucked into the
+ * bottom-right corner and rendered as a flat, contrasting silhouette.
+ *
+ * The colour uses the same technique as the watermark (SPEC-098): an emoji ignores `color`, so
+ * `color: transparent` + a zero-blur `text-shadow` paints its silhouette in a token instead.
+ * --color-jackpot is the lightest token in every machine's palette, so the paw contrasts hard
+ * against the cell's --color-surface fill on all six — the "colour that contrasts the background"
+ * the owner asked for, per-machine and for free.
+ */
 .reel__paw {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-xl);
-  opacity: 0.85;               /* final visible state; also the reduced-motion state */
+  /* Bottom-right corner, clear of the symbol (SPEC-105). */
+  inset: auto var(--space-1) var(--space-1) auto;
+  display: block;
+
+  font-size: var(--font-size-lg);
+  /* >1 so the emoji's ink box isn't shaved — the lesson from SPEC-101. */
+  line-height: 1.4;
+  color: transparent;
+  text-shadow: 0 0 0 var(--color-jackpot);
+
+  opacity: 0.95;               /* final visible state; also the reduced-motion state */
   pointer-events: none;
   z-index: 5;
   animation: paw-trail-pop 0.3s ease-out calc(var(--reel-index, 0) * 0.12s) both;
@@ -97,8 +114,8 @@
 /* Pop-in keyframe: scale + opacity, GPU-composited (DEC-004, perf-60fps). */
 @keyframes paw-trail-pop {
   0%   { transform: scale(0.3);  opacity: 0;    }
-  60%  { transform: scale(1.15); opacity: 0.9;  }
-  100% { transform: scale(1);    opacity: 0.85; }
+  60%  { transform: scale(1.15); opacity: 1;    }
+  100% { transform: scale(1);    opacity: 0.95; }
 }
 
 /* ─── Winning-cell highlight (SPEC-018) ─────────────────────────────────────── */
