@@ -73,6 +73,7 @@ export const DESERT: Machine = {
   name: 'Desert',
   math: DESERT_MATH,
   presentation: {
+    pattern: true,   // SPEC-104: rolled out to every machine
     symbolDisplay: DESERT_SYMBOLS, // per-machine arid identity (DEC-021; supersedes DEC-018 symbol clause)
     // Warm sand/amber palette (runtime overrides of tokens.css). All pairs pass WCAG AA
     // (text-on-bg 15.76:1). Applied on the .device-stage root by useMachineTheme (SPEC-048).

@@ -79,6 +79,7 @@ export const DINER: Machine = {
   name: 'Diner',
   math: DINER_MATH,
   presentation: {
+    pattern: true,   // SPEC-104: rolled out to every machine
     symbolDisplay: DINER_SYMBOLS,
     // Warm amber/red diner palette (runtime overrides of tokens.css). Applied on the
     // .device-stage root by useMachineTheme (SPEC-048). Text-on-bg 16.78:1 (WCAG AAA); every
