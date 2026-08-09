@@ -73,6 +73,7 @@ export const ARCTIC: Machine = {
   name: 'Arctic',
   math: ARCTIC_MATH,
   presentation: {
+    pattern: true,   // SPEC-104: rolled out to every machine
     symbolDisplay: ARCTIC_SYMBOLS, // per-machine polar identity (DEC-021; supersedes DEC-017 symbol clause)
     // Cool-blue icy palette (runtime overrides of tokens.css). All pairs pass WCAG AA
     // (text-on-bg 16.4:1). Applied on the .device-stage root by useMachineTheme (SPEC-048).

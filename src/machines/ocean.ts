@@ -73,6 +73,7 @@ export const OCEAN: Machine = {
   name: 'Ocean',
   math: OCEAN_MATH,
   presentation: {
+    pattern: true,   // SPEC-104: rolled out to every machine
     symbolDisplay: OCEAN_SYMBOLS, // per-machine marine identity (DEC-021; supersedes DEC-019 symbol clause)
     // Teal/deep-blue ocean palette (runtime overrides of tokens.css). Text-on-bg 16.14:1 (WCAG AA);
     // every foreground pair ≥ 7.29:1. Applied on the .device-stage root by useMachineTheme (SPEC-048).

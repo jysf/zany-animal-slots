@@ -76,6 +76,7 @@ export const FARM: Machine = {
   name: 'Farm',
   math: FARM_MATH,
   presentation: {
+    pattern: true,   // SPEC-104: rolled out to every machine
     symbolDisplay: FARM_SYMBOLS,
     // Green/earthy barnyard palette (runtime overrides of tokens.css). Applied on the
     // .device-stage root by useMachineTheme (SPEC-048). Contrast verified (see DEC-026).
