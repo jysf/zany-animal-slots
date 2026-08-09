@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- AUDIO SPIKE demo page (NOT production). Dev-only: open /audio-spike.html.
+     Delete this + src/ui/audio/_spike/ when the spike is closed out. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Spike — A/B</title>
+    <style>
+      body { font-family: system-ui, sans-serif; background: #14110f; color: #f4efe9; margin: 0; padding: 2rem; }
+      h1 { font-size: 1.4rem; }
+      .note { opacity: 0.7; max-width: 46rem; line-height: 1.5; }
+      .row { margin: 1.6rem 0; padding: 1rem 1.2rem; background: #211c18; border-radius: 12px; }
+      h2 { font-size: 1rem; margin: 0 0 0.7rem; }
+      .bar { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+      button { font-size: 0.95rem; padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid #4a4038;
+               background: #2f2822; color: #f4efe9; cursor: pointer; }
+      button:hover { background: #3b332b; }
+    </style>
+  </head>
+  <body>
+    <h1>🔊 Audio Spike — current vs retuned (synth-only)</h1>
+    <p class="note">
+      Click a button (first click unlocks audio). Both sides are 100% synthesized — no asset files.
+      The RETUNED side adds a shared reverb + low-pass bus, warmer voices with real envelopes, and a
+      bed that swells &amp; breathes instead of re-attacking the same chord every 2 measures. This is a
+      throwaway probe, not shipped audio.
+    </p>
+    <div id="app"></div>
+    <script type="module" src="/src/ui/audio/_spike/spikeDemo.ts"></script>
+  </body>
+</html>
