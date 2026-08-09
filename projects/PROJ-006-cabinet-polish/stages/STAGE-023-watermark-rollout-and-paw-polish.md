@@ -1,7 +1,7 @@
 ---
 stage:
   id: STAGE-023
-  status: active
+  status: shipped
   priority: medium
   target_complete: null
 project:
@@ -9,7 +9,7 @@ project:
 repo:
   id: animal-slots
 created_at: 2026-07-29
-shipped_at: null
+shipped_at: 2026-07-29
 value_contribution:
   advances: "Finishes the two visual items still open, so the project can close without known-ugly bits."
   delivers:
@@ -37,10 +37,10 @@ thesis is "the cabinet looks finished" while a known-ugly element remains would 
 - Full gate green; no `src/engine/**` diff; `src/ui/audio/**` untouched.
 
 ## Spec Backlog
-- [ ] SPEC-104 (design) — Watermark rollout to all six machines.
-- [ ] SPEC-105 (design) — Winning paw-print: off-centre + contrasting colour.
+- [x] SPEC-104 (shipped 2026-07-29) — Watermark rollout to all six machines. PR #118.
+- [x] SPEC-105 (shipped 2026-07-29) — Winning paw-print: off-centre + contrasting colour. PR #119.
 
-**Count:** 0 shipped / 2 active / 0 pending
+**Count:** 2 shipped / 0 active / 0 pending
 
 ## Design Notes
 
@@ -59,4 +59,21 @@ and is the one to eyeball rather than trust the number.
 - STAGE-021 (shipped) — SPEC-098/100/101 built and fixed the watermark this rolls out.
 
 ## Stage-Level Reflection
-*Filled in when status moves to shipped.*
+
+*Shipped 2026-07-29. Two specs, as scoped — the second stage running to plan after STAGE-021.*
+
+- **Did we deliver?** Yes. The watermark is on all six machines and the paw-print no longer covers
+  the symbol it is celebrating. Both were owner calls made after living with shipped results.
+- **Cheap because of earlier discipline.** SPEC-104 was **five lines** — the per-machine opt-in flag
+  from SPEC-098 meant "trial on one" and "roll out to all" were the same mechanism. SPEC-105 reused
+  the monochrome-emoji technique and the ink-box slack from SPEC-098/101 without rediscovering
+  either. Writing lessons into specs rather than just fixing paid for itself twice in one stage.
+- **The paw diagnosis is the transferable bit.** "Doesn't look good" was a symptom; the mechanism
+  was that a full-colour marker sat on top of the symbol it celebrated. Recolouring alone would
+  have shipped a prettier version of the same mistake.
+- **A process failure worth recording.** PR #118 (SPEC-104) was cut from a local `main` that
+  carried two unpushed `chore:` commits, so its squash also committed the audio spike, idea notes,
+  and report snapshots — ~30 unrelated files inside a PR titled "roll out the watermark". Content
+  was the owner's and intended for `main`; the history is what suffered. Root cause: branching
+  without verifying local `main` matched `origin`. Fixed going forward by branching from
+  `origin/main` explicitly.

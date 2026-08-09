@@ -7,6 +7,43 @@ What changed in **the game**, newest first, written for the people who play it.
 
 ---
 
+## 2026-07-29 — The Cabinet
+
+**The game finally looks like a machine.**
+
+Everything you play with is the same — same six machines, same odds, same balance and trophies.
+This release is about the thing they all sit inside, which until now was closer to a wireframe
+than a slot cabinet.
+
+### What's new
+
+- **A real cabinet.** The reels now sit in a recessed, bezelled window cut into a lit machine face,
+  with the balance readout as its own inset display panel and the buttons on a raised control deck.
+  Every machine's chrome is coloured to match its own theme — Ocean's is teal, Farm's is green,
+  Diner's is warm amber.
+- **No more floating in space.** The machine used to sit in a large empty void on tall screens.
+  It's now a single unit that fills the screen properly, and it **resizes to fit shorter windows**
+  instead of pushing the Spin button off the bottom.
+- **A pattern behind the reels.** Each machine shows a faint watermark of its *own* creatures —
+  barnyard animals on Farm, sea life on Ocean, food on Diner.
+- **Switching machines is easier.** The cramped dropdown is gone. There are now **◀ ▶ arrows** with
+  the machine's name between them, sitting right above the Spin button, so you can always see which
+  machine you're on. Arrow keys work too.
+- **"Wild & Whimsical" is now just "Whimsy."** Same machine, same reels, same everything — the old
+  name was too long to fit on a phone.
+- **The win paw-prints moved.** They used to land on top of the symbol you'd just won with. Now
+  they sit in the corner so you can actually see the winning symbols.
+
+### What did NOT change
+
+- **Your balance, your record, and your trophies are all untouched.** Renaming a machine changed
+  only its label, never its identity, so every trophy still remembers exactly where it was won.
+- **No machine's odds changed.** Not one payout, weight, or jackpot rule moved in this release.
+
+*Under the hood: SPEC-092 through SPEC-105.*
+
+---
+
 ## 2026-07-25 — Two New Machines
 
 **Two more machines to play, and they feel genuinely different from each other.**
