@@ -1,7 +1,7 @@
 ---
 project:
   id: PROJ-006
-  status: active
+  status: shipped
   priority: medium
   target_ship: null
 
@@ -9,7 +9,7 @@ repo:
   id: animal-slots
 
 created_at: 2026-07-29
-shipped_at: null
+shipped_at: 2026-07-29
 
 value:
   thesis: >-
@@ -90,38 +90,38 @@ Six machines now exist and each has its own palette; this is the wave that lets 
   specs, shipped as eight (incl. two bug fixes for defects the work introduced) — every addition
   came from the owner using the previous result on a device we had not tested.
 - [x] STAGE-022 (shipped 2026-07-29) — **Header controls polish**: SPEC-103. One spec, as scoped.
+- [x] STAGE-023 (shipped 2026-07-29) — **Watermark rollout + paw polish**: SPEC-104, SPEC-105.
 
-**Count:** 3 shipped / 0 active / 0 pending
-
-The project stays **active**: the roadmap below still holds owner-originated work. It is between
-stages, not finished.
+**Count:** 4 shipped / 0 active / 0 pending
 
 The project stays **active**: the roadmap below holds real, owner-originated work (the picker
 sheet, and a possible chrome revisit). It is between stages, not finished.
 
-## Roadmap (deferred)
+## Roadmap — resolved at project ship
 
-- **A heavier chrome pass.** The owner's verdict on SPEC-092's framing was *"could be nicer, but I
-  think this is ok"* — a pass, not a win. They chose restraint over the "full arcade cabinet"
-  option (thick dual-tone bevels, pronounced emboss, a marquee header treatment) when offered it.
-  The token layer added in DEC-028 supports going heavier **without restructuring** — it is a
-  CSS-only revisit whenever they want it. Worth asking what specifically reads flat before
-  spending: a named complaint is a far cheaper pass than guessing.
-- **The winning paw-print** — move it off-centre and give it a colour that contrasts the cell.
-  Requested during STAGE-021 and **still not started**; it is the oldest open request in this
-  project. The monochrome technique proved in SPEC-098 is exactly what it needs, since the paw is
-  also an emoji (`🐾`) and so ignores `color`.
-- **Watermark rollout** — SPEC-098's watermark is enabled on Whimsy only, pending the owner's
-  verdict after living with it. Each additional machine is a one-line `pattern: true`.
-- **No sound on iPhone** — owner-reported. The game is muted by default (DEC-025) and iOS routes
-  Web Audio through the ringer switch, so it may not be a defect at all. Any real fix lands in
-  **parked `src/ui/audio/**`** and needs an explicit go.
-- **Machine picker sheet** (SPEC-094, planned not built) — tap the machine name to open a sheet
-  listing all six with their palettes and reel symbols, like the existing Paytable/Stats sheets.
-  The owner explicitly asked to *plan* for this while shipping the arrows first. It becomes the
-  right answer once the roster outgrows comfortable stepping (~8+ machines) or once players want
-  random access rather than browsing. Arrows and a picker are not exclusive — the sheet would open
-  *from* the marquee name the arrows sit either side of.
+Every item that was deferred during this project, and where it ended up. Nothing is left dangling.
+
+**Done in this project:**
+- ~~**The winning paw-print**~~ — shipped as SPEC-105.
+- ~~**Watermark rollout**~~ — shipped as SPEC-104; all six machines.
+
+**Carried to a future project (NOT this one's debt):**
+- **No sound on iPhone** — owner-reported, owner-deferred: *"maybe that goes for the backlog and
+  done in the next proj."* Likely not a defect at all: the game is muted by default (DEC-025) and
+  iOS routes Web Audio through the ringer switch, so both the mute toggle and the physical silent
+  switch have to be right before anything plays. A real fix lands in **parked `src/ui/audio/**`**
+  and needs an explicit go, which makes it a natural fit for whatever project un-parks audio.
+- **Machine picker sheet** (SPEC-094 — number reserved, never built) — tap the machine name to open
+  a sheet listing all six. Deliberately deferred at the outset and still correct to defer: the
+  arrows work well at six machines. **Trigger conditions:** the roster reaching ~8+, or players
+  wanting random access rather than browsing. SPEC-093 sharpened *why* it matters — replacing the
+  `<select>` cost random access, which wrap-around softens but does not restore.
+
+**Closed as accepted, not deferred:**
+- **A heavier "arcade cabinet" chrome pass.** Offered and declined; the owner's verdict on the
+  shipped framing was *"could be nicer, but I think this is ok."* That is a pass rather than a win,
+  and the DEC-028 token layer would support going heavier without restructuring — but it is not
+  outstanding work. Reopen only on a specific, named complaint; guessing at "nicer" is expensive.
 
 ## Dependencies
 
@@ -134,4 +134,48 @@ sheet, and a possible chrome revisit). It is between stages, not finished.
 
 ## Project-Level Reflection
 
-*Filled in when status moves to shipped.*
+*Shipped 2026-07-29. Four stages, 14 specs, one DEC, ~19 PRs — all in a single working session.*
+
+- **Did the thesis hold?** Yes. The claim was that the cabinet "still looks like a wireframe" and
+  that token-driven framing could fix it across all six palettes. It did: shell → face → recessed
+  wells, driven entirely by tokens the machines already defined, so **every machine got its own
+  chrome with zero per-machine code**. The watermark rollout later proved the same point again —
+  five lines for five machines.
+- **The `risks_to_thesis` were right, and one of them dominated.** The brief predicted "'nicer'
+  can't be asserted by a test, so this project leans on real renders and the owner's eye more than
+  any prior one." That is exactly what happened, and more so than expected: **the owner's device
+  testing found things no amount of local verification would have.** Two bugs, several taste
+  corrections, and three reversed decisions all came from them using shipped results.
+- **Two bugs, both mine, both invisible to a 1038-test suite:**
+  - **SPEC-099** — `overflow: hidden` plus a stale `max-height` made the **Spin button unreachable**
+    on desktop windows under ~795px tall. The game was unplayable there.
+  - **SPEC-101** — `flex-wrap` made a decorative row count depend on width, slicing 12-of-36 glyphs.
+  Both lived *outside* the 375/430px range the project had been verifying. `portrait-first` makes
+  phone primary; it does not make phone the only thing worth checking. That is the single most
+  useful thing this project learned.
+- **The verification lesson, in its final form.** STAGE-020 concluded "the render is the test."
+  STAGE-021 sharpened it: **the render finds visual bugs; the DOM measures them** — SPEC-097's four
+  conflicting band edges were invisible until `getBoundingClientRect()` produced a table, and
+  SPEC-098's watermark rendered *perfectly* while being 100% invisible behind the reel window.
+  A thing can be correct and unseeable; measure before concluding.
+- **Where I overstated.** SPEC-102's option preview promised "no scrolling at any height"; the real
+  behaviour is no scrolling to ~530px, then a readability floor. An option's preview is a
+  commitment, and that one overstated by omission.
+- **A process failure worth recording.** PR #118 was branched from a local `main` carrying two
+  unpushed `chore:` commits, so its squash also committed the audio spike, idea notes, and report
+  snapshots — ~30 unrelated files inside a PR titled "roll out the watermark". The content was the
+  owner's and destined for `main`, so nothing foreign landed, but the history is misleading and it
+  silently broke `one-spec-per-pr`. Owner chose to leave it and record the note rather than churn
+  three PRs to unpick it. Root cause: branching without checking local `main` against `origin`.
+- **Long-standing debt discharged.** The real-iPhone Safari check has been open since PROJ-003 and
+  is now genuinely done — the owner tested Safari, Chrome iOS, and DuckDuckGo/macOS. The
+  monochrome-emoji technique is confirmed working on real iOS Safari, which had been flagged as
+  unverified.
+- **Maintenance hazard left behind, deliberately.** `--reel-chrome` hard-codes a measurement of the
+  cabinet's non-reel height. Any future band added or resized makes the height math stale — a
+  graceful failure (slightly wrong reel size, not breakage), but it must be re-measured by whatever
+  spec next changes cabinet structure. A `ResizeObserver` would be self-maintaining at the cost of
+  runtime and a DOM dependency for something CSS currently expresses.
+- **Stage sizing.** STAGE-021 was scoped for two specs and absorbed eight. The corrective — close
+  the stage, open a fresh one per concern — was applied from STAGE-022 onward and held: 1, then 2
+  specs, both to plan.
