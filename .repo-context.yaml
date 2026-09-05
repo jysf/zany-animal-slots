@@ -12,7 +12,7 @@ metadata:
   repo:
     id: animal-slots
     name: "Animal Slots"
-    purpose: "A play-money, mobile-first web slot game themed on North American wildlife, built so game logic is cleanly separable from presentation."
+    purpose: "A play-money, mobile-first web slot game across six themed machines, built so game logic is cleanly separable from presentation and a machine is config data, not code."
     url: "github.com/jysf/zany-animal-slots"
 
   business:
@@ -26,8 +26,8 @@ spec:
     language: "typescript"            # strict
     runtime: "node-20"
     framework: "react-18-vite"
-    database: "none"                  # client-only SPA; balance + mute in localStorage
-    hosting: "cloudflare-pages"       # static SPA, deployed via CI on merge (STAGE-006; DEC-008)
+    database: "none"                  # client-only SPA; all state in localStorage (see docs/data-model.md)
+    hosting: "cloudflare-workers-static-assets"   # static SPA via `wrangler deploy` (DEC-014, supersedes DEC-008)
 
   # Standard paths; do not change without also updating AGENTS.md.
   paths:
