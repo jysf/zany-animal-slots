@@ -10,6 +10,18 @@ require_initialized
 VARIANT=$(get_variant)
 ACTIVE_PROJECT=$(get_active_project)
 ACTIVE_PROJECT_DIR="${REPO_ROOT}/projects/${ACTIVE_PROJECT}"
+# Whether ACTIVE_PROJECT is a real answer or the lowest-numbered fallback. The
+# rest of this report still enumerates the fallback dir (there is nothing else
+# to show); only the label changes, so we never claim a shipped project is active.
+ACTIVE_PROJECT_RESOLUTION=$(get_active_project_resolution)
+case "$ACTIVE_PROJECT_RESOLUTION" in
+    none-active)
+        ACTIVE_PROJECT_LABEL="none ${DIM}(no project at status: active — showing ${ACTIVE_PROJECT})${RESET}" ;;
+    multiple-active)
+        ACTIVE_PROJECT_LABEL="${YELLOW}ambiguous${RESET} ${DIM}(several projects at status: active — showing ${ACTIVE_PROJECT})${RESET}" ;;
+    *)
+        ACTIVE_PROJECT_LABEL="${ACTIVE_PROJECT}" ;;
+esac
 
 # --- JSON output (DEC-001 §2) ------------------------------------------------
 if [ "$(has_json_flag "$@")" = 1 ]; then
@@ -51,6 +63,7 @@ if [ "$(has_json_flag "$@")" = 1 ]; then
     data=$(json_obj \
         variant "$(json_qs "$VARIANT")" \
         active_project "$(json_qs "$ACTIVE_PROJECT")" \
+        active_project_resolution "$(json_qs "$ACTIVE_PROJECT_RESOLUTION")" \
         specs "$specs_arr" \
         missing_cost_specs "$missing_arr" \
         summary "$summary")
@@ -61,7 +74,7 @@ fi
 echo "${BOLD}Repo status${RESET}"
 echo ""
 echo "  Variant:         ${VARIANT}"
-echo "  Active project:  ${ACTIVE_PROJECT}"
+echo "  Active project:  ${ACTIVE_PROJECT_LABEL}"
 echo ""
 
 # --- All projects ---
@@ -81,7 +94,12 @@ for p in "${REPO_ROOT}"/projects/PROJ-*; do
         ' "$brief" 2>/dev/null || echo "unknown")
     fi
     marker=" "
-    if [ "$pname" = "$ACTIVE_PROJECT" ]; then marker="${GREEN}*${RESET}"; fi
+    # Only mark a project active when that is a real answer — never on a fallback,
+    # where the row is usually a long-shipped project.
+    case "$ACTIVE_PROJECT_RESOLUTION" in
+        none-active|multiple-active) ;;
+        *) if [ "$pname" = "$ACTIVE_PROJECT" ]; then marker="${GREEN}*${RESET}"; fi ;;
+    esac
     printf "  %s %-40s  status: %s\n" "$marker" "$pname" "$status"
 done
 echo ""

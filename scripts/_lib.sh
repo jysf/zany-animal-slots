@@ -6,6 +6,12 @@ set -euo pipefail
 
 REPO_ROOT="$(pwd)"
 
+# Snapshot the caller's ACTIVE_PROJECT override at source time. Scripts routinely
+# do `ACTIVE_PROJECT=$(get_active_project)`, and without this snapshot a later
+# resolution query would see that self-assignment and mistake it for a user
+# override — reporting "env" when nothing was overridden.
+ACTIVE_PROJECT_ENV="${ACTIVE_PROJECT:-}"
+
 # Colors (fall back to no-op if terminal doesn't support color).
 if [ -t 1 ] && command -v tput >/dev/null 2>&1; then
     BOLD=$(tput bold 2>/dev/null || printf '')
@@ -71,27 +77,26 @@ get_project_status() {
     ' "$1"
 }
 
-get_active_project() {
-    if [ -n "${ACTIVE_PROJECT:-}" ]; then
-        echo "${ACTIVE_PROJECT}"
-        return
-    fi
-    # Candidate PROJ-* dirs (non-example), sorted; fall back to example only if nothing else.
+# Candidate PROJ-* dirs (non-example), sorted; fall back to example dirs only if
+# nothing else exists. Echoes a possibly-empty list — callers decide whether
+# empty is fatal (do NOT die here: this runs inside command substitution, where
+# an exit would only kill the nested subshell and silently yield "").
+_project_candidates() {
     local list
     list=$(find "${REPO_ROOT}/projects" -maxdepth 1 -type d -name "PROJ-*" 2>/dev/null \
            | grep -v "example" | sort)
     if [ -z "$list" ]; then
         list=$(find "${REPO_ROOT}/projects" -maxdepth 1 -type d -name "PROJ-*" 2>/dev/null | sort)
     fi
-    if [ -z "$list" ]; then
-        die "No projects found in ./projects/. Create one by copying projects/_templates/project-brief.md into projects/PROJ-NNN-<slug>/brief.md (see GETTING_STARTED.md)."
-    fi
-    # Prefer the unique project whose brief status is 'active'. This is the wave
-    # actually in progress — the lowest-numbered dir is often a shipped earlier
-    # project. Only auto-pick when EXACTLY one project is active; with zero or
-    # several active, fall back to lowest-numbered (deterministic, prior behavior).
-    # `ACTIVE_PROJECT` always overrides (handled above).
-    local d b n=0 active_one=""
+    echo "$list"
+}
+
+# Echo "<count>|<dir>": how many projects are at `status: active`, and the last
+# such dir seen (meaningful only when count is 1). Single scan, shared by
+# get_active_project and get_active_project_resolution so the two cannot disagree.
+_scan_active_projects() {
+    local list d b n=0 active_one=""
+    list=$(_project_candidates)
     while IFS= read -r d; do
         [ -n "$d" ] || continue
         b="$d/brief.md"
@@ -103,11 +108,57 @@ get_active_project() {
     done <<EOF
 $list
 EOF
+    echo "${n}|${active_one}"
+}
+
+get_active_project() {
+    if [ -n "${ACTIVE_PROJECT:-}" ]; then
+        echo "${ACTIVE_PROJECT}"
+        return
+    fi
+    local list scan n active_one
+    list=$(_project_candidates)
+    if [ -z "$list" ]; then
+        die "No projects found in ./projects/. Create one by copying projects/_templates/project-brief.md into projects/PROJ-NNN-<slug>/brief.md (see GETTING_STARTED.md)."
+    fi
+    # Prefer the unique project whose brief status is 'active'. This is the wave
+    # actually in progress — the lowest-numbered dir is often a shipped earlier
+    # project. Only auto-pick when EXACTLY one project is active; with zero or
+    # several active, fall back to lowest-numbered (deterministic, prior behavior).
+    # Callers that DISPLAY this should ask get_active_project_resolution whether
+    # it is a real answer or a fallback, so they can say "none" instead.
+    # `ACTIVE_PROJECT` always overrides (handled above).
+    scan=$(_scan_active_projects)
+    n=${scan%%|*}
+    active_one=${scan#*|}
     if [ "$n" -eq 1 ]; then
         basename "$active_one"
         return
     fi
     basename "$(echo "$list" | head -n1)"
+}
+
+# How get_active_project arrived at its answer. Lets a caller distinguish a real
+# active project from the deterministic fallback, so `just status` can print
+# "none" rather than pointing at a long-shipped project.
+#
+#   env             — ACTIVE_PROJECT was set explicitly; taken at its word
+#   active          — exactly one project is at `status: active`
+#   none-active     — no project is active; the returned dir is a fallback
+#   multiple-active — several are active (ambiguous); the returned dir is a fallback
+get_active_project_resolution() {
+    if [ -n "${ACTIVE_PROJECT_ENV:-}" ]; then
+        echo "env"
+        return
+    fi
+    local n
+    n=$(_scan_active_projects)
+    n=${n%%|*}
+    case "$n" in
+        1) echo "active" ;;
+        0) echo "none-active" ;;
+        *) echo "multiple-active" ;;
+    esac
 }
 
 # List planned stages from a project's brief "## Stage Plan" section, one per
