@@ -63,7 +63,13 @@ if [ "$(has_json_flag "$@")" = 1 ]; then
 fi
 
 # --- Default: the stitched dashboard (human) -------------------------------
-printf "${BOLD}=== Dashboard — %s ===${RESET}\n\n" "$project"
+# Name the project only when it is a real active one; on a fallback the header
+# would otherwise contradict the status lens directly below it.
+if [ "$(get_active_project_resolution)" = "active" ] || [ -n "${ACTIVE_PROJECT_ENV:-}" ]; then
+    printf "${BOLD}=== Dashboard — %s ===${RESET}\n\n" "$project"
+else
+    printf "${BOLD}=== Dashboard ===${RESET}\n\n"
+fi
 
 printf "${BOLD}▸ Now${RESET} ${DIM}(just dash now)${RESET}\n"
 "${SCRIPT_DIR}/status.sh"
