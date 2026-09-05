@@ -11,9 +11,10 @@ Instructions for Claude working across all phases of this repository. Read this 
 ## 1. Repo Overview
 
 - **Repo (the app):** Animal Slots
-- **Purpose:** A play-money, mobile-first web slot game themed on North American wildlife, built so game logic is cleanly separable from presentation.
+- **Purpose:** A play-money, mobile-first web slot game across six themed machines, built so game logic is cleanly separable from presentation — and so a machine is *config data, not code* (DEC-015).
 - **Primary stakeholders:** Template maintainer (dogfooding the spec-driven template on a non-CRUD app); frontend devs evaluating the template; players wanting a quick play-money demo.
-- **Active project:** PROJ-001 — Animal Slots MVP
+- **Active project:** none — PROJ-001 … PROJ-006 are all shipped. Frame a new project before starting spec work.
+  > `just status` will still print `Active project: PROJ-001-animal-slots`. That is a deliberate fallback in `get_active_project` (`scripts/_lib.sh`): with zero projects at `status: active` it picks the lowest-numbered one deterministically. Set `ACTIVE_PROJECT=PROJ-NNN-<slug>` to override once a new wave is framed.
 
 See `.repo-context.yaml` for structured metadata.
 
@@ -125,11 +126,12 @@ Reports aggregate cost by cycle, by interface, by spec, and by stage.
 - **Framework:** React 18 + Vite
 - **Styling:** Vanilla CSS + CSS custom properties for design tokens (CSS modules optional); no UI component library.
 - **Audio:** Tone.js — synthesized at runtime, no audio asset files (see DEC-007).
-- **Database:** None. Client-only SPA; the only persistent state is two `localStorage` keys (balance, mute).
-- **Testing:** Vitest + React Testing Library. The engine (`src/engine/**`) is tested with plain Vitest, no DOM.
+- **Database:** None. Client-only SPA; all persistent state is `localStorage` (six keys — see `docs/data-model.md`).
+- **Machines:** Six, each a pure config object under `src/machines/` registered in `registry.ts` — a `math` slice the engine consumes and a `presentation` slice it never sees (DEC-015).
+- **Testing:** Vitest + React Testing Library. The engine (`src/engine/**`) is tested with plain Vitest, no DOM. `*.contract.test.ts` files assert shipped artifacts (SECURITY.md, `public/_headers`, machine parity) can't silently drift.
 - **Linter / Formatter:** ESLint (incl. the `no-restricted-imports` import-boundary rule enforcing `engine-no-dom`) + Prettier.
-- **Hosting:** Static SPA (Vite build) deployed to **Cloudflare Pages**, via CI on merge to `main` (STAGE-006; see DEC-008). Security headers via a Pages `_headers` file.
-- **CI:** GitHub Actions — lint + typecheck + test on every PR (plus the `cost-data` audit job).
+- **Hosting:** Static SPA (Vite build) deployed to **Cloudflare Workers Static Assets** via `wrangler deploy` (`wrangler.jsonc`); DEC-014 supersedes DEC-008's Pages choice. Security headers ship via `public/_headers`; HSTS is set at the Cloudflare zone/edge.
+- **CI:** GitHub Actions (`.github/workflows/ci.yml`) — three jobs: `app-checks` (lint + typecheck + test + build), `supply-chain` (`npm audit` + `scripts/license-check.mjs`), and `cost-data` (the cost-capture audit).
 
 ---
 
@@ -147,6 +149,15 @@ npm test -- <path>       # just test <path> — run a single test file (e.g. src
 npm run lint             # just lint       — ESLint (incl. the engine-no-dom import boundary)
 npm run typecheck        # just typecheck  — tsc --noEmit (strict)
 npm run build            # just build      — production Vite build (static assets)
+```
+
+Plus app commands with no npm-script equivalent:
+
+```bash
+just simulate                                      # RTP / hit-frequency / tier distribution, all machines
+just simulate arctic --spins 200000 --seed 24301   # tune one machine's math
+just license-check                                 # permissive-only allow-list (CI supply-chain job)
+just audit                                         # npm audit --omit=dev --audit-level=high
 ```
 
 > Note: the template's own maintainer self-test moved from `just test` to
@@ -184,8 +195,22 @@ npm run build            # just build      — production Vite build (static ass
 │   │   ├── stages/
 │   │   └── specs/
 │   │       └── done/
-│   └── PROJ-002-<slug>/
-└── src/                               # engine/ (pure TS), ui/ (React), styles/ (tokens) — see docs/architecture.md
+│   └── PROJ-002-<slug>/ … PROJ-006-<slug>/
+└── src/                               # see docs/architecture.md for the full layout
+    ├── engine/                        # pure TS game logic — no React, no DOM (DEC-001)
+    ├── machines/                      # the six machines as config data (DEC-015)
+    ├── ui/                            # React presentation — owns time, animation, audio, persistence
+    │   ├── ads/                       # first-party fake-ad probe (PROJ-004) — no ad network
+    │   ├── analytics/                 # provider wiring for the default-OFF seam
+    │   ├── audio/                     # Tone.js engine, mixer, jingles, sfx (DEC-007, DEC-013)
+    │   ├── machine/                   # machine provider + switcher
+    │   ├── stats/                     # session-stats UI (sparkline, sheet)
+    │   ├── theme/                     # per-machine CSS-custom-property theming
+    │   └── trophies/                  # trophy case, derived from session stats
+    ├── stats/                         # session-stats model + storage (DEC-020)
+    ├── analytics/                     # usage-analytics seam — OFF by default (DEC-023)
+    ├── deploy/                        # contract tests for _headers, favicon, security.txt
+    └── styles/                        # design tokens + resets
 ```
 
 ---
@@ -215,9 +240,9 @@ decisions, and a fresh verify session catches drift a continuation
 session wouldn't.
 
 **Model per cycle.** Frame and design are judgement-heavy planning — run them
-on **Opus** (claude-opus-4-8). Build and verify are execution against a detailed
+on **Opus** (claude-opus-5). Build and verify are execution against a detailed
 spec and a cold review against fixed criteria — run them on **Sonnet**
-(claude-sonnet-4-6): capable, faster, and cheaper for that work. When a cycle is
+(claude-sonnet-5): capable, faster, and cheaper for that work. When a cycle is
 run as a sub-agent, pass the model explicitly so it doesn't silently inherit the
 orchestrator's model. A spec's `agents.implementer` records the model that
 actually ran.
@@ -322,13 +347,14 @@ DECs are stable; specs come and go. DECs don't reciprocally list specs.
 - **Reel** — one of the five vertical columns; shows 3 visible symbols.
 - **Row** — vertical position within a reel: 0 (top) / 1 (mid) / 2 (bottom).
 - **Grid** — the 5×3 array of visible symbols a spin resolves to.
-- **Reel strip** — a weighted array of symbol IDs a reel's stop index is drawn from (common animals frequent, Wolf rare).
-- **Payline** — a fixed path across the five reels; pays on 3+ consecutive matching symbols starting at reel 0. v1 has five fixed lines (DEC-003).
+- **Reel strip** — a weighted array of symbol IDs a reel's stop index is drawn from (common animals frequent, the jackpot symbol rare). No longer hand-authored: generated from the machine's `reelWeights` by `buildStrip` (DEC-016), so weights are a live tuning knob.
+- **Payline** — a fixed path across the five reels; pays on 3+ consecutive matching symbols starting at reel 0. **20 fixed lines** — DEC-003 set the original five (L1–L5); DEC-016 added L6–L20 to reach the target hit-frequency.
 - **Paytable** — payout multiples (of total bet) per symbol tier for 3 / 4 / 5 of a kind.
 - **Tier (symbol)** — a symbol's class: Low / Mid / High / Jackpot.
-- **Win tier** — the celebration class of a spin: Small (>0 and <5× bet) / Big (≥5× bet) / Jackpot (five Wolves).
+- **Win tier** — the celebration class of a spin: Small (>0 and < `bigMultiple` × bet) / Big (≥ `bigMultiple` × bet) / Jackpot. Both the multiple (5× on Wild & Whimsical) and the jackpot rule (symbol + count, e.g. five Wolves) are per-machine config, not engine constants.
+- **Machine** — a playable variant as pure config (DEC-015): a `math` slice the engine consumes (symbols, weights, paytable, paylines, jackpot rule, tier boundaries, bet levels) plus a `presentation` slice it never sees (emoji + labels, theme tokens, audio params). Six are registered: Wild & Whimsical (default), Arctic, Desert, Ocean, Farm, Diner. Adding one is data, not code.
 - **Bet level** — total bet of 10 / 25 / 50 coins (the x1 / x2 / x3 levels).
-- **Spin / SpinResult** — one play, and the plain-data result the engine returns to the UI (grid, winning lines, total win, new balance, win tier).
+- **Spin / SpinResult** — one play, and the plain-data result the engine returns to the UI (grid, winning lines, total win, new balance, win tier). `spin()` actually returns a `SpinOutcome`: either `{ ok: true } & SpinResult`, or `{ ok: false, reason: 'insufficient-balance' }` with the balance unchanged — it never throws on an unaffordable bet (DEC-005).
 - **Juice** — the celebratory feel layer: paw-print trails, particles, balance count-up, jackpot moment, tier-scaled jingle.
 - **Auto-spin** — repeated spinning with an inter-spin delay; stops on jackpot, count exhaustion (default 10), or balance < bet.
 
